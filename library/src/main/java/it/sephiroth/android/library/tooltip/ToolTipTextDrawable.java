@@ -10,7 +10,7 @@ import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 
-public class ToolTipTextDrawable extends Drawable {
+class ToolTipTextDrawable extends Drawable {
 	static final String TAG = "ToolTipTextDrawable";
 	static final boolean DBG = TooltipManager.DBG;
 

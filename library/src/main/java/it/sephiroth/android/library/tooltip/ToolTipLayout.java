@@ -9,7 +9,6 @@ import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.os.Build;
 import android.text.Html;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -23,10 +22,11 @@ import com.nineoldandroids.animation.Animator;
 import com.nineoldandroids.animation.ObjectAnimator;
 import com.nineoldandroids.view.ViewHelper;
 
-public class ToolTipLayout extends ViewGroup {
+class ToolTipLayout extends ViewGroup {
 
 	static final boolean DBG = TooltipManager.DBG;
 	private static final String TAG = "ToolTipLayout";
+	private final long showDelay;
 
 	private boolean mAttached;
 	private boolean mInitialized;
@@ -63,6 +63,7 @@ public class ToolTipLayout extends ViewGroup {
 		this.topRule = builder.actionbarSize;
 		this.closePolity = builder.closePolicy;
 		this.showDuration = builder.showDuration;
+		this.showDelay = builder.showDelay;
 
 		this.targetView = builder.view;
 		this.point = builder.point;
@@ -129,6 +130,9 @@ public class ToolTipLayout extends ViewGroup {
 
 		mShowing = true;
 		mShowAnimation = ObjectAnimator.ofFloat(this, "alpha", 0, 1);
+		if (this.showDelay > 0) {
+			mShowAnimation.setStartDelay(this.showDelay);
+		}
 		mShowAnimation.addListener(new Animator.AnimatorListener() {
 			boolean cancelled;
 

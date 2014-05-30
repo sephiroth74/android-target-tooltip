@@ -1,5 +1,8 @@
 apply plugin: 'android-library'
 
+group GROUP
+version VERSION_NAME
+
 android {
     compileSdkVersion 19
     buildToolsVersion "19.0.3"
@@ -8,7 +11,7 @@ android {
         minSdkVersion 9
         targetSdkVersion 19
         versionCode 1
-        versionName "1.0"
+        versionName version
     }
     buildTypes {
         release {
@@ -20,7 +23,6 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:19.+'
     compile 'com.nineoldandroids:library:2.4.0'
 }
 
