@@ -3,7 +3,6 @@ package it.sephiroth.android.library.mymodule.app;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.graphics.Point;
-import android.hardware.display.DisplayManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -13,6 +12,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
 import it.sephiroth.android.library.tooltip.TooltipManager;
@@ -31,42 +31,41 @@ public class MainActivity extends ActionBarActivity {
 		final TooltipManager tooltipManager = TooltipManager.getInstance(this);
 
 		//@formatter:off
-		final TooltipManager.Builder builder = new TooltipManager.Builder(1)
+		final TooltipManager.Builder builder = tooltipManager.create(1)
 			.text("<font color='#006699'>Hello</font> Damn Rotten World!")
 			.anchor(mTextView, TooltipManager.Gravity.BOTTOM)
-		    .strokeWidth(4)
-		    .cornerRadius(14)
 			.actionBarSize(getActionBarSize())
-			.textResId(R.layout.custom_textview)
-			.closePolicy(TooltipManager.ClosePolicy.None, 5000)
+			.withCustomView(R.layout.custom_textview)
+			.closePolicy(TooltipManager.ClosePolicy.TouchOutside, 0)
+			.withStyleId(R.style.ToolTipLayoutCustomStyle)
+			.toggleArrow(false)
 			.maxWidth(400);
 		//@formatter:on
 
 		handler.postDelayed(new Runnable() {
 			@Override
 			public void run() {
-				tooltipManager.show(builder);
+				//				builder.show();
 			}
 		}, 1000);
 
 		findViewById(android.R.id.text1).setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(final View v) {
-				TooltipManager.getInstance(MainActivity.this).show(builder);
+				builder.show();
 			}
 		});
 
 		findViewById(R.id.button).setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(final View v) {
-				TooltipManager.Builder builder = new TooltipManager.Builder(2).actionBarSize(getActionBarSize()).text("Swipe " +
-				                                                                                                      "left" +
-				                                                                                                      " to see " +
-				                                                                                                      "more " +
-				                                                                                                      "content!")
-				                                                              .anchor(v, TooltipManager.Gravity.BOTTOM)
-				                                                              .closePolicy(TooltipManager.ClosePolicy.None, 3000);
-				TooltipManager.getInstance(MainActivity.this).show(builder);
+				TooltipManager.Builder builder = tooltipManager
+					.create(2)
+					.actionBarSize(getActionBarSize())
+					.text("Swipe left to see more content!")
+					.anchor(v, TooltipManager.Gravity.BOTTOM)
+				    .closePolicy(TooltipManager.ClosePolicy.None, 3000);
+				builder.show();
 			}
 		});
 
@@ -88,15 +87,21 @@ public class MainActivity extends ActionBarActivity {
 			@Override
 			public void onClick(final View v) {
 
+				getWindow().getDecorView().requestLayout();
+				getWindow().getDecorView().forceLayout();
+				ViewGroup decor = (ViewGroup) getWindow().getDecorView();
+				Log.d("tooltip", "decor.children: " + decor.getChildCount());
+
 				DisplayMetrics metrics = getResources().getDisplayMetrics();
 
-				TooltipManager.Builder builder = new TooltipManager.Builder(3)
-					.text("Swipe this way right<br />or you can die moron!!!")
-					.anchor(new Point(metrics.widthPixels, getActionBarSize() + 100), TooltipManager.Gravity.LEFT)
-					.actionBarSize(getActionBarSize())
-					.maxWidth(400)
-					.closePolicy(TooltipManager.ClosePolicy.TouchOutside, 5000);
-				TooltipManager.getInstance(MainActivity.this).show(builder);
+				TooltipManager.Builder builder = tooltipManager
+					.create(3).text("Swipe this way right<br />or you can press the top tabs!")
+				    .anchor(new Point(metrics.widthPixels, getActionBarSize() + 100), TooltipManager.Gravity.LEFT)
+				    .actionBarSize(getActionBarSize())
+				    .maxWidth(500)
+				    .showDelay(500)
+				    .closePolicy(TooltipManager.ClosePolicy.TouchOutside, 5000);
+				builder.show();
 			}
 		});
 	}

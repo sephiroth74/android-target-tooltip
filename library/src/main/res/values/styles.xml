@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+	<style name="ToolTipLayoutDefaultStyle">
+		<item name="ttlm_padding">@dimen/ttlm_default_padding</item>
+		<item name="ttlm_strokeColor">@color/ttlm_default_stroke_color</item>
+		<item name="ttlm_backgroundColor">@color/ttlm_default_background_color</item>
+		<item name="ttlm_strokeWeight">@dimen/ttlm_default_stroke_weight</item>
+		<item name="ttlm_cornerRadius">@dimen/ttlm_default_corner_radius</item>
+	</style>
+</resources>

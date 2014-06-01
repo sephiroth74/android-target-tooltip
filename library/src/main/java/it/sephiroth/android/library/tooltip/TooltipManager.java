@@ -21,7 +21,7 @@ public class TooltipManager implements ToolTipLayout.OnCloseListener, ToolTipLay
 	final Activity mActivity;
 
 	public TooltipManager(final Activity activity) {
-		if(DBG) Log.i(TAG, "TooltipManager: " + activity);
+		if (DBG) Log.i(TAG, "TooltipManager: " + activity);
 		mActivity = activity;
 	}
 
@@ -30,7 +30,7 @@ public class TooltipManager implements ToolTipLayout.OnCloseListener, ToolTipLay
 	}
 
 	private boolean show(Builder builder) {
-		if(DBG) Log.i(TAG, "show");
+		if (DBG) Log.i(TAG, "show");
 
 		if (mTooltips.containsKey(builder.id)) {
 			Log.w(TAG, "A Tooltip with the same id was walready specified");
@@ -47,7 +47,7 @@ public class TooltipManager implements ToolTipLayout.OnCloseListener, ToolTipLay
 	}
 
 	public void hide(int id) {
-		if(DBG) Log.i(TAG, "hide: " + id);
+		if (DBG) Log.i(TAG, "hide: " + id);
 
 		ToolTipLayout layout = mTooltips.remove(id);
 		if (null != layout) {
@@ -58,7 +58,7 @@ public class TooltipManager implements ToolTipLayout.OnCloseListener, ToolTipLay
 	}
 
 	public void remove(int id) {
-		if(DBG) Log.i(TAG, "remove: " + id);
+		if (DBG) Log.i(TAG, "remove: " + id);
 
 		ToolTipLayout layout = mTooltips.remove(id);
 		if (null != layout) {
@@ -83,7 +83,7 @@ public class TooltipManager implements ToolTipLayout.OnCloseListener, ToolTipLay
 	}
 
 	private void destroy() {
-		if(DBG) Log.i(TAG, "destroy");
+		if (DBG) Log.i(TAG, "destroy");
 		for (int id : mTooltips.keySet()) {
 			remove(id);
 		}
@@ -106,32 +106,27 @@ public class TooltipManager implements ToolTipLayout.OnCloseListener, ToolTipLay
 
 	@Override
 	public void onClose(final ToolTipLayout layout) {
-		if(DBG) Log.i(TAG, "onClose: " + layout.getTooltipId());
+		if (DBG) Log.i(TAG, "onClose: " + layout.getTooltipId());
 		hide(layout.getTooltipId());
 	}
 
 	@Override
 	public void onHideCompleted(final ToolTipLayout layout) {
-		if(DBG) Log.i(TAG, "onHideCompleted: " + layout.getTooltipId());
+		if (DBG) Log.i(TAG, "onHideCompleted: " + layout.getTooltipId());
 		layout.removeFromParent();
 		printStats();
 	}
 
 	@Override
 	public void onShowCompleted(final ToolTipLayout layout) {
-		if(DBG) Log.i(TAG, "onShowCompleted: " + layout.getTooltipId());
+		if (DBG) Log.i(TAG, "onShowCompleted: " + layout.getTooltipId());
 	}
 
 	public static final class Builder {
 		int id;
 		CharSequence text;
 		View view;
-		Gravity gravitiy;
-		int maxWidth = - 1;
-		int ellipseSize = 12;
-		int strokeWidth = 4;
-		int backgroundColor = 0xEE131518;
-		int strokeColor = 0xFFe9ecef;
+		Gravity gravity;
 		int actionbarSize = 0;
 		int textResId = R.layout.tooltip_textview;
 		ClosePolicy closePolicy;
@@ -139,14 +134,31 @@ public class TooltipManager implements ToolTipLayout.OnCloseListener, ToolTipLay
 		Point point;
 		WeakReference<TooltipManager> manager;
 		long showDelay = 0;
+		boolean hideArrow;
+		int maxWidth = - 1;
+		int defStyleRes = R.style.ToolTipLayoutDefaultStyle;
+		int defStyleAttr = R.attr.ttlm_defaultStyle;
 
 		Builder(final TooltipManager manager, int id) {
 			this.manager = new WeakReference<TooltipManager>(manager);
 			this.id = id;
 		}
 
-		public Builder textResId(int resId) {
+		/**
+		 * Use a custom View for the tooltip. Note that the custom view
+		 * must include a TextView which id is `@android:id/text1`
+		 *
+		 * @param resId
+		 * @return
+		 */
+		public Builder withCustomView(int resId) {
 			this.textResId = resId;
+			return this;
+		}
+
+		public Builder withStyleId(int styleId) {
+			this.defStyleAttr = 0;
+			this.defStyleRes = styleId;
 			return this;
 		}
 
@@ -167,34 +179,19 @@ public class TooltipManager implements ToolTipLayout.OnCloseListener, ToolTipLay
 		public Builder anchor(View view, Gravity gravity) {
 			this.point = null;
 			this.view = view;
-			this.gravitiy = gravity;
+			this.gravity = gravity;
 			return this;
 		}
 
 		public Builder anchor(final Point point, final Gravity gravity) {
 			this.view = null;
 			this.point = new Point(point);
-			this.gravitiy = gravity;
+			this.gravity = gravity;
 			return this;
 		}
 
-		public Builder strokeWidth(int size) {
-			this.strokeWidth = size;
-			return this;
-		}
-
-		public Builder cornerRadius(int size) {
-			this.ellipseSize = size;
-			return this;
-		}
-
-		public Builder strokeColor(int color) {
-			this.strokeColor = color;
-			return this;
-		}
-
-		public Builder backgroundColor(int color) {
-			this.backgroundColor = color;
+		public Builder toggleArrow(boolean show) {
+			this.hideArrow = ! show;
 			return this;
 		}
 
@@ -215,6 +212,10 @@ public class TooltipManager implements ToolTipLayout.OnCloseListener, ToolTipLay
 		}
 
 		public boolean show() {
+			// verification
+			if (null == closePolicy) throw new IllegalStateException("ClosePolicy cannot be null");
+			if (null == point && null == view) throw new IllegalStateException("Target point or target view must be specified");
+
 			TooltipManager tmanager = this.manager.get();
 			if (null != tmanager) {
 				return tmanager.show(this);
@@ -224,7 +225,20 @@ public class TooltipManager implements ToolTipLayout.OnCloseListener, ToolTipLay
 	}
 
 	public static enum ClosePolicy {
-		None, TouchOutside, TouchInside
+		/**
+		 * tooltip will hide when touching it, or after the specified delay.
+		 * If delay is '0' the tooltip will never hide until clicked
+		 */
+		TouchInside,
+		/**
+		 * tooltip will hide when user touches the screen, or after the specified delay.
+		 * If delay is '0' the tooltip will never hide until clicked
+		 */
+		TouchOutside,
+		/**
+		 * tooltip is hidden only after the specified delay
+		 */
+		None
 	}
 
 	public static enum Gravity {
@@ -233,7 +247,7 @@ public class TooltipManager implements ToolTipLayout.OnCloseListener, ToolTipLay
 
 
 	public static void removeInstance(Activity activity) {
-		if(DBG) Log.i(TAG, "removeInstance: " + activity);
+		if (DBG) Log.i(TAG, "removeInstance: " + activity);
 		TooltipManager sInstance = instances.remove(activity);
 
 		if (sInstance != null) {
@@ -244,7 +258,7 @@ public class TooltipManager implements ToolTipLayout.OnCloseListener, ToolTipLay
 	}
 
 	public static TooltipManager getInstance(Activity activity) {
-		if(DBG) Log.i(TAG, "getInstance: " + activity);
+		if (DBG) Log.i(TAG, "getInstance: " + activity);
 		TooltipManager sInstance = instances.get(activity);
 
 		if (sInstance == null) {

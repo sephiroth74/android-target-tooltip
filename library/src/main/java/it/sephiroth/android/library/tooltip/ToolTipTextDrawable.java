@@ -1,5 +1,7 @@
 package it.sephiroth.android.library.tooltip;
 
+import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
@@ -14,9 +16,7 @@ class ToolTipTextDrawable extends Drawable {
 	static final String TAG = "ToolTipTextDrawable";
 	static final boolean DBG = TooltipManager.DBG;
 
-	private final int strokeColor;
-	private final int backgroundColor;
-	private final Rect outBounds;
+	private final RectF rectF;
 	private final Path path;
 	private Point point;
 
@@ -25,17 +25,24 @@ class ToolTipTextDrawable extends Drawable {
 
 	private final float ellipseSize;
 	private final int strokeWidth;
+	private final int strokeColor;
+	private final int backgroundColor;
 
 	private int padding = 0;
 
 	private TooltipManager.Gravity gravity;
 
-	public ToolTipTextDrawable(final TooltipManager.Builder builder) {
-		this.backgroundColor = builder.backgroundColor;
-		this.strokeColor = builder.strokeColor;
-		this.strokeWidth = builder.strokeWidth;
-		this.ellipseSize = builder.ellipseSize;
-		this.outBounds = new Rect();
+	public ToolTipTextDrawable(final Context context, final TooltipManager.Builder builder) {
+
+		TypedArray theme =
+			context.getTheme().obtainStyledAttributes(null, R.styleable.ToolTipLayout, builder.defStyleAttr, builder.defStyleRes);
+		this.ellipseSize = theme.getDimensionPixelSize(R.styleable.ToolTipLayout_ttlm_cornerRadius, 4);
+		this.strokeWidth = theme.getDimensionPixelSize(R.styleable.ToolTipLayout_ttlm_strokeWeight, 30);
+		this.backgroundColor = theme.getColor(R.styleable.ToolTipLayout_ttlm_backgroundColor, 0);
+		this.strokeColor = theme.getColor(R.styleable.ToolTipLayout_ttlm_strokeColor, 0);
+		theme.recycle();
+
+		this.rectF = new RectF();
 
 		bgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		bgPaint.setColor(this.backgroundColor);
@@ -111,10 +118,9 @@ class ToolTipTextDrawable extends Drawable {
 			path.quadTo(left, top, left + ellipseSize, top);
 		}
 		else {
-			final RectF rect = new RectF(outBounds);
-			path.addRoundRect(rect, ellipseSize, ellipseSize, Path.Direction.CW);
+			rectF.set(left, top, right, bottom);
+			path.addRoundRect(rectF, ellipseSize, ellipseSize, Path.Direction.CW);
 		}
-
 	}
 
 	@Override

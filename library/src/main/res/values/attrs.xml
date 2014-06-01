@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<!-- default style for theme -->
+	<attr name="ttlm_defaultStyle" format="reference" />
+
+	<!-- default style -->
+	<declare-styleable name="ToolTipLayout">
+		<attr name="ttlm_padding" format="dimension" />
+		<attr name="ttlm_strokeColor" format="color" />
+		<attr name="ttlm_backgroundColor" format="color" />
+		<attr name="ttlm_strokeWeight" format="dimension" />
+		<attr name="ttlm_cornerRadius" format="dimension" />
+	</declare-styleable>
+</resources>

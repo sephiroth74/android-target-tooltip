@@ -2,6 +2,7 @@ package it.sephiroth.android.library.tooltip;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.PorterDuff;
@@ -43,10 +44,11 @@ class ToolTipLayout extends ViewGroup {
 	private final int textResId;
 	private final int topRule;
 	private final int maxWidth;
+	private final boolean hideArrow;
+	private final int padding;
 
 	private CharSequence text;
 	TooltipManager.Gravity gravitiy;
-	private int padding = 60;
 
 	private View mView;
 	private TextView mTextView;
@@ -55,15 +57,21 @@ class ToolTipLayout extends ViewGroup {
 	public ToolTipLayout(Context context, TooltipManager.Builder builder) {
 		super(context);
 
+		TypedArray theme =
+			context.getTheme().obtainStyledAttributes(null, R.styleable.ToolTipLayout, builder.defStyleAttr, builder.defStyleRes);
+		this.padding = theme.getDimensionPixelSize(R.styleable.ToolTipLayout_ttlm_padding, 30);
+		theme.recycle();
+
 		this.toolTipId = builder.id;
 		this.text = builder.text;
-		this.gravitiy = builder.gravitiy;
+		this.gravitiy = builder.gravity;
 		this.textResId = builder.textResId;
 		this.maxWidth = builder.maxWidth;
 		this.topRule = builder.actionbarSize;
 		this.closePolity = builder.closePolicy;
 		this.showDuration = builder.showDuration;
 		this.showDelay = builder.showDelay;
+		this.hideArrow = builder.hideArrow;
 
 		this.targetView = builder.view;
 		this.point = builder.point;
@@ -72,7 +80,7 @@ class ToolTipLayout extends ViewGroup {
 		this.drawRect = new Rect();
 		this.tempRect = new Rect();
 
-		this.mDrawable = new ToolTipTextDrawable(builder);
+		this.mDrawable = new ToolTipTextDrawable(context, builder);
 
 		setVisibility(GONE);
 		setHardwareAccelerated(true);
@@ -256,7 +264,7 @@ class ToolTipLayout extends ViewGroup {
 
 	@Override
 	protected void onMeasure(final int widthMeasureSpec, final int heightMeasureSpec) {
-		Log.i(TAG, "onMeasure");
+		if(DBG) Log.i(TAG, "onMeasure");
 		super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
 		int myWidth = - 1;
@@ -276,8 +284,10 @@ class ToolTipLayout extends ViewGroup {
 			myHeight = heightSize;
 		}
 
-		Log.v(TAG, "myWidth: " + myWidth);
-		Log.v(TAG, "myHeight: " + myHeight);
+		if (DBG) {
+			Log.v(TAG, "myWidth: " + myWidth);
+			Log.v(TAG, "myHeight: " + myHeight);
+		}
 
 		final int count = getChildCount();
 
@@ -350,10 +360,6 @@ class ToolTipLayout extends ViewGroup {
 
 		int width = mView.getWidth();
 		int height = mView.getMeasuredHeight();
-		if (DBG) {
-			Log.d(TAG, "screen.size: " + screenRect);
-			Log.d(TAG, "textView.size: " + width + "x" + height);
-		}
 
 		// get the destination point
 		Point point = new Point();
@@ -389,9 +395,6 @@ class ToolTipLayout extends ViewGroup {
 			             viewRect.centerX() + width / 2,
 			             viewRect.top);
 
-			Log.d(TAG, "final bounds: " + drawRect);
-			Log.d(TAG, "contains: " + screenRect.contains(drawRect));
-
 			point.x = viewRect.centerX();
 			point.y = viewRect.top;
 
@@ -415,9 +418,6 @@ class ToolTipLayout extends ViewGroup {
 			             viewRect.centerY() - height / 2,
 			             viewRect.right + width,
 			             viewRect.centerY() + height / 2);
-
-			Log.d(TAG, "final bounds: " + drawRect);
-			Log.d(TAG, "contains: " + screenRect.contains(drawRect));
 
 			point.x = viewRect.right;
 			point.y = viewRect.centerY();
@@ -443,9 +443,6 @@ class ToolTipLayout extends ViewGroup {
 			             viewRect.left,
 			             viewRect.centerY() + height / 2);
 
-			Log.d(TAG, "final bounds: " + drawRect);
-			Log.d(TAG, "contains: " + screenRect.contains(drawRect));
-
 			point.x = viewRect.left;
 			point.y = viewRect.centerY();
 
@@ -466,8 +463,6 @@ class ToolTipLayout extends ViewGroup {
 		}
 		//@formatter:on
 
-		Log.d(TAG, "drawRect: " + drawRect);
-
 		// translate the textview
 		ViewHelper.setTranslationX(mView, drawRect.left);
 		ViewHelper.setTranslationY(mView, drawRect.top);
@@ -478,19 +473,17 @@ class ToolTipLayout extends ViewGroup {
 		point.x -= tempRect.left;
 		point.y -= tempRect.top;
 
-		if(gravitiy == TooltipManager.Gravity.LEFT || gravitiy == TooltipManager.Gravity.RIGHT) {
-			point.y -= padding/2;
-		} else {
-			point.x -= padding/2;
+		if (gravitiy == TooltipManager.Gravity.LEFT || gravitiy == TooltipManager.Gravity.RIGHT) {
+			point.y -= padding / 2;
+		}
+		else {
+			point.x -= padding / 2;
 		}
 
 		drawable.setAnchor(gravitiy, padding / 2);
-		drawable.setDestinationPoint(point);
 
-		if(DBG) {
-			Log.d(TAG, "viewRect: " + viewRect);
-			Log.d(TAG, "tempRect: " + tempRect);
-			Log.d(TAG, "point: " + point);
+		if (! this.hideArrow) {
+			drawable.setDestinationPoint(point);
 		}
 	}
 
