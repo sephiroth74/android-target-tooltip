@@ -215,6 +215,7 @@ public class TooltipManager implements ToolTipLayout.OnCloseListener, ToolTipLay
 			// verification
 			if (null == closePolicy) throw new IllegalStateException("ClosePolicy cannot be null");
 			if (null == point && null == view) throw new IllegalStateException("Target point or target view must be specified");
+			if( gravity == Gravity.CENTER ) hideArrow = true;
 
 			TooltipManager tmanager = this.manager.get();
 			if (null != tmanager) {
@@ -242,7 +243,7 @@ public class TooltipManager implements ToolTipLayout.OnCloseListener, ToolTipLay
 	}
 
 	public static enum Gravity {
-		LEFT, RIGHT, TOP, BOTTOM
+		LEFT, RIGHT, TOP, BOTTOM, CENTER
 	}
 
 

@@ -460,6 +460,29 @@ class ToolTipLayout extends ViewGroup {
 					return;
 				}
 			}
+		} else if (gravitiy == TooltipManager.Gravity.CENTER) {
+			drawRect.set(viewRect.centerX() - width / 2,
+			             viewRect.centerY() - height / 2,
+			             viewRect.centerX() - width / 2,
+			             viewRect.centerY() + height / 2);
+
+			point.x = viewRect.centerX();
+			point.y = viewRect.centerY();
+
+			if (! screenRect.contains(drawRect)) {
+				if (drawRect.bottom > screenRect.bottom) {
+					drawRect.offset(0, screenRect.bottom - drawRect.bottom);
+				}
+				else if (drawRect.top < screenRect.top) {
+					drawRect.offset(0, screenRect.top - drawRect.top);
+				}
+				if (drawRect.right > screenRect.right) {
+					drawRect.offset(screenRect.right - drawRect.right, 0);
+				}
+				else if (drawRect.left < screenRect.left) {
+					drawRect.offset(screenRect.left - drawRect.left, 0);
+				}
+			}
 		}
 		//@formatter:on
 
