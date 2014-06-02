@@ -9,9 +9,10 @@ import android.view.ViewGroup;
 
 import java.lang.ref.WeakReference;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 
 public class TooltipManager implements ToolTipLayout.OnCloseListener, ToolTipLayout.OnToolTipListener {
-	static final boolean DBG = false;
+	static final boolean DBG = true;
 	private static ConcurrentHashMap<Activity, TooltipManager> instances = new ConcurrentHashMap<Activity, TooltipManager>();
 	private static final String TAG = "TooltipManager";
 
@@ -55,6 +56,16 @@ public class TooltipManager implements ToolTipLayout.OnCloseListener, ToolTipLay
 			layout.doHide();
 		}
 		printStats();
+	}
+
+	public void update(int id){
+
+		ToolTipLayout layout = mTooltips.get(id);
+		if (null != layout) {
+			if (DBG) Log.i(TAG, "update: " + id);
+			layout.layout(layout.getLeft(), layout.getTop(), layout.getRight(), layout.getBottom());
+			layout.requestLayout();
+		}
 	}
 
 	public void remove(int id) {
@@ -122,6 +133,12 @@ public class TooltipManager implements ToolTipLayout.OnCloseListener, ToolTipLay
 		if (DBG) Log.i(TAG, "onShowCompleted: " + layout.getTooltipId());
 	}
 
+	@Override
+	public void onShowFailed(final ToolTipLayout layout) {
+		if (DBG) Log.i(TAG, "onShowFailed: " + layout.getTooltipId());
+		remove(layout.getTooltipId());
+	}
+
 	public static final class Builder {
 		int id;
 		CharSequence text;
@@ -138,6 +155,7 @@ public class TooltipManager implements ToolTipLayout.OnCloseListener, ToolTipLay
 		int maxWidth = - 1;
 		int defStyleRes = R.style.ToolTipLayoutDefaultStyle;
 		int defStyleAttr = R.attr.ttlm_defaultStyle;
+		long activateDelay = 0;
 
 		Builder(final TooltipManager manager, int id) {
 			this.manager = new WeakReference<TooltipManager>(manager);
@@ -203,6 +221,11 @@ public class TooltipManager implements ToolTipLayout.OnCloseListener, ToolTipLay
 		public Builder closePolicy(ClosePolicy policy, long milliseconds) {
 			this.closePolicy = policy;
 			this.showDuration = milliseconds;
+			return this;
+		}
+
+		public Builder activateDelay(long ms) {
+			this.activateDelay = ms;
 			return this;
 		}
 
