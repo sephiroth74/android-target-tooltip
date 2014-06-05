@@ -589,7 +589,7 @@ class ToolTipLayout extends ViewGroup {
 
 	@Override
 	public boolean onTouchEvent(final MotionEvent event) {
-		if (DBG) Log.i(TAG, "onTouchEvent: " + event.getAction());
+		if (DBG) Log.i(TAG, "onTouchEvent: " + event.getAction() + ", active: " + mActivated);
 		if (! mAttached) return false;
 
 		final int action = event.getAction();
@@ -600,13 +600,16 @@ class ToolTipLayout extends ViewGroup {
 				return true;
 			}
 
-			if(action == MotionEvent.ACTION_DOWN) {
+			if (action == MotionEvent.ACTION_DOWN) {
 				if (closePolity == TooltipManager.ClosePolicy.TouchInside) {
-					onClose();
+					if (drawRect.contains((int) event.getX(), (int) event.getY())) {
+						onClose();
+					}
 					return true;
-				} else {
+				}
+				else {
 					onClose();
-					return drawRect.contains((int)event.getX(), (int)event.getY());
+					return drawRect.contains((int) event.getX(), (int) event.getY());
 				}
 			}
 		}

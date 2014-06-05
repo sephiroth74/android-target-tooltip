@@ -63,7 +63,7 @@ class ToolTipTextDrawable extends Drawable {
 		int top = outBounds.top + padding;
 		int right = outBounds.right - padding;
 		int bottom = outBounds.bottom - padding;
-		int arrowWeight = padding / 2;
+		int arrowWeight = (int) ((float)padding / 1.2f);
 
 		if (null != point && null != gravity) {
 			path.reset();

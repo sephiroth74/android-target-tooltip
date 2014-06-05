@@ -8,18 +8,47 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import java.lang.ref.WeakReference;
+import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
 
-public class TooltipManager implements ToolTipLayout.OnCloseListener, ToolTipLayout.OnToolTipListener {
-	static final boolean DBG = true;
+public class TooltipManager {
+	static final boolean DBG = false;
+
 	private static ConcurrentHashMap<Activity, TooltipManager> instances = new ConcurrentHashMap<Activity, TooltipManager>();
 	private static final String TAG = "TooltipManager";
 
 
-	final ConcurrentHashMap<Integer, ToolTipLayout> mTooltips = new ConcurrentHashMap<Integer, ToolTipLayout>();
-
+	final Object lock = new Object();
+	final HashMap<Integer, ToolTipLayout> mTooltips = new HashMap<Integer, ToolTipLayout>();
 	final Activity mActivity;
+
+	private ToolTipLayout.OnCloseListener mCloseListener = new ToolTipLayout.OnCloseListener() {
+		@Override
+		public void onClose(final ToolTipLayout layout) {
+			if (DBG) Log.i(TAG, "onClose: " + layout.getTooltipId());
+			hide(layout.getTooltipId());
+		}
+	};
+
+	private ToolTipLayout.OnToolTipListener mTooltipListener = new ToolTipLayout.OnToolTipListener() {
+		@Override
+		public void onHideCompleted(final ToolTipLayout layout) {
+			if (DBG) Log.i(TAG, "onHideCompleted: " + layout.getTooltipId());
+			layout.removeFromParent();
+			printStats();
+		}
+
+		@Override
+		public void onShowCompleted(final ToolTipLayout layout) {
+			if (DBG) Log.i(TAG, "onShowCompleted: " + layout.getTooltipId());
+		}
+
+		@Override
+		public void onShowFailed(final ToolTipLayout layout) {
+			if (DBG) Log.i(TAG, "onShowFailed: " + layout.getTooltipId());
+			remove(layout.getTooltipId());
+		}
+	};
 
 	public TooltipManager(final Activity activity) {
 		if (DBG) Log.i(TAG, "TooltipManager: " + activity);
@@ -33,16 +62,18 @@ public class TooltipManager implements ToolTipLayout.OnCloseListener, ToolTipLay
 	private boolean show(Builder builder) {
 		if (DBG) Log.i(TAG, "show");
 
-		if (mTooltips.containsKey(builder.id)) {
-			Log.w(TAG, "A Tooltip with the same id was walready specified");
-			return false;
-		}
+		synchronized (lock) {
+			if (mTooltips.containsKey(builder.id)) {
+				Log.w(TAG, "A Tooltip with the same id was walready specified");
+				return false;
+			}
 
-		ToolTipLayout layout = new ToolTipLayout(mActivity, builder);
-		layout.setOnCloseListener(this);
-		layout.setOnToolTipListener(this);
-		mTooltips.put(builder.id, layout);
-		showInternal(layout);
+			ToolTipLayout layout = new ToolTipLayout(mActivity, builder);
+			layout.setOnCloseListener(mCloseListener);
+			layout.setOnToolTipListener(mTooltipListener);
+			mTooltips.put(builder.id, layout);
+			showInternal(layout);
+		}
 		printStats();
 		return true;
 	}
@@ -50,17 +81,22 @@ public class TooltipManager implements ToolTipLayout.OnCloseListener, ToolTipLay
 	public void hide(int id) {
 		if (DBG) Log.i(TAG, "hide: " + id);
 
-		ToolTipLayout layout = mTooltips.remove(id);
+		final ToolTipLayout layout;
+		synchronized (lock) {
+			layout = mTooltips.remove(id);
+		}
 		if (null != layout) {
 			layout.setOnCloseListener(null);
 			layout.doHide();
+			printStats();
 		}
-		printStats();
 	}
 
-	public void update(int id){
-
-		ToolTipLayout layout = mTooltips.get(id);
+	public void update(int id) {
+		final ToolTipLayout layout;
+		synchronized (lock) {
+			layout = mTooltips.get(id);
+		}
 		if (null != layout) {
 			if (DBG) Log.i(TAG, "update: " + id);
 			layout.layout(layout.getLeft(), layout.getTop(), layout.getRight(), layout.getBottom());
@@ -68,10 +104,20 @@ public class TooltipManager implements ToolTipLayout.OnCloseListener, ToolTipLay
 		}
 	}
 
+	public boolean active(int id) {
+		synchronized (lock) {
+			return mTooltips.containsKey(id);
+		}
+	}
+
 	public void remove(int id) {
 		if (DBG) Log.i(TAG, "remove: " + id);
 
-		ToolTipLayout layout = mTooltips.remove(id);
+		final ToolTipLayout layout;
+		synchronized (lock) {
+			layout = mTooltips.remove(id);
+		}
+
 		if (null != layout) {
 			layout.setOnCloseListener(null);
 			layout.setOnToolTipListener(null);
@@ -81,7 +127,10 @@ public class TooltipManager implements ToolTipLayout.OnCloseListener, ToolTipLay
 	}
 
 	public void setText(int id, final CharSequence text) {
-		ToolTipLayout layout = mTooltips.get(id);
+		ToolTipLayout layout;
+		synchronized (lock) {
+			layout = mTooltips.get(id);
+		}
 		if (null != layout) {
 			layout.setText(text);
 		}
@@ -95,8 +144,10 @@ public class TooltipManager implements ToolTipLayout.OnCloseListener, ToolTipLay
 
 	private void destroy() {
 		if (DBG) Log.i(TAG, "destroy");
-		for (int id : mTooltips.keySet()) {
-			remove(id);
+		synchronized (lock) {
+			for (int id : mTooltips.keySet()) {
+				remove(id);
+			}
 		}
 		printStats();
 	}
@@ -113,30 +164,6 @@ public class TooltipManager implements ToolTipLayout.OnCloseListener, ToolTipLay
 			}
 			layout.doShow();
 		}
-	}
-
-	@Override
-	public void onClose(final ToolTipLayout layout) {
-		if (DBG) Log.i(TAG, "onClose: " + layout.getTooltipId());
-		hide(layout.getTooltipId());
-	}
-
-	@Override
-	public void onHideCompleted(final ToolTipLayout layout) {
-		if (DBG) Log.i(TAG, "onHideCompleted: " + layout.getTooltipId());
-		layout.removeFromParent();
-		printStats();
-	}
-
-	@Override
-	public void onShowCompleted(final ToolTipLayout layout) {
-		if (DBG) Log.i(TAG, "onShowCompleted: " + layout.getTooltipId());
-	}
-
-	@Override
-	public void onShowFailed(final ToolTipLayout layout) {
-		if (DBG) Log.i(TAG, "onShowFailed: " + layout.getTooltipId());
-		remove(layout.getTooltipId());
 	}
 
 	public static final class Builder {
@@ -238,7 +265,7 @@ public class TooltipManager implements ToolTipLayout.OnCloseListener, ToolTipLay
 			// verification
 			if (null == closePolicy) throw new IllegalStateException("ClosePolicy cannot be null");
 			if (null == point && null == view) throw new IllegalStateException("Target point or target view must be specified");
-			if( gravity == Gravity.CENTER ) hideArrow = true;
+			if (gravity == Gravity.CENTER) hideArrow = true;
 
 			TooltipManager tmanager = this.manager.get();
 			if (null != tmanager) {
