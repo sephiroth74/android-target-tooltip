@@ -1,5 +1,6 @@
 package it.sephiroth.android.library.tooltip;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -97,6 +98,7 @@ class ToolTipLayout extends ViewGroup {
 		return toolTipId;
 	}
 
+	@TargetApi (Build.VERSION_CODES.HONEYCOMB)
 	protected void setHardwareAccelerated(boolean accelerated) {
 		if (accelerated) {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
