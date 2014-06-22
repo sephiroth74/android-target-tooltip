@@ -1,121 +1,56 @@
 package it.sephiroth.android.library.mymodule.app;
 
-import android.content.res.Configuration;
 import android.content.res.TypedArray;
-import android.graphics.Point;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
+import android.widget.AbsListView;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import it.sephiroth.android.library.tooltip.TooltipManager;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends ActionBarActivity implements AbsListView.OnScrollListener, AdapterView.OnItemClickListener {
 
+	private static final String TAG = "MainActivity";
 	TextView mTextView;
 	final Handler handler = new Handler();
+	TooltipManager tooltipManager;
+	ListView listView;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-		final TooltipManager tooltipManager = TooltipManager.getInstance(this);
+		List<String> array = new ArrayList<String>();
+		for (int i = 0; i < 100; i++) {
+			array.add(String.format("Item %d", i));
+		}
 
-		//@formatter:off
-		final TooltipManager.Builder builder = tooltipManager.create(1)
-			.text("<font color='#006699'>Hello</font> Damn Rotten World!")
-			.anchor(mTextView, TooltipManager.Gravity.BOTTOM)
-			.actionBarSize(getActionBarSize())
-			.withCustomView(R.layout.custom_textview)
-			.closePolicy(TooltipManager.ClosePolicy.TouchOutside, 0)
-			.withStyleId(R.style.ToolTipLayoutCustomStyle)
-			.toggleArrow(false)
-			.maxWidth(400);
-		//@formatter:on
+		listView = (ListView) findViewById(android.R.id.list);
+		listView.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, array));
+		listView.setOnScrollListener(this);
+		listView.setOnItemClickListener(this);
 
-		handler.postDelayed(new Runnable() {
-			@Override
-			public void run() {
-				//				builder.show();
-			}
-		}, 1000);
-
-		findViewById(android.R.id.text1).setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(final View v) {
-				builder.show();
-			}
-		});
-
-		findViewById(R.id.button).setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(final View v) {
-				TooltipManager.Builder builder = tooltipManager
-					.create(2)
-					.actionBarSize(getActionBarSize())
-					.text("Swipe left to see more content!")
-					.anchor(v, TooltipManager.Gravity.BOTTOM)
-				    .closePolicy(TooltipManager.ClosePolicy.None, 3000);
-				builder.show();
-			}
-		});
-
-		findViewById(R.id.button2).setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(final View v) {
-				TooltipManager.getInstance(MainActivity.this).hide(2);
-			}
-		});
-
-		findViewById(R.id.button3).setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(final View v) {
-				TooltipManager.getInstance(MainActivity.this).remove(1);
-			}
-		});
-
-		findViewById(R.id.button4).setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(final View v) {
-
-				getWindow().getDecorView().requestLayout();
-				getWindow().getDecorView().forceLayout();
-				ViewGroup decor = (ViewGroup) getWindow().getDecorView();
-				Log.d("tooltip", "decor.children: " + decor.getChildCount());
-
-				DisplayMetrics metrics = getResources().getDisplayMetrics();
-
-				TooltipManager.Builder builder = tooltipManager
-					.create(3).text("Swipe this way right<br />or you can press the top tabs!")
-				    .anchor(new Point(metrics.widthPixels, getActionBarSize() + 100), TooltipManager.Gravity.LEFT)
-				    .actionBarSize(getActionBarSize())
-				    .maxWidth(500)
-				    .showDelay(500)
-				    .closePolicy(TooltipManager.ClosePolicy.TouchOutside, 5000);
-				builder.show();
-			}
-		});
+		tooltipManager = TooltipManager.getInstance(this);
 	}
 
 	@Override
 	protected void onDestroy() {
 		TooltipManager.removeInstance(this);
 		super.onDestroy();
-	}
-
-	@Override
-	public void onConfigurationChanged(final Configuration newConfig) {
-		Log.i("TAG", "onConfigurationChanged");
-		super.onConfigurationChanged(newConfig);
 	}
 
 	private int getActionBarSize() {
@@ -161,5 +96,53 @@ public class MainActivity extends ActionBarActivity {
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
+	}
+
+	@Override
+	public void onScrollStateChanged(final AbsListView view, final int scrollState) {
+		Log.i(TAG, "onScrollStateChanged: " + scrollState);
+
+		if (scrollState == SCROLL_STATE_IDLE) {
+			handler.removeCallbacks(showRunnable);
+			handler.postDelayed(showRunnable, 100);
+		}
+		else if (scrollState == SCROLL_STATE_TOUCH_SCROLL) {
+			handler.removeCallbacks(showRunnable);
+
+			if(tooltipManager.active(100)){
+				tooltipManager.remove(100);
+			}
+		}
+	}
+
+
+	Runnable showRunnable = new Runnable() {
+		@Override
+		public void run() {
+			View child = listView.getChildAt(listView.getChildCount() / 2);
+			tooltipManager
+				.create(100)
+				.maxWidth(450)
+				.actionBarSize(getActionBarSize())
+				.activateDelay(3000)
+				.anchor(child, TooltipManager.Gravity.BOTTOM)
+				.closePolicy(TooltipManager.ClosePolicy.TouchOutside, 0)
+				.text("Test tooltip showing on a list, Test tooltip showing on a list, Test tooltip showing on a list...")
+				.show();
+		}
+	};
+
+	@Override
+	public void onScroll(
+		final AbsListView view, final int firstVisibleItem, final int visibleItemCount, final int totalItemCount) {
+
+		if(null != tooltipManager) {
+			tooltipManager.update(100);
+		}
+	}
+
+	@Override
+	public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
+		Log.d(TAG, "onItemClick: " + position);
 	}
 }

@@ -10,50 +10,9 @@
 	android:background="#ffbbbbbb"
 	tools:context="it.sephiroth.android.library.mymodule.app.MainActivity">
 
-	<TextView
-		android:layout_alignParentBottom="true"
-		android:layout_marginBottom="50dip"
-		android:id="@android:id/text1"
-		android:background="#33ff0000"
-		android:padding="10dip"
-		android:text="@string/hello_world"
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content" />
-
-	<Button
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:text="show"
-		android:id="@+id/button"
-		android:layout_alignParentTop="true"
-		android:layout_alignParentRight="true"
-		android:layout_alignParentEnd="true" />
-
-	<Button
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:text="hide"
-		android:id="@+id/button2"
-		android:layout_below="@+id/button"
-		android:layout_alignParentRight="true"
-		android:layout_alignParentEnd="true" />
-
-	<Button
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:text="remove"
-		android:id="@+id/button3"
-		android:layout_below="@+id/button2"
-		android:layout_alignParentRight="true"
-		android:layout_alignParentEnd="true" />
-
-	<Button
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:text="point"
-		android:id="@+id/button4"
-		android:layout_alignBottom="@android:id/text1"
-		android:layout_alignRight="@+id/button3"
-		android:layout_alignEnd="@+id/button3" />
+	<ListView
+		android:id="@android:id/list"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent" />
 
 </RelativeLayout>

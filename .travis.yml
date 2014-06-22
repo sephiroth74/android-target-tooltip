@@ -1,0 +1,47 @@
+language: android
+
+branches:
+  only:
+    - master
+
+notifications:
+  email: true
+
+before_install:
+
+  # environment info
+  - gradle -v
+  - uname -a
+
+  # for gradle output style
+  - export TERM=dumb
+
+  # just to test gradle version, against our provided one
+  - gradle -v
+
+  # Install required components.
+  # For a full list, run `android list sdk -a --extended`
+  - echo yes | android update sdk --filter platform-tools --no-ui --force > /dev/null
+  - echo yes | android update sdk --all --filter build-tools-19.1.0 --no-ui --force > /dev/null
+  - echo yes | android update sdk --filter android-19 --no-ui --force > /dev/null
+  - echo yes | android update sdk --filter extra-android-support --no-ui --force > /dev/null
+  - echo yes | android update sdk --filter extra-android-m2repository --no-ui --force > /dev/null
+
+  # Otherwise
+  #- echo yes | android update sdk -t tools,platform-tools,extra-android-support,extra-android-m2repository,android-19 --force --no-ui
+
+android:
+  components:
+    - build-tools-19.1.0
+    - android-19
+    - sysimg-19
+    - extra-android-support
+  licenses:
+    - android-sdk-license-bcbbd656
+    - '.*intel.+'
+
+
+# Let's try to build...
+install: gradle clean build
+
+script: gradle check
