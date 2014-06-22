@@ -3,6 +3,8 @@ Android Tooltip
 
 Create Toast like tooltips, but targets can be specified, plus custom properties and features
 
+Master: ![travis-ci](https://travis-ci.org/sephiroth74/android-target-tooltip.svg?branch=master)
+
 Installation
 ===
 
