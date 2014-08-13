@@ -44,14 +44,24 @@ class ToolTipTextDrawable extends Drawable {
 
 		this.rectF = new RectF();
 
-		bgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		bgPaint.setColor(this.backgroundColor);
-		bgPaint.setStyle(Paint.Style.FILL);
+		if (backgroundColor != 0) {
+			bgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+			bgPaint.setColor(this.backgroundColor);
+			bgPaint.setStyle(Paint.Style.FILL);
+		}
+		else {
+			bgPaint = null;
+		}
 
-		stPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		stPaint.setColor(strokeColor);
-		stPaint.setStyle(Paint.Style.STROKE);
-		stPaint.setStrokeWidth(strokeWidth);
+		if (strokeColor != 0) {
+			stPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+			stPaint.setColor(strokeColor);
+			stPaint.setStyle(Paint.Style.STROKE);
+			stPaint.setStrokeWidth(strokeWidth);
+		}
+		else {
+			stPaint = null;
+		}
 
 		path = new Path();
 	}
@@ -63,7 +73,7 @@ class ToolTipTextDrawable extends Drawable {
 		int top = outBounds.top + padding;
 		int right = outBounds.right - padding;
 		int bottom = outBounds.bottom - padding;
-		int arrowWeight = (int) ((float)padding / 1.2f);
+		int arrowWeight = (int) ((float) padding / 1.2f);
 
 		if (null != point && null != gravity) {
 			path.reset();
@@ -126,8 +136,14 @@ class ToolTipTextDrawable extends Drawable {
 	@Override
 	public void draw(final Canvas canvas) {
 		if (DBG) Log.i(TAG, "draw");
-		canvas.drawPath(path, bgPaint);
-		canvas.drawPath(path, stPaint);
+
+		if (null != bgPaint) {
+			canvas.drawPath(path, bgPaint);
+		}
+
+		if (null != stPaint) {
+			canvas.drawPath(path, stPaint);
+		}
 	}
 
 	@Override

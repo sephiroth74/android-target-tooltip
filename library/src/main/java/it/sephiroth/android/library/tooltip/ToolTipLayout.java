@@ -9,6 +9,7 @@ import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.text.Html;
 import android.util.Log;
@@ -44,7 +45,7 @@ class ToolTipLayout extends ViewGroup {
 	private final Rect tempRect;
 
 	private final long showDuration;
-	private final TooltipManager.ClosePolicy closePolity;
+	private final TooltipManager.ClosePolicy closePolicy;
 	private final View targetView;
 	private final Point point;
 	private final int textResId;
@@ -75,20 +76,30 @@ class ToolTipLayout extends ViewGroup {
 		this.textResId = builder.textResId;
 		this.maxWidth = builder.maxWidth;
 		this.topRule = builder.actionbarSize;
-		this.closePolity = builder.closePolicy;
+		this.closePolicy = builder.closePolicy;
 		this.showDuration = builder.showDuration;
 		this.showDelay = builder.showDelay;
 		this.hideArrow = builder.hideArrow;
 		this.activateDelay = builder.activateDelay;
 
 		this.targetView = builder.view;
-		this.point = builder.point;
+
+		if(null != builder.point) {
+			this.point = new Point(builder.point);
+			this.point.y += topRule;
+		} else {
+			this.point = null;
+		}
 
 		this.viewRect = new Rect();
 		this.drawRect = new Rect();
 		this.tempRect = new Rect();
 
-		this.mDrawable = new ToolTipTextDrawable(context, builder);
+		if(!builder.isCustomView) {
+			this.mDrawable = new ToolTipTextDrawable(context, builder);
+		} else {
+			this.mDrawable = null;
+		}
 
 		setVisibility(GONE);
 		setHardwareAccelerated(true);
@@ -381,8 +392,11 @@ class ToolTipLayout extends ViewGroup {
 
 		mView = LayoutInflater.from(getContext()).inflate(textResId, this, false);
 		mView.setLayoutParams(params);
-		mView.setBackgroundDrawable(mDrawable);
-		mView.setPadding(padding, padding, padding, padding);
+
+		if(null != mDrawable) {
+			mView.setBackgroundDrawable(mDrawable);
+			mView.setPadding(padding, padding, padding, padding);
+		}
 
 		mTextView = (TextView) mView.findViewById(android.R.id.text1);
 		mTextView.setText(Html.fromHtml((String) this.text));
@@ -418,7 +432,7 @@ class ToolTipLayout extends ViewGroup {
 		window.getDecorView().getWindowVisibleDisplayFrame(screenRect);
 		screenRect.top += topRule;
 
-		ToolTipTextDrawable drawable = (ToolTipTextDrawable) mView.getBackground();
+		//Drawable drawable = mView.getBackground();
 
 		// get the global visible rect for the target targetView
 		if (null != targetView) {
@@ -557,23 +571,25 @@ class ToolTipLayout extends ViewGroup {
 		ViewHelper.setTranslationX(mView, drawRect.left);
 		ViewHelper.setTranslationY(mView, drawRect.top);
 
-		// get the global rect for the textview
-		mView.getGlobalVisibleRect(tempRect);
+		if (null != mDrawable) {
+			// get the global rect for the textview
+			mView.getGlobalVisibleRect(tempRect);
 
-		point.x -= tempRect.left;
-		point.y -= tempRect.top;
+			point.x -= tempRect.left;
+			point.y -= tempRect.top;
 
-		if (gravity == TooltipManager.Gravity.LEFT || gravity == TooltipManager.Gravity.RIGHT) {
-			point.y -= padding / 2;
-		}
-		else if (gravity == TooltipManager.Gravity.TOP || gravity == TooltipManager.Gravity.BOTTOM) {
-			point.x -= padding / 2;
-		}
+			if (gravity == TooltipManager.Gravity.LEFT || gravity == TooltipManager.Gravity.RIGHT) {
+				point.y -= padding / 2;
+			}
+			else if (gravity == TooltipManager.Gravity.TOP || gravity == TooltipManager.Gravity.BOTTOM) {
+				point.x -= padding / 2;
+			}
 
-		drawable.setAnchor(gravity, padding / 2);
+			mDrawable.setAnchor(gravity, padding / 2);
 
-		if (! this.hideArrow) {
-			drawable.setDestinationPoint(point);
+			if (! this.hideArrow) {
+				mDrawable.setDestinationPoint(point);
+			}
 		}
 	}
 
@@ -596,14 +612,14 @@ class ToolTipLayout extends ViewGroup {
 
 		final int action = event.getAction();
 
-		if (closePolity == TooltipManager.ClosePolicy.TouchOutside || closePolity == TooltipManager.ClosePolicy.TouchInside) {
+		if (closePolicy == TooltipManager.ClosePolicy.TouchOutside || closePolicy == TooltipManager.ClosePolicy.TouchInside) {
 			if (! mActivated) {
 				if (DBG) Log.w(TAG, "not yet activated..., " + action);
 				return true;
 			}
 
 			if (action == MotionEvent.ACTION_DOWN) {
-				if (closePolity == TooltipManager.ClosePolicy.TouchInside) {
+				if (closePolicy == TooltipManager.ClosePolicy.TouchInside) {
 					if (drawRect.contains((int) event.getX(), (int) event.getY())) {
 						onClose();
 					}
@@ -618,34 +634,6 @@ class ToolTipLayout extends ViewGroup {
 
 		return false;
 	}
-
-	/*
-	@Override
-	public boolean onTouchEvent(final MotionEvent event) {
-		if (DBG) Log.i(TAG, "onTouchEvent");
-		if (! mAttached) return false;
-		if (event.getAction() != MotionEvent.ACTION_DOWN || null == drawRect) return false;
-
-		if (closePolity == TooltipManager.ClosePolicy.TouchOutside || closePolity == TooltipManager.ClosePolicy.TouchInside) {
-			if(!mActivated) {
-				if(DBG) Log.w(TAG, "not yet activated...");
-				return true;
-			}
-
-			if (closePolity == TooltipManager.ClosePolicy.TouchInside) {
-				if (drawRect.contains((int) event.getX(), (int) event.getY())) {
-					onClose();
-					return true;
-				}
-			}
-			else {
-				onClose();
-				return true;
-			}
-		}
-		return false;
-	}
-	*/
 
 	private void onClose() {
 		if (DBG) Log.i(TAG, "onClose");

@@ -1,6 +1,7 @@
 package it.sephiroth.android.library.mymodule.app;
 
 import android.content.res.TypedArray;
+import android.graphics.Point;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -53,6 +54,10 @@ public class MainActivity extends ActionBarActivity implements AbsListView.OnScr
 		super.onDestroy();
 	}
 
+	private int getTopRule(){
+		return getActionBarSize() + getStatusBarHeight();
+	}
+
 	private int getActionBarSize() {
 		if (Build.VERSION.SDK_INT >= 14) {
 			int[] attrs = {android.R.attr.actionBarSize};
@@ -71,6 +76,15 @@ public class MainActivity extends ActionBarActivity implements AbsListView.OnScr
 		} finally {
 			values.recycle();
 		}
+	}
+
+	public int getStatusBarHeight() {
+		int result = 0;
+		int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
+		if (resourceId > 0) {
+			result = getResources().getDimensionPixelSize(resourceId);
+		}
+		return result;
 	}
 
 	@Override
@@ -119,14 +133,16 @@ public class MainActivity extends ActionBarActivity implements AbsListView.OnScr
 	Runnable showRunnable = new Runnable() {
 		@Override
 		public void run() {
-			View child = listView.getChildAt(listView.getChildCount() / 2);
+			View child = listView.getChildAt(0);
 			tooltipManager
 				.create(100)
 				.maxWidth(450)
-				.actionBarSize(getActionBarSize())
-				.activateDelay(3000)
-				.anchor(child, TooltipManager.Gravity.BOTTOM)
+				.actionBarSize(getTopRule())
+				.activateDelay(100)
+				.anchor(new Point(512, 100), TooltipManager.Gravity.BOTTOM)
 				.closePolicy(TooltipManager.ClosePolicy.TouchOutside, 0)
+				.withCustomView(R.layout.custom_textview)
+				.withStyleId(R.style.ToolTipLayoutCustomStyle)
 				.text("Test tooltip showing on a list, Test tooltip showing on a list, Test tooltip showing on a list...")
 				.show();
 		}

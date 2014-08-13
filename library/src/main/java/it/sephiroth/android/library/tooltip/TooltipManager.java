@@ -2,6 +2,7 @@ package it.sephiroth.android.library.tooltip;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Point;
 import android.util.Log;
 import android.view.View;
@@ -183,6 +184,7 @@ public class TooltipManager {
 		int defStyleRes = R.style.ToolTipLayoutDefaultStyle;
 		int defStyleAttr = R.attr.ttlm_defaultStyle;
 		long activateDelay = 0;
+		boolean isCustomView;
 
 		Builder(final TooltipManager manager, int id) {
 			this.manager = new WeakReference<TooltipManager>(manager);
@@ -191,13 +193,15 @@ public class TooltipManager {
 
 		/**
 		 * Use a custom View for the tooltip. Note that the custom view
-		 * must include a TextView which id is `@android:id/text1`
+		 * must include a TextView which id is `@android:id/text1`.<br />
+		 * Moreover, when using a custom view, the anchor arrow will not be shown
 		 *
 		 * @param resId
 		 * @return
 		 */
 		public Builder withCustomView(int resId) {
 			this.textResId = resId;
+			this.isCustomView = true;
 			return this;
 		}
 
@@ -207,8 +211,8 @@ public class TooltipManager {
 			return this;
 		}
 
-		public Builder text(Context context, int resid) {
-			return text(context.getString(resid));
+		public Builder text(Resources res, int resid) {
+			return text(res.getString(resid));
 		}
 
 		public Builder text(CharSequence text) {
@@ -243,6 +247,10 @@ public class TooltipManager {
 		public Builder actionBarSize(final int actionBarSize) {
 			this.actionbarSize = actionBarSize;
 			return this;
+		}
+
+		public Builder actionBarSize(Resources resources, int resId) {
+			return actionBarSize(resources.getDimensionPixelSize(resId));
 		}
 
 		public Builder closePolicy(ClosePolicy policy, long milliseconds) {
