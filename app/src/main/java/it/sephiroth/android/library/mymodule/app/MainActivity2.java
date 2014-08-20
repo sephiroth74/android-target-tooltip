@@ -65,13 +65,13 @@ public class MainActivity2 extends ActionBarActivity implements View.OnClickList
 			              .create(0)
 			              .anchor(
 				              new Point(
-					              (int) (Math.random() * metrics.widthPixels), (int) (Math.random() * metrics.heightPixels)
-				              ), gravity
+					              250, 250
+				              ), TooltipManager.Gravity.BOTTOM
 			              )
 			              .actionBarSize(getActionBarSize())
 			              .closePolicy(TooltipManager.ClosePolicy.TouchOutside, 0)
 			              .text(R.string.hello_world)
-			              .withCustomView(R.layout.custom_textview, false)
+			              .toggleArrow(false)
 			              .maxWidth(400)
 			              .showDelay(300)
 			              .show();

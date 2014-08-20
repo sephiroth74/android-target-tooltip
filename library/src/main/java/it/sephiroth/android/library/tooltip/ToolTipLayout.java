@@ -52,7 +52,7 @@ class ToolTipLayout extends ViewGroup {
 	private final int topRule;
 	private final int maxWidth;
 	private final boolean hideArrow;
-	private final int padding;
+	private int padding;
 	private final long activateDelay;
 
 	private CharSequence text;
@@ -81,7 +81,6 @@ class ToolTipLayout extends ViewGroup {
 		this.showDelay = builder.showDelay;
 		this.hideArrow = builder.hideArrow;
 		this.activateDelay = builder.activateDelay;
-
 		this.targetView = builder.view;
 
 		if (null != builder.point) {
@@ -397,7 +396,11 @@ class ToolTipLayout extends ViewGroup {
 
 		if (null != mDrawable) {
 			mView.setBackgroundDrawable(mDrawable);
-			mView.setPadding(padding, padding, padding, padding);
+			if(hideArrow) {
+				mView.setPadding(padding / 2, padding / 2, padding / 2, padding / 2);
+			} else {
+				mView.setPadding(padding, padding, padding, padding);
+			}
 		}
 
 		mTextView = (TextView) mView.findViewById(android.R.id.text1);
@@ -432,6 +435,9 @@ class ToolTipLayout extends ViewGroup {
 		Rect screenRect = new Rect();
 		Window window = ((Activity) getContext()).getWindow();
 		window.getDecorView().getWindowVisibleDisplayFrame(screenRect);
+
+		if (DBG) Log.d(TAG, "screenRect: " + screenRect + ", topRule: " + topRule);
+
 		screenRect.top += topRule;
 
 		//Drawable drawable = mView.getBackground();
@@ -450,6 +456,7 @@ class ToolTipLayout extends ViewGroup {
 		// get the destination point
 		Point point = new Point();
 
+
 		//@formatter:off
 		if (gravity == TooltipManager.Gravity.BOTTOM) {
 			drawRect.set(viewRect.centerX() - width / 2,
@@ -460,21 +467,23 @@ class ToolTipLayout extends ViewGroup {
 			point.x = viewRect.centerX();
 			point.y = viewRect.bottom;
 
-			if (! screenRect.contains(drawRect)) {
-				if (drawRect.right > screenRect.right) {
+			if (! screenRect.contains(drawRect)){
+				if (drawRect.right > screenRect.right){
 					drawRect.offset(screenRect.right - drawRect.right, 0);
 				}
-				else if (drawRect.left < screenRect.left) {
+				else if (drawRect.left < screenRect.left){
 					drawRect.offset(- drawRect.left, 0);
 				}
-				if (drawRect.bottom > screenRect.bottom) {
+				if (drawRect.bottom > screenRect.bottom){
 					// this means there's no enough space!
 					calculatePositions(gravities);
 					return;
+				} else if(drawRect.top < screenRect.top){
+					drawRect.offset(0, screenRect.top-drawRect.top);
 				}
 			}
 		}
-		else if (gravity == TooltipManager.Gravity.TOP) {
+		else if (gravity == TooltipManager.Gravity.TOP){
 			drawRect.set(viewRect.centerX() - width / 2,
 			             viewRect.top - height,
 			             viewRect.centerX() + width / 2,
@@ -483,21 +492,23 @@ class ToolTipLayout extends ViewGroup {
 			point.x = viewRect.centerX();
 			point.y = viewRect.top;
 
-			if (! screenRect.contains(drawRect)) {
-				if (drawRect.right > screenRect.right) {
+			if (! screenRect.contains(drawRect)){
+				if (drawRect.right > screenRect.right){
 					drawRect.offset(screenRect.right - drawRect.right, 0);
 				}
-				else if (drawRect.left < screenRect.left) {
+				else if (drawRect.left < screenRect.left){
 					drawRect.offset(- drawRect.left, 0);
 				}
-				if (drawRect.top < screenRect.top) {
+				if (drawRect.top < screenRect.top){
 					// this means there's no enough space!
 					calculatePositions(gravities);
 					return;
+				} else if(drawRect.bottom > screenRect.bottom){
+					drawRect.offset(0, screenRect.bottom - drawRect.bottom);
 				}
 			}
 		}
-		else if (gravity == TooltipManager.Gravity.RIGHT) {
+		else if (gravity == TooltipManager.Gravity.RIGHT){
 			drawRect.set(viewRect.right,
 			             viewRect.centerY() - height / 2,
 			             viewRect.right + width,
@@ -506,21 +517,23 @@ class ToolTipLayout extends ViewGroup {
 			point.x = viewRect.right;
 			point.y = viewRect.centerY();
 
-			if (! screenRect.contains(drawRect)) {
-				if (drawRect.bottom > screenRect.bottom) {
+			if (! screenRect.contains(drawRect)){
+				if (drawRect.bottom > screenRect.bottom){
 					drawRect.offset(0, screenRect.bottom - drawRect.bottom);
 				}
-				else if (drawRect.top < screenRect.top) {
+				else if (drawRect.top < screenRect.top){
 					drawRect.offset(0, screenRect.top - drawRect.top);
 				}
-				if (drawRect.right > screenRect.right) {
+				if (drawRect.right > screenRect.right){
 					// this means there's no enough space!
 					calculatePositions(gravities);
 					return;
+				} else if(drawRect.left < screenRect.left){
+					drawRect.offset(screenRect.left - drawRect.left, 0);
 				}
 			}
 		}
-		else if (gravity == TooltipManager.Gravity.LEFT) {
+		else if (gravity == TooltipManager.Gravity.LEFT){
 			drawRect.set(viewRect.left - width,
 			             viewRect.centerY() - height / 2,
 			             viewRect.left,
@@ -529,21 +542,23 @@ class ToolTipLayout extends ViewGroup {
 			point.x = viewRect.left;
 			point.y = viewRect.centerY();
 
-			if (! screenRect.contains(drawRect)) {
-				if (drawRect.bottom > screenRect.bottom) {
+			if (! screenRect.contains(drawRect)){
+				if (drawRect.bottom > screenRect.bottom){
 					drawRect.offset(0, screenRect.bottom - drawRect.bottom);
 				}
-				else if (drawRect.top < screenRect.top) {
+				else if (drawRect.top < screenRect.top){
 					drawRect.offset(0, screenRect.top - drawRect.top);
 				}
-				if (drawRect.left < screenRect.left) {
+				if (drawRect.left < screenRect.left){
 					// this means there's no enough space!
 					this.gravity = TooltipManager.Gravity.RIGHT;
 					calculatePositions(gravities);
 					return;
+				} else if(drawRect.right > screenRect.right){
+					drawRect.offset(screenRect.right - drawRect.right, 0);
 				}
 			}
-		} else if (this.gravity == TooltipManager.Gravity.CENTER) {
+		} else if (this.gravity == TooltipManager.Gravity.CENTER){
 			drawRect.set(viewRect.centerX() - width / 2,
 			             viewRect.centerY() - height / 2,
 			             viewRect.centerX() - width / 2,
@@ -552,17 +567,17 @@ class ToolTipLayout extends ViewGroup {
 			point.x = viewRect.centerX();
 			point.y = viewRect.centerY();
 
-			if (! screenRect.contains(drawRect)) {
-				if (drawRect.bottom > screenRect.bottom) {
+			if (! screenRect.contains(drawRect)){
+				if (drawRect.bottom > screenRect.bottom){
 					drawRect.offset(0, screenRect.bottom - drawRect.bottom);
 				}
-				else if (drawRect.top < screenRect.top) {
+				else if (drawRect.top < screenRect.top){
 					drawRect.offset(0, screenRect.top - drawRect.top);
 				}
-				if (drawRect.right > screenRect.right) {
+				if (drawRect.right > screenRect.right){
 					drawRect.offset(screenRect.right - drawRect.right, 0);
 				}
-				else if (drawRect.left < screenRect.left) {
+				else if (drawRect.left < screenRect.left){
 					drawRect.offset(screenRect.left - drawRect.left, 0);
 				}
 			}
@@ -580,14 +595,16 @@ class ToolTipLayout extends ViewGroup {
 			point.x -= tempRect.left;
 			point.y -= tempRect.top;
 
-			if (gravity == TooltipManager.Gravity.LEFT || gravity == TooltipManager.Gravity.RIGHT) {
-				point.y -= padding / 2;
-			}
-			else if (gravity == TooltipManager.Gravity.TOP || gravity == TooltipManager.Gravity.BOTTOM) {
-				point.x -= padding / 2;
+			if (! hideArrow) {
+				if (gravity == TooltipManager.Gravity.LEFT || gravity == TooltipManager.Gravity.RIGHT) {
+					point.y -= padding / 2;
+				}
+				else if (gravity == TooltipManager.Gravity.TOP || gravity == TooltipManager.Gravity.BOTTOM) {
+					point.x -= padding / 2;
+				}
 			}
 
-			mDrawable.setAnchor(gravity, padding / 2);
+			mDrawable.setAnchor(gravity, hideArrow ? 0 : padding/2);
 
 			if (! this.hideArrow) {
 				mDrawable.setDestinationPoint(point);

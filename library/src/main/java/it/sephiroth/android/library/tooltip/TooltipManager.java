@@ -253,6 +253,11 @@ public class TooltipManager {
 			return this;
 		}
 
+		/**
+		 *
+		 * @param show true to show the arrow, false to hide it
+		 * @return
+		 */
 		public Builder toggleArrow(boolean show) {
 			this.hideArrow = ! show;
 			return this;
