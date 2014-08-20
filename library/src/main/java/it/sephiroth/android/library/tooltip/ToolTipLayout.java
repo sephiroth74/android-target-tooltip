@@ -9,7 +9,6 @@ import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
-import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.text.Html;
 import android.util.Log;
@@ -29,9 +28,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static it.sephiroth.android.library.tooltip.TooltipManager.DBG;
+
 class ToolTipLayout extends ViewGroup {
 
-	static final boolean DBG = TooltipManager.DBG;
 	private static final String TAG = "ToolTipLayout";
 	private final long showDelay;
 
@@ -84,10 +84,11 @@ class ToolTipLayout extends ViewGroup {
 
 		this.targetView = builder.view;
 
-		if(null != builder.point) {
+		if (null != builder.point) {
 			this.point = new Point(builder.point);
 			this.point.y += topRule;
-		} else {
+		}
+		else {
 			this.point = null;
 		}
 
@@ -95,9 +96,10 @@ class ToolTipLayout extends ViewGroup {
 		this.drawRect = new Rect();
 		this.tempRect = new Rect();
 
-		if(!builder.isCustomView) {
+		if (! builder.isCustomView) {
 			this.mDrawable = new ToolTipTextDrawable(context, builder);
-		} else {
+		}
+		else {
 			this.mDrawable = null;
 		}
 
@@ -393,7 +395,7 @@ class ToolTipLayout extends ViewGroup {
 		mView = LayoutInflater.from(getContext()).inflate(textResId, this, false);
 		mView.setLayoutParams(params);
 
-		if(null != mDrawable) {
+		if (null != mDrawable) {
 			mView.setBackgroundDrawable(mDrawable);
 			mView.setPadding(padding, padding, padding, padding);
 		}

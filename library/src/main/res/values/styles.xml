@@ -7,5 +7,6 @@
 		<item name="ttlm_backgroundColor">@color/ttlm_default_background_color</item>
 		<item name="ttlm_strokeWeight">@dimen/ttlm_default_stroke_weight</item>
 		<item name="ttlm_cornerRadius">@dimen/ttlm_default_corner_radius</item>
+		<item name="ttlm_arrowRatio">1.4</item>
 	</style>
 </resources>

@@ -140,7 +140,7 @@ public class MainActivity extends ActionBarActivity implements AbsListView.OnScr
 				.actionBarSize(getTopRule())
 				.activateDelay(100)
 				.anchor(new Point(512, 100), TooltipManager.Gravity.BOTTOM)
-				.closePolicy(TooltipManager.ClosePolicy.TouchOutside, 0)
+				.closePolicy(TooltipManager.ClosePolicy.None, 500)
 				.withCustomView(R.layout.custom_textview)
 				.withStyleId(R.style.ToolTipLayoutCustomStyle)
 				.text("Test tooltip showing on a list, Test tooltip showing on a list, Test tooltip showing on a list...")
