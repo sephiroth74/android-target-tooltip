@@ -1,7 +1,6 @@
 package it.sephiroth.android.library.tooltip;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Point;
 import android.util.Log;
@@ -15,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class TooltipManager {
 	static final boolean DBG = false;
 
-	private static ConcurrentHashMap<Activity, TooltipManager> instances = new ConcurrentHashMap<Activity, TooltipManager>();
+	private static ConcurrentHashMap<Integer, TooltipManager> instances = new ConcurrentHashMap<Integer, TooltipManager>();
 	private static final String TAG = "TooltipManager";
 
 
@@ -196,13 +195,18 @@ public class TooltipManager {
 		 * must include a TextView which id is `@android:id/text1`.<br />
 		 * Moreover, when using a custom view, the anchor arrow will not be shown
 		 *
-		 * @param resId
+		 * @param resId              the custom layout view.
+		 * @param replace_background if true the custom view's background won't be replaced
 		 * @return
 		 */
-		public Builder withCustomView(int resId) {
+		public Builder withCustomView(int resId, boolean replace_background) {
 			this.textResId = resId;
-			this.isCustomView = true;
+			this.isCustomView = replace_background;
 			return this;
+		}
+
+		public Builder withCustomView(int resId) {
+			return withCustomView(resId, true);
 		}
 
 		public Builder withStyleId(int styleId) {
@@ -213,6 +217,16 @@ public class TooltipManager {
 
 		public Builder text(Resources res, int resid) {
 			return text(res.getString(resid));
+		}
+
+		public Builder text(int resid) {
+			TooltipManager tipManager = manager.get();
+			if (null != tipManager) {
+				if (null != tipManager.mActivity) {
+					return text(tipManager.mActivity.getResources().getString(resid));
+				}
+			}
+			return this;
 		}
 
 		public Builder text(CharSequence text) {
@@ -318,15 +332,18 @@ public class TooltipManager {
 
 	public static TooltipManager getInstance(Activity activity) {
 		if (DBG) Log.i(TAG, "getInstance: " + activity);
-		TooltipManager sInstance = instances.get(activity);
+
+		TooltipManager sInstance = instances.get(activity.hashCode());
+
+		Log.d(TAG, "sInstance: " + sInstance);
 
 		if (sInstance == null) {
 			synchronized (TooltipManager.class) {
-				sInstance = instances.get(activity);
+				sInstance = instances.get(activity.hashCode());
 				if (sInstance == null) {
 					synchronized (TooltipManager.class) {
 						sInstance = new TooltipManager(activity);
-						instances.putIfAbsent(activity, sInstance);
+						instances.putIfAbsent(activity.hashCode(), sInstance);
 					}
 				}
 			}

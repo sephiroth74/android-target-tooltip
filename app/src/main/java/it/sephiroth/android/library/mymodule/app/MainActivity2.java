@@ -3,8 +3,8 @@ package it.sephiroth.android.library.mymodule.app;
 import android.content.res.TypedArray;
 import android.graphics.Point;
 import android.os.Build;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
@@ -20,14 +20,11 @@ public class MainActivity2 extends ActionBarActivity implements View.OnClickList
 	private static final String TAG = MainActivity2.class.getSimpleName();
 
 	Button mButton1;
-	TooltipManager tooltipManager;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main_activity2);
-
-		tooltipManager = TooltipManager.getInstance(this);
 
 		mButton1 = (Button) findViewById(R.id.button1);
 		mButton1.setOnClickListener(this);
@@ -64,7 +61,8 @@ public class MainActivity2 extends ActionBarActivity implements View.OnClickList
 			TooltipManager.Gravity.values()[((int) (Math.random() * TooltipManager.Gravity.values().length))];
 
 		if (id == mButton1.getId()) {
-			tooltipManager.create(0)
+			TooltipManager.getInstance(this)
+			              .create(0)
 			              .anchor(
 				              new Point(
 					              (int) (Math.random() * metrics.widthPixels), (int) (Math.random() * metrics.heightPixels)
@@ -72,8 +70,8 @@ public class MainActivity2 extends ActionBarActivity implements View.OnClickList
 			              )
 			              .actionBarSize(getActionBarSize())
 			              .closePolicy(TooltipManager.ClosePolicy.TouchOutside, 0)
-			              .text("Hello First Tooltip!")
-			              .toggleArrow(Math.random() > 0.5)
+			              .text(R.string.hello_world)
+			              .withCustomView(R.layout.custom_textview, false)
 			              .maxWidth(400)
 			              .showDelay(300)
 			              .show();
@@ -94,7 +92,6 @@ public class MainActivity2 extends ActionBarActivity implements View.OnClickList
 		}
 		TypedArray values = getTheme().obtainStyledAttributes(attrs);
 		try {
-			Log.i(TAG, "actionbarsize: " + values.getDimensionPixelSize(0, 0));
 			return values.getDimensionPixelSize(0, 0);
 		} finally {
 			values.recycle();
@@ -108,5 +105,11 @@ public class MainActivity2 extends ActionBarActivity implements View.OnClickList
 			result = getResources().getDimensionPixelSize(resourceId);
 		}
 		return result;
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		TooltipManager.removeInstance(this);
 	}
 }
