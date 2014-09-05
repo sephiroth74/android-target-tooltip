@@ -62,7 +62,7 @@ public class MainActivity3 extends ActionBarActivity
 		tooltipManager.addOnTooltipAttachedStateChange(this);
 
 		tooltipManager.create(TOOLTIP_ID)
-		              .maxWidth(200)
+		              .maxWidth(450)
 		              .anchor(new Point(80, 0), TooltipManager.Gravity.RIGHT)
 		              .closePolicy(TooltipManager.ClosePolicy.TouchInside, 0)
 		              .text("Brigthness, Saturation, Contrast and Warmth are now here!")
