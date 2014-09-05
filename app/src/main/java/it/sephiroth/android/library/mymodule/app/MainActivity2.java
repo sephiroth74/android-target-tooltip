@@ -1,5 +1,6 @@
 package it.sephiroth.android.library.mymodule.app;
 
+import android.content.Intent;
 import android.content.res.TypedArray;
 import android.graphics.Point;
 import android.os.Build;
@@ -20,6 +21,7 @@ public class MainActivity2 extends ActionBarActivity implements View.OnClickList
 	private static final String TAG = MainActivity2.class.getSimpleName();
 
 	Button mButton1;
+	Button mButton2;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -27,25 +29,31 @@ public class MainActivity2 extends ActionBarActivity implements View.OnClickList
 		setContentView(R.layout.activity_main_activity2);
 
 		mButton1 = (Button) findViewById(R.id.button1);
+		mButton2 = (Button) findViewById(R.id.button2);
 		mButton1.setOnClickListener(this);
+		mButton2.setOnClickListener(this);
 	}
 
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.main_activity2, menu);
+		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
 
+
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		// Handle action bar item clicks here. The action bar will
-		// automatically handle clicks on the Home/Up button, so long
-		// as you specify a parent activity in AndroidManifest.xml.
 		int id = item.getItemId();
-		if (id == R.id.action_settings) {
-			return true;
+
+		if (id == R.id.action_demo1) {
+			startActivity(new Intent(this, MainActivity.class));
+		}
+		else if (id == R.id.action_demo2) {
+			startActivity(new Intent(this, MainActivity2.class));
+		}
+		else if (id == R.id.action_demo3) {
+			startActivity(new Intent(this, MainActivity3.class));
 		}
 		return super.onOptionsItemSelected(item);
 	}
@@ -57,54 +65,31 @@ public class MainActivity2 extends ActionBarActivity implements View.OnClickList
 		Log.i(TAG, "onClick: " + id);
 
 		DisplayMetrics metrics = getResources().getDisplayMetrics();
-		TooltipManager.Gravity gravity =
-			TooltipManager.Gravity.values()[((int) (Math.random() * TooltipManager.Gravity.values().length))];
+		TooltipManager.Gravity gravity = TooltipManager.Gravity.values()[((int) (Math.random() * TooltipManager.Gravity.values().length))];
+
+		TooltipManager manager = TooltipManager.getInstance(this);
 
 		if (id == mButton1.getId()) {
-			TooltipManager.getInstance(this)
-			              .create(0)
-			              .anchor(
-				              new Point(
-					              250, 250
-				              ), TooltipManager.Gravity.BOTTOM
-			              )
-			              .actionBarSize(getActionBarSize())
-			              .closePolicy(TooltipManager.ClosePolicy.TouchOutside, 0)
-			              .text(R.string.hello_world)
-			              .toggleArrow(false)
-			              .maxWidth(400)
-			              .showDelay(300)
-			              .show();
+			manager.create(0)
+			       .anchor(mButton1, TooltipManager.Gravity.BOTTOM)
+			       .actionBarSize(Utils.getActionBarSize(getBaseContext()))
+			       .closePolicy(TooltipManager.ClosePolicy.TouchOutside, 0)
+			       .text(R.string.hello_world)
+			       .toggleArrow(true)
+			       .maxWidth(400)
+			       .showDelay(300)
+			       .show();
 		}
-	}
-
-	private int getTopRule() {
-		return getActionBarSize() + getStatusBarHeight();
-	}
-
-	private int getActionBarSize() {
-		final int[] attrs;
-		if (Build.VERSION.SDK_INT >= 14) {
-			attrs = new int[]{android.R.attr.actionBarSize};
+		else if (id == mButton2.getId()) {
+			manager.create(1)
+			       .anchor(mButton2, TooltipManager.Gravity.RIGHT)
+			       .actionBarSize(Utils.getActionBarSize(getBaseContext()))
+			       .closePolicy(TooltipManager.ClosePolicy.TouchInside, 0)
+			       .text(R.string.hello_world)
+			       .toggleArrow(true)
+			       .maxWidth(400)
+			       .show();
 		}
-		else {
-			attrs = new int[]{R.attr.actionBarSize};
-		}
-		TypedArray values = getTheme().obtainStyledAttributes(attrs);
-		try {
-			return values.getDimensionPixelSize(0, 0);
-		} finally {
-			values.recycle();
-		}
-	}
-
-	public int getStatusBarHeight() {
-		int result = 0;
-		int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
-		if (resourceId > 0) {
-			result = getResources().getDimensionPixelSize(resourceId);
-		}
-		return result;
 	}
 
 	@Override

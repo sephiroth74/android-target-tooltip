@@ -28,9 +28,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static it.sephiroth.android.library.tooltip.TooltipManager.ClosePolicy;
 import static it.sephiroth.android.library.tooltip.TooltipManager.DBG;
+import static it.sephiroth.android.library.tooltip.TooltipManager.Gravity;
 
-class ToolTipLayout extends ViewGroup {
+class TooltipView extends ViewGroup implements Tooltip {
 
 	private static final String TAG = "ToolTipLayout";
 	private final long showDelay;
@@ -45,7 +47,7 @@ class ToolTipLayout extends ViewGroup {
 	private final Rect tempRect;
 
 	private final long showDuration;
-	private final TooltipManager.ClosePolicy closePolicy;
+	private final ClosePolicy closePolicy;
 	private final View targetView;
 	private final Point point;
 	private final int textResId;
@@ -54,20 +56,21 @@ class ToolTipLayout extends ViewGroup {
 	private final boolean hideArrow;
 	private int padding;
 	private final long activateDelay;
+	private final boolean restrict;
+	private final long fadeDuration;
 
 	private CharSequence text;
-	TooltipManager.Gravity gravity;
+	Gravity gravity;
 
 	private View mView;
 	private TextView mTextView;
-	private final ToolTipTextDrawable mDrawable;
+	private final TooltipTextDrawable mDrawable;
 
-	public ToolTipLayout(Context context, TooltipManager.Builder builder) {
+	public TooltipView(Context context, TooltipManager.Builder builder) {
 		super(context);
 
-		TypedArray theme =
-			context.getTheme().obtainStyledAttributes(null, R.styleable.ToolTipLayout, builder.defStyleAttr, builder.defStyleRes);
-		this.padding = theme.getDimensionPixelSize(R.styleable.ToolTipLayout_ttlm_padding, 30);
+		TypedArray theme = context.getTheme().obtainStyledAttributes(null, R.styleable.TooltipLayout, builder.defStyleAttr, builder.defStyleRes);
+		this.padding = theme.getDimensionPixelSize(R.styleable.TooltipLayout_ttlm_padding, 30);
 		theme.recycle();
 
 		this.toolTipId = builder.id;
@@ -82,6 +85,8 @@ class ToolTipLayout extends ViewGroup {
 		this.hideArrow = builder.hideArrow;
 		this.activateDelay = builder.activateDelay;
 		this.targetView = builder.view;
+		this.restrict = builder.restrictToScreenEdges;
+		this.fadeDuration = builder.fadeDuration;
 
 		if (null != builder.point) {
 			this.point = new Point(builder.point);
@@ -96,14 +101,14 @@ class ToolTipLayout extends ViewGroup {
 		this.tempRect = new Rect();
 
 		if (! builder.isCustomView) {
-			this.mDrawable = new ToolTipTextDrawable(context, builder);
+			this.mDrawable = new TooltipTextDrawable(context, builder);
 		}
 		else {
 			this.mDrawable = null;
 		}
 
-		setVisibility(GONE);
-		setHardwareAccelerated(true);
+		setVisibility(INVISIBLE);
+		//setHardwareAccelerated(true);
 	}
 
 	int getTooltipId() {
@@ -137,67 +142,84 @@ class ToolTipLayout extends ViewGroup {
 		}
 	}
 
-	void doShow() {
-		if (DBG) Log.i(TAG, "doShow");
+	@Override
+	public void show() {
+		if (DBG) Log.i(TAG, "show");
 		if (! isAttached()) {
 			if (DBG) Log.e(TAG, "not attached!");
 			return;
 		}
-		initializeView();
 		fadeIn();
 	}
 
-	void doHide() {
-		if (DBG) Log.i(TAG, "doHide");
+	@Override
+	public void hide(boolean remove) {
+		if (DBG) Log.i(TAG, "hide");
 		if (! isAttached()) return;
-		fadeOut();
+		fadeOut(remove);
 	}
 
 	Animator mShowAnimation;
 	boolean mShowing;
 
 	protected void fadeIn() {
-		if (null != mShowAnimation || mShowing) return;
+		if (mShowing) return;
+
+		if (null != mShowAnimation) {
+			mShowAnimation.cancel();
+		}
+
 		if (DBG) Log.i(TAG, "fadeIn");
 
 		mShowing = true;
-		mShowAnimation = ObjectAnimator.ofFloat(this, "alpha", 0, 1);
-		if (this.showDelay > 0) {
-			mShowAnimation.setStartDelay(this.showDelay);
-		}
-		mShowAnimation.addListener(
-			new Animator.AnimatorListener() {
-				boolean cancelled;
 
-				@Override
-				public void onAnimationStart(final Animator animation) {
-					setVisibility(View.VISIBLE);
-					cancelled = false;
-				}
+		if (fadeDuration > 0) {
+			mShowAnimation = ObjectAnimator.ofFloat(this, "alpha", 0, 1);
+			mShowAnimation.setDuration(fadeDuration);
+			if (this.showDelay > 0) {
+				mShowAnimation.setStartDelay(this.showDelay);
+			}
+			mShowAnimation.addListener(
+				new Animator.AnimatorListener() {
+					boolean cancelled;
 
-				@Override
-				public void onAnimationEnd(final Animator animation) {
-					if (DBG) Log.i(TAG, "fadein::onAnimationEnd, cancelled: " + cancelled);
-					if (null != tooltipListener && ! cancelled) {
-						tooltipListener.onShowCompleted(ToolTipLayout.this);
-						postActivate(activateDelay);
+					@Override
+					public void onAnimationStart(final Animator animation) {
+						setVisibility(View.VISIBLE);
+						cancelled = false;
+					}
+
+					@Override
+					public void onAnimationEnd(final Animator animation) {
+						if (DBG) Log.i(TAG, "fadein::onAnimationEnd, cancelled: " + cancelled);
+						if (null != tooltipListener && ! cancelled) {
+							tooltipListener.onShowCompleted(TooltipView.this);
+							postActivate(activateDelay);
+						}
+					}
+
+					@Override
+					public void onAnimationCancel(final Animator animation) {
+						if (DBG) Log.i(TAG, "fadein::onAnimationCancel");
+						cancelled = true;
+					}
+
+					@Override
+					public void onAnimationRepeat(final Animator animation) {
+
 					}
 				}
-
-				@Override
-				public void onAnimationCancel(final Animator animation) {
-					if (DBG) Log.i(TAG, "fadein::onAnimationCancel");
-					cancelled = true;
-				}
-
-				@Override
-				public void onAnimationRepeat(final Animator animation) {
-
-				}
+			);
+			mShowAnimation.start();
+		}
+		else {
+			setVisibility(View.VISIBLE);
+			tooltipListener.onShowCompleted(TooltipView.this);
+			if (! mActivated) {
+				postActivate(activateDelay);
 			}
-		);
+		}
 
-		mShowAnimation.start();
 		if (showDuration > 0) {
 			getHandler().removeCallbacks(hideRunnable);
 			getHandler().postDelayed(hideRunnable, showDuration);
@@ -223,7 +245,7 @@ class ToolTipLayout extends ViewGroup {
 		return mShowing;
 	}
 
-	private void postActivate(long ms) {
+	void postActivate(long ms) {
 		if (DBG) Log.i(TAG, "postActivate: " + ms);
 		if (ms > 0) {
 			if (isAttached()) {
@@ -242,7 +264,7 @@ class ToolTipLayout extends ViewGroup {
 			if (null != getHandler()) {
 				getHandler().removeCallbacks(hideRunnable);
 			}
-			((ViewGroup) parent).removeView(ToolTipLayout.this);
+			((ViewGroup) parent).removeView(TooltipView.this);
 
 			if (null != mShowAnimation && mShowAnimation.isStarted()) {
 				mShowAnimation.cancel();
@@ -250,7 +272,7 @@ class ToolTipLayout extends ViewGroup {
 		}
 	}
 
-	protected void fadeOut() {
+	protected void fadeOut(final boolean remove) {
 		if (! isAttached() || ! mShowing) return;
 		if (DBG) Log.i(TAG, "fadeOut");
 
@@ -260,41 +282,56 @@ class ToolTipLayout extends ViewGroup {
 
 		mShowing = false;
 
-		float alpha = ViewHelper.getAlpha(this);
-		Animator animation = ObjectAnimator.ofFloat(this, "alpha", alpha, 0);
-		animation.addListener(
-			new Animator.AnimatorListener() {
-				boolean cancelled;
+		if (fadeDuration > 0) {
+			float alpha = ViewHelper.getAlpha(this);
+			mShowAnimation = ObjectAnimator.ofFloat(this, "alpha", alpha, 0);
+			mShowAnimation.setDuration(fadeDuration);
+			mShowAnimation.addListener(
+				new Animator.AnimatorListener() {
+					boolean cancelled;
 
-				@Override
-				public void onAnimationStart(final Animator animation) {
-					cancelled = false;
-				}
-
-				@Override
-				public void onAnimationEnd(final Animator animation) {
-					if (DBG) Log.i(TAG, "fadeout::onAnimationEnd, cancelled: " + cancelled);
-					if (cancelled) return;
-
-					if (null != tooltipListener) {
-						tooltipListener.onHideCompleted(ToolTipLayout.this);
+					@Override
+					public void onAnimationStart(final Animator animation) {
+						cancelled = false;
 					}
-					mShowAnimation = null;
-				}
 
-				@Override
-				public void onAnimationCancel(final Animator animation) {
-					if (DBG) Log.i(TAG, "fadeout::onAnimationCancel");
-					cancelled = true;
-				}
+					@Override
+					public void onAnimationEnd(final Animator animation) {
+						if (DBG) Log.i(TAG, "fadeout::onAnimationEnd, cancelled: " + cancelled);
+						if (cancelled) return;
 
-				@Override
-				public void onAnimationRepeat(final Animator animation) {
+						if (remove) {
+							fireOnHideCompleted();
+						}
+						mShowAnimation = null;
+					}
 
+					@Override
+					public void onAnimationCancel(final Animator animation) {
+						if (DBG) Log.i(TAG, "fadeout::onAnimationCancel");
+						cancelled = true;
+					}
+
+					@Override
+					public void onAnimationRepeat(final Animator animation) {
+
+					}
 				}
+			);
+			mShowAnimation.start();
+		}
+		else {
+			setVisibility(View.INVISIBLE);
+			if (remove) {
+				fireOnHideCompleted();
 			}
-		);
-		animation.start();
+		}
+	}
+
+	private void fireOnHideCompleted() {
+		if (null != tooltipListener) {
+			tooltipListener.onHideCompleted(TooltipView.this);
+		}
 	}
 
 	@Override
@@ -308,24 +345,22 @@ class ToolTipLayout extends ViewGroup {
 		for (int i = 0; i < count; i++) {
 			View child = getChildAt(i);
 			if (child.getVisibility() != GONE) {
-				ViewGroup.LayoutParams st = child.getLayoutParams();
 				child.layout(child.getLeft(), child.getTop(), child.getMeasuredWidth(), child.getMeasuredHeight());
 			}
 		}
 
-		List<TooltipManager.Gravity> gravities = new ArrayList<TooltipManager.Gravity>(
-			Arrays.asList(
-				TooltipManager.Gravity.LEFT,
-				TooltipManager.Gravity.RIGHT,
-				TooltipManager.Gravity.TOP,
-				TooltipManager.Gravity.BOTTOM,
-				TooltipManager.Gravity.CENTER
-			)
-		);
+		if (changed) {
 
-		gravities.remove(gravity);
-		gravities.add(0, gravity);
-		calculatePositions(gravities);
+			List<Gravity> gravities = new ArrayList<Gravity>(
+				Arrays.asList(
+					Gravity.LEFT, Gravity.RIGHT, Gravity.TOP, Gravity.BOTTOM, Gravity.CENTER
+				)
+			);
+
+			gravities.remove(gravity);
+			gravities.add(0, gravity);
+			calculatePositions(gravities);
+		}
 	}
 
 	@Override
@@ -374,6 +409,8 @@ class ToolTipLayout extends ViewGroup {
 		if (DBG) Log.i(TAG, "onAttachedToWindow");
 		super.onAttachedToWindow();
 		mAttached = true;
+
+		initializeView();
 	}
 
 	@Override
@@ -396,9 +433,10 @@ class ToolTipLayout extends ViewGroup {
 
 		if (null != mDrawable) {
 			mView.setBackgroundDrawable(mDrawable);
-			if(hideArrow) {
+			if (hideArrow) {
 				mView.setPadding(padding / 2, padding / 2, padding / 2, padding / 2);
-			} else {
+			}
+			else {
 				mView.setPadding(padding, padding, padding, padding);
 			}
 		}
@@ -412,7 +450,7 @@ class ToolTipLayout extends ViewGroup {
 		this.addView(mView);
 	}
 
-	private void calculatePositions(List<TooltipManager.Gravity> gravities) {
+	private void calculatePositions(List<Gravity> gravities) {
 		if (! isAttached()) return;
 
 		// failed to display the tooltip due to
@@ -426,7 +464,7 @@ class ToolTipLayout extends ViewGroup {
 			return;
 		}
 
-		TooltipManager.Gravity gravity = gravities.get(0);
+		Gravity gravity = gravities.get(0);
 
 		if (DBG) Log.i(TAG, "calculatePositions: " + gravity + ", gravities: " + gravities.size());
 
@@ -436,18 +474,20 @@ class ToolTipLayout extends ViewGroup {
 		Window window = ((Activity) getContext()).getWindow();
 		window.getDecorView().getWindowVisibleDisplayFrame(screenRect);
 
-		if (DBG) Log.d(TAG, "screenRect: " + screenRect + ", topRule: " + topRule);
+		int statusbarHeight = screenRect.top;
+
+		if (DBG) {
+			Log.d(TAG, "screenRect: " + screenRect + ", topRule: " + topRule + ", statusBar: " + statusbarHeight);
+		}
 
 		screenRect.top += topRule;
-
-		//Drawable drawable = mView.getBackground();
 
 		// get the global visible rect for the target targetView
 		if (null != targetView) {
 			targetView.getGlobalVisibleRect(viewRect);
 		}
 		else {
-			viewRect.set(point.x, point.y, point.x, point.y);
+			viewRect.set(point.x, point.y + statusbarHeight, point.x, point.y + statusbarHeight);
 		}
 
 		int width = mView.getWidth();
@@ -456,9 +496,8 @@ class ToolTipLayout extends ViewGroup {
 		// get the destination point
 		Point point = new Point();
 
-
 		//@formatter:off
-		if (gravity == TooltipManager.Gravity.BOTTOM) {
+		if (gravity == Gravity.BOTTOM) {
 			drawRect.set(viewRect.centerX() - width / 2,
 			             viewRect.bottom,
 			             viewRect.centerX() + width / 2,
@@ -467,7 +506,7 @@ class ToolTipLayout extends ViewGroup {
 			point.x = viewRect.centerX();
 			point.y = viewRect.bottom;
 
-			if (! screenRect.contains(drawRect)){
+			if (restrict && ! screenRect.contains(drawRect)){
 				if (drawRect.right > screenRect.right){
 					drawRect.offset(screenRect.right - drawRect.right, 0);
 				}
@@ -483,7 +522,7 @@ class ToolTipLayout extends ViewGroup {
 				}
 			}
 		}
-		else if (gravity == TooltipManager.Gravity.TOP){
+		else if (gravity == Gravity.TOP){
 			drawRect.set(viewRect.centerX() - width / 2,
 			             viewRect.top - height,
 			             viewRect.centerX() + width / 2,
@@ -492,7 +531,7 @@ class ToolTipLayout extends ViewGroup {
 			point.x = viewRect.centerX();
 			point.y = viewRect.top;
 
-			if (! screenRect.contains(drawRect)){
+			if (restrict && ! screenRect.contains(drawRect)){
 				if (drawRect.right > screenRect.right){
 					drawRect.offset(screenRect.right - drawRect.right, 0);
 				}
@@ -508,7 +547,7 @@ class ToolTipLayout extends ViewGroup {
 				}
 			}
 		}
-		else if (gravity == TooltipManager.Gravity.RIGHT){
+		else if (gravity == Gravity.RIGHT){
 			drawRect.set(viewRect.right,
 			             viewRect.centerY() - height / 2,
 			             viewRect.right + width,
@@ -517,7 +556,7 @@ class ToolTipLayout extends ViewGroup {
 			point.x = viewRect.right;
 			point.y = viewRect.centerY();
 
-			if (! screenRect.contains(drawRect)){
+			if (restrict && ! screenRect.contains(drawRect)){
 				if (drawRect.bottom > screenRect.bottom){
 					drawRect.offset(0, screenRect.bottom - drawRect.bottom);
 				}
@@ -533,7 +572,7 @@ class ToolTipLayout extends ViewGroup {
 				}
 			}
 		}
-		else if (gravity == TooltipManager.Gravity.LEFT){
+		else if (gravity == Gravity.LEFT){
 			drawRect.set(viewRect.left - width,
 			             viewRect.centerY() - height / 2,
 			             viewRect.left,
@@ -542,7 +581,7 @@ class ToolTipLayout extends ViewGroup {
 			point.x = viewRect.left;
 			point.y = viewRect.centerY();
 
-			if (! screenRect.contains(drawRect)){
+			if (restrict && ! screenRect.contains(drawRect)){
 				if (drawRect.bottom > screenRect.bottom){
 					drawRect.offset(0, screenRect.bottom - drawRect.bottom);
 				}
@@ -551,14 +590,14 @@ class ToolTipLayout extends ViewGroup {
 				}
 				if (drawRect.left < screenRect.left){
 					// this means there's no enough space!
-					this.gravity = TooltipManager.Gravity.RIGHT;
+					this.gravity = Gravity.RIGHT;
 					calculatePositions(gravities);
 					return;
 				} else if(drawRect.right > screenRect.right){
 					drawRect.offset(screenRect.right - drawRect.right, 0);
 				}
 			}
-		} else if (this.gravity == TooltipManager.Gravity.CENTER){
+		} else if (this.gravity == Gravity.CENTER){
 			drawRect.set(viewRect.centerX() - width / 2,
 			             viewRect.centerY() - height / 2,
 			             viewRect.centerX() - width / 2,
@@ -567,7 +606,7 @@ class ToolTipLayout extends ViewGroup {
 			point.x = viewRect.centerX();
 			point.y = viewRect.centerY();
 
-			if (! screenRect.contains(drawRect)){
+			if (restrict && ! screenRect.contains(drawRect)){
 				if (drawRect.bottom > screenRect.bottom){
 					drawRect.offset(0, screenRect.bottom - drawRect.bottom);
 				}
@@ -585,6 +624,7 @@ class ToolTipLayout extends ViewGroup {
 		//@formatter:on
 
 		// translate the textview
+
 		ViewHelper.setTranslationX(mView, drawRect.left);
 		ViewHelper.setTranslationY(mView, drawRect.top);
 
@@ -596,15 +636,15 @@ class ToolTipLayout extends ViewGroup {
 			point.y -= tempRect.top;
 
 			if (! hideArrow) {
-				if (gravity == TooltipManager.Gravity.LEFT || gravity == TooltipManager.Gravity.RIGHT) {
+				if (gravity == Gravity.LEFT || gravity == Gravity.RIGHT) {
 					point.y -= padding / 2;
 				}
-				else if (gravity == TooltipManager.Gravity.TOP || gravity == TooltipManager.Gravity.BOTTOM) {
+				else if (gravity == Gravity.TOP || gravity == Gravity.BOTTOM) {
 					point.x -= padding / 2;
 				}
 			}
 
-			mDrawable.setAnchor(gravity, hideArrow ? 0 : padding/2);
+			mDrawable.setAnchor(gravity, hideArrow ? 0 : padding / 2);
 
 			if (! this.hideArrow) {
 				mDrawable.setDestinationPoint(point);
@@ -612,11 +652,28 @@ class ToolTipLayout extends ViewGroup {
 		}
 	}
 
-	public boolean isAttached() {
-		return null != getParent();
+	@Override
+	public void setOffsetX(int x) {
+		ViewHelper.setTranslationX(this, x - viewRect.left);
 	}
 
-	public void setText(final CharSequence text) {
+	@Override
+	public void setOffsetY(int y) {
+		ViewHelper.setTranslationY(this, y - viewRect.top);
+	}
+
+	@Override
+	public void offsetTo(final int x, final int y) {
+		ViewHelper.setTranslationX(this, x - viewRect.left);
+		ViewHelper.setTranslationY(this, y - viewRect.top);
+	}
+
+	@Override
+	public boolean isAttached() {
+		return mAttached;
+	}
+
+	void setText(final CharSequence text) {
 		if (DBG) Log.i(TAG, "setText: " + text);
 		this.text = text;
 		if (null != mTextView) {
@@ -626,23 +683,25 @@ class ToolTipLayout extends ViewGroup {
 
 	@Override
 	public boolean onTouchEvent(final MotionEvent event) {
+		if (! mAttached || ! mShowing || ! isShown()) return false;
+
 		if (DBG) Log.i(TAG, "onTouchEvent: " + event.getAction() + ", active: " + mActivated);
-		if (! mAttached) return false;
 
 		final int action = event.getAction();
 
-		if (closePolicy == TooltipManager.ClosePolicy.TouchOutside || closePolicy == TooltipManager.ClosePolicy.TouchInside) {
+		if (closePolicy == ClosePolicy.TouchOutside || closePolicy == ClosePolicy.TouchInside) {
 			if (! mActivated) {
 				if (DBG) Log.w(TAG, "not yet activated..., " + action);
 				return true;
 			}
 
 			if (action == MotionEvent.ACTION_DOWN) {
-				if (closePolicy == TooltipManager.ClosePolicy.TouchInside) {
+				if (closePolicy == ClosePolicy.TouchInside) {
 					if (drawRect.contains((int) event.getX(), (int) event.getY())) {
 						onClose();
+						return true;
 					}
-					return true;
+					return false;
 				}
 				else {
 					onClose();
@@ -657,6 +716,7 @@ class ToolTipLayout extends ViewGroup {
 	private void onClose() {
 		if (DBG) Log.i(TAG, "onClose");
 		if (null == getHandler()) return;
+		if (! isAttached()) return;
 		getHandler().removeCallbacks(hideRunnable);
 		if (null != closeListener) {
 			closeListener.onClose(this);
@@ -675,14 +735,14 @@ class ToolTipLayout extends ViewGroup {
 	}
 
 	static interface OnCloseListener {
-		void onClose(ToolTipLayout layout);
+		void onClose(TooltipView layout);
 	}
 
 	static interface OnToolTipListener {
-		void onHideCompleted(ToolTipLayout layout);
+		void onHideCompleted(TooltipView layout);
 
-		void onShowCompleted(ToolTipLayout layout);
+		void onShowCompleted(TooltipView layout);
 
-		void onShowFailed(ToolTipLayout layout);
+		void onShowFailed(TooltipView layout);
 	}
 }

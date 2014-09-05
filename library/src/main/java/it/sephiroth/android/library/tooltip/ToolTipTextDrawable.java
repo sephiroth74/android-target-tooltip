@@ -14,7 +14,7 @@ import android.util.Log;
 
 import static it.sephiroth.android.library.tooltip.TooltipManager.DBG;
 
-class ToolTipTextDrawable extends Drawable {
+class TooltipTextDrawable extends Drawable {
 	static final String TAG = "ToolTipTextDrawable";
 
 	private final RectF rectF;
@@ -35,15 +35,15 @@ class ToolTipTextDrawable extends Drawable {
 
 	private TooltipManager.Gravity gravity;
 
-	public ToolTipTextDrawable(final Context context, final TooltipManager.Builder builder) {
+	public TooltipTextDrawable(final Context context, final TooltipManager.Builder builder) {
 
 		TypedArray theme =
-			context.getTheme().obtainStyledAttributes(null, R.styleable.ToolTipLayout, builder.defStyleAttr, builder.defStyleRes);
-		this.ellipseSize = theme.getDimensionPixelSize(R.styleable.ToolTipLayout_ttlm_cornerRadius, 4);
-		this.strokeWidth = theme.getDimensionPixelSize(R.styleable.ToolTipLayout_ttlm_strokeWeight, 30);
-		this.backgroundColor = theme.getColor(R.styleable.ToolTipLayout_ttlm_backgroundColor, 0);
-		this.strokeColor = theme.getColor(R.styleable.ToolTipLayout_ttlm_strokeColor, 0);
-		this.arrowRatio = theme.getFloat(R.styleable.ToolTipLayout_ttlm_arrowRatio, 1.4f);
+			context.getTheme().obtainStyledAttributes(null, R.styleable.TooltipLayout, builder.defStyleAttr, builder.defStyleRes);
+		this.ellipseSize = theme.getDimensionPixelSize(R.styleable.TooltipLayout_ttlm_cornerRadius, 4);
+		this.strokeWidth = theme.getDimensionPixelSize(R.styleable.TooltipLayout_ttlm_strokeWeight, 30);
+		this.backgroundColor = theme.getColor(R.styleable.TooltipLayout_ttlm_backgroundColor, 0);
+		this.strokeColor = theme.getColor(R.styleable.TooltipLayout_ttlm_strokeColor, 0);
+		this.arrowRatio = theme.getFloat(R.styleable.TooltipLayout_ttlm_arrowRatio, 1.4f);
 		theme.recycle();
 
 		this.rectF = new RectF();

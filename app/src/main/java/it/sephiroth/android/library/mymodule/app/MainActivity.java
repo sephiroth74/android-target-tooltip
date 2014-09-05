@@ -1,5 +1,6 @@
 package it.sephiroth.android.library.mymodule.app;
 
+import android.content.Intent;
 import android.content.res.TypedArray;
 import android.graphics.Point;
 import android.os.Build;
@@ -25,7 +26,6 @@ import it.sephiroth.android.library.tooltip.TooltipManager;
 public class MainActivity extends ActionBarActivity implements AbsListView.OnScrollListener, AdapterView.OnItemClickListener {
 
 	private static final String TAG = "MainActivity";
-	TextView mTextView;
 	final Handler handler = new Handler();
 	TooltipManager tooltipManager;
 	ListView listView;
@@ -54,60 +54,24 @@ public class MainActivity extends ActionBarActivity implements AbsListView.OnScr
 		super.onDestroy();
 	}
 
-	private int getTopRule(){
-		return getActionBarSize() + getStatusBarHeight();
-	}
-
-	private int getActionBarSize() {
-		if (Build.VERSION.SDK_INT >= 14) {
-			int[] attrs = {android.R.attr.actionBarSize};
-			TypedArray values = getTheme().obtainStyledAttributes(attrs);
-			try {
-				return values.getDimensionPixelSize(0, 0);
-			} finally {
-				values.recycle();
-			}
-		}
-
-		int[] attrs = {R.attr.actionBarSize};
-		TypedArray values = obtainStyledAttributes(attrs);
-		try {
-			return values.getDimensionPixelSize(0, 0);
-		} finally {
-			values.recycle();
-		}
-	}
-
-	public int getStatusBarHeight() {
-		int result = 0;
-		int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
-		if (resourceId > 0) {
-			result = getResources().getDimensionPixelSize(resourceId);
-		}
-		return result;
-	}
-
-	@Override
-	public void onSupportContentChanged() {
-		super.onSupportContentChanged();
-		mTextView = (TextView) findViewById(android.R.id.text1);
-	}
-
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		// Handle action bar item clicks here. The action bar will
-		// automatically handle clicks on the Home/Up button, so long
-		// as you specify a parent activity in AndroidManifest.xml.
 		int id = item.getItemId();
-		if (id == R.id.action_settings) {
-			return true;
+
+		if (id == R.id.action_demo1) {
+			startActivity(new Intent(this, MainActivity.class));
+		}
+		else if (id == R.id.action_demo2) {
+			startActivity(new Intent(this, MainActivity2.class));
+		}
+		else if (id == R.id.action_demo3) {
+			startActivity(new Intent(this, MainActivity3.class));
 		}
 		return super.onOptionsItemSelected(item);
 	}
@@ -123,7 +87,7 @@ public class MainActivity extends ActionBarActivity implements AbsListView.OnScr
 		else if (scrollState == SCROLL_STATE_TOUCH_SCROLL) {
 			handler.removeCallbacks(showRunnable);
 
-			if(tooltipManager.active(100)){
+			if (tooltipManager.active(100)) {
 				tooltipManager.remove(100);
 			}
 		}
@@ -134,17 +98,16 @@ public class MainActivity extends ActionBarActivity implements AbsListView.OnScr
 		@Override
 		public void run() {
 			View child = listView.getChildAt(0);
-			tooltipManager
-				.create(100)
-				.maxWidth(450)
-				.actionBarSize(getTopRule())
-				.activateDelay(100)
-				.anchor(new Point(512, 100), TooltipManager.Gravity.BOTTOM)
-				.closePolicy(TooltipManager.ClosePolicy.None, 500)
-				.withCustomView(R.layout.custom_textview)
-				.withStyleId(R.style.ToolTipLayoutCustomStyle)
-				.text("Test tooltip showing on a list, Test tooltip showing on a list, Test tooltip showing on a list...")
-				.show();
+			tooltipManager.create(100)
+			              .maxWidth(450)
+			              .actionBarSize(Utils.getActionBarSize(getBaseContext()))
+			              .activateDelay(100)
+			              .anchor(new Point(512, 100), TooltipManager.Gravity.BOTTOM)
+			              .closePolicy(TooltipManager.ClosePolicy.None, 1500)
+			              .withCustomView(R.layout.custom_textview)
+			              .withStyleId(R.style.ToolTipLayoutCustomStyle)
+			              .text("Test tooltip showing on a list, Test tooltip showing on a list, Test tooltip showing on a list...")
+			              .show();
 		}
 	};
 
@@ -152,7 +115,7 @@ public class MainActivity extends ActionBarActivity implements AbsListView.OnScr
 	public void onScroll(
 		final AbsListView view, final int firstVisibleItem, final int visibleItemCount, final int totalItemCount) {
 
-		if(null != tooltipManager) {
+		if (null != tooltipManager) {
 			tooltipManager.update(100);
 		}
 	}
