@@ -184,7 +184,6 @@ class TooltipTextDrawable extends Drawable {
 
 	@Override
 	public void draw(final Canvas canvas) {
-		if (DBG) Log.i(TAG, "draw");
 
 		if (null != bgPaint) {
 			canvas.drawPath(path, bgPaint);

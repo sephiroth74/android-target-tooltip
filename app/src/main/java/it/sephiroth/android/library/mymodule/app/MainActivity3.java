@@ -62,8 +62,8 @@ public class MainActivity3 extends ActionBarActivity
 		tooltipManager.addOnTooltipAttachedStateChange(this);
 
 		tooltipManager.create(TOOLTIP_ID)
-		              .maxWidth(480)
-		              .anchor(new Point(500, 0), TooltipManager.Gravity.RIGHT)
+		              .maxWidth(200)
+		              .anchor(new Point(80, 0), TooltipManager.Gravity.RIGHT)
 		              .closePolicy(TooltipManager.ClosePolicy.TouchInside, 0)
 		              .text("Brigthness, Saturation, Contrast and Warmth are now here!")
 		              .actionBarSize(Utils.getActionBarSize(this))
@@ -174,6 +174,9 @@ public class MainActivity3 extends ActionBarActivity
 
 		mView.getLocationOnScreen(mTempLocation);
 		tooltipView.setOffsetY(mTempLocation[1]);
+
+//		Log.v(TAG, "onPreDraw::location: " + mTempLocation[0] + "x" + mTempLocation[1]);
+
 		return true;
 	}
 

@@ -23,6 +23,7 @@ import android.widget.TextView;
 import com.nineoldandroids.animation.Animator;
 import com.nineoldandroids.animation.ObjectAnimator;
 import com.nineoldandroids.view.ViewHelper;
+import com.nineoldandroids.view.animation.AnimatorProxy;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -108,38 +109,10 @@ class TooltipView extends ViewGroup implements Tooltip {
 		}
 
 		setVisibility(INVISIBLE);
-		//setHardwareAccelerated(true);
 	}
 
 	int getTooltipId() {
 		return toolTipId;
-	}
-
-	@TargetApi (Build.VERSION_CODES.HONEYCOMB)
-	protected void setHardwareAccelerated(boolean accelerated) {
-		if (accelerated) {
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-				if (isHardwareAccelerated()) {
-					Paint hardwarePaint = new Paint();
-					hardwarePaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.OVERLAY));
-					setLayerType(LAYER_TYPE_HARDWARE, hardwarePaint);
-				}
-				else {
-					setLayerType(LAYER_TYPE_SOFTWARE, null);
-				}
-			}
-			else {
-				setDrawingCacheEnabled(true);
-			}
-		}
-		else {
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-				setLayerType(LAYER_TYPE_SOFTWARE, null);
-			}
-			else {
-				setDrawingCacheEnabled(true);
-			}
-		}
 	}
 
 	@Override
@@ -634,6 +607,14 @@ class TooltipView extends ViewGroup implements Tooltip {
 
 			point.x -= tempRect.left;
 			point.y -= tempRect.top;
+
+			// View.getGlobalVisibleRect doesn't take into account
+			// translationX and translationY if applied using the ViewHelper
+			// on api < 11
+			if (AnimatorProxy.NEEDS_PROXY) {
+				point.x -= drawRect.left;
+				point.y -= drawRect.top;
+			}
 
 			if (! hideArrow) {
 				if (gravity == Gravity.LEFT || gravity == Gravity.RIGHT) {
