@@ -16,7 +16,7 @@ import android.widget.Button;
 import it.sephiroth.android.library.tooltip.TooltipManager;
 
 
-public class MainActivity2 extends ActionBarActivity implements View.OnClickListener {
+public class MainActivity2 extends ActionBarActivity implements View.OnClickListener, TooltipManager.onTooltipClosingCallback {
 
 	private static final String TAG = MainActivity2.class.getSimpleName();
 
@@ -73,11 +73,12 @@ public class MainActivity2 extends ActionBarActivity implements View.OnClickList
 			manager.create(0)
 			       .anchor(mButton1, TooltipManager.Gravity.BOTTOM)
 			       .actionBarSize(Utils.getActionBarSize(getBaseContext()))
-			       .closePolicy(TooltipManager.ClosePolicy.TouchOutside, 0)
+			       .closePolicy(TooltipManager.ClosePolicy.TouchOutside, 3000)
 			       .text(R.string.hello_world)
 			       .toggleArrow(true)
 			       .maxWidth(400)
 			       .showDelay(300)
+			       .withCallback(this)
 			       .show();
 		}
 		else if (id == mButton2.getId()) {
@@ -88,6 +89,7 @@ public class MainActivity2 extends ActionBarActivity implements View.OnClickList
 			       .text(R.string.hello_world)
 			       .toggleArrow(true)
 			       .maxWidth(400)
+			       .withCallback(this)
 			       .show();
 		}
 	}
@@ -96,5 +98,10 @@ public class MainActivity2 extends ActionBarActivity implements View.OnClickList
 	protected void onDestroy() {
 		super.onDestroy();
 		TooltipManager.removeInstance(this);
+	}
+
+	@Override
+	public void onClosing(final int id, final boolean fromUser) {
+		Log.d(TAG, "onClosing: " + id + ", fromUser: " + fromUser);
 	}
 }

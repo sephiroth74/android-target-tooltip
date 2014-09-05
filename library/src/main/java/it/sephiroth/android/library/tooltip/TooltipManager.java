@@ -235,6 +235,7 @@ public class TooltipManager {
 		boolean isCustomView;
 		boolean restrictToScreenEdges = true;
 		long fadeDuration = 200;
+		onTooltipClosingCallback closeCallback;
 
 		Builder(final TooltipManager manager, int id) {
 			this.manager = new WeakReference<TooltipManager>(manager);
@@ -273,6 +274,11 @@ public class TooltipManager {
 
 		public Builder fadeDuration(long ms) {
 			fadeDuration = ms;
+			return this;
+		}
+
+		public Builder withCallback(onTooltipClosingCallback callback) {
+			this.closeCallback = callback;
 			return this;
 		}
 
@@ -435,5 +441,16 @@ public class TooltipManager {
 			}
 		}
 		return sInstance;
+	}
+
+	public static interface onTooltipClosingCallback {
+
+		/**
+		 * tooltip is being closed
+		 *
+		 * @param id
+		 * @param fromUser true if the close operation started from a user click
+		 */
+		void onClosing(int id, boolean fromUser);
 	}
 }

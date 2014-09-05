@@ -27,7 +27,7 @@ import it.sephiroth.android.library.tooltip.TooltipManager;
 
 public class MainActivity3 extends ActionBarActivity
 	implements AdapterView.OnItemClickListener, MyTextView.OnAttachStatusListener, TooltipManager.OnTooltipAttachedStateChange,
-	           ViewTreeObserver.OnPreDrawListener {
+	           ViewTreeObserver.OnPreDrawListener, TooltipManager.onTooltipClosingCallback {
 
 	private static final String TAG = "MainActivity3";
 	ListView listView;
@@ -69,6 +69,7 @@ public class MainActivity3 extends ActionBarActivity
 		              .actionBarSize(Utils.getActionBarSize(this))
 		              .fitToScreen(false)
 		              .fadeDuration(100)
+		              .withCallback(this)
 		              .build();
 	}
 
@@ -178,6 +179,11 @@ public class MainActivity3 extends ActionBarActivity
 //		Log.v(TAG, "onPreDraw::location: " + mTempLocation[0] + "x" + mTempLocation[1]);
 
 		return true;
+	}
+
+	@Override
+	public void onClosing(final int id, final boolean fromUser) {
+		// tooltip is being closed...
 	}
 
 

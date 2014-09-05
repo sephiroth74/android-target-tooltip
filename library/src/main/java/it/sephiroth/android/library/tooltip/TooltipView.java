@@ -59,6 +59,7 @@ class TooltipView extends ViewGroup implements Tooltip {
 	private final long activateDelay;
 	private final boolean restrict;
 	private final long fadeDuration;
+	private final TooltipManager.onTooltipClosingCallback closeCallback;
 
 	private CharSequence text;
 	Gravity gravity;
@@ -88,6 +89,7 @@ class TooltipView extends ViewGroup implements Tooltip {
 		this.targetView = builder.view;
 		this.restrict = builder.restrictToScreenEdges;
 		this.fadeDuration = builder.fadeDuration;
+		this.closeCallback = builder.closeCallback;
 
 		if (null != builder.point) {
 			this.point = new Point(builder.point);
@@ -210,7 +212,7 @@ class TooltipView extends ViewGroup implements Tooltip {
 	Runnable hideRunnable = new Runnable() {
 		@Override
 		public void run() {
-			onClose();
+			onClose(false);
 		}
 	};
 
@@ -679,13 +681,13 @@ class TooltipView extends ViewGroup implements Tooltip {
 			if (action == MotionEvent.ACTION_DOWN) {
 				if (closePolicy == ClosePolicy.TouchInside) {
 					if (drawRect.contains((int) event.getX(), (int) event.getY())) {
-						onClose();
+						onClose(true);
 						return true;
 					}
 					return false;
 				}
 				else {
-					onClose();
+					onClose(true);
 					return drawRect.contains((int) event.getX(), (int) event.getY());
 				}
 			}
@@ -694,13 +696,20 @@ class TooltipView extends ViewGroup implements Tooltip {
 		return false;
 	}
 
-	private void onClose() {
-		if (DBG) Log.i(TAG, "onClose");
+	private void onClose(boolean fromUser) {
+		if (DBG) Log.i(TAG, "onClose. fromUser: " + fromUser);
+
 		if (null == getHandler()) return;
 		if (! isAttached()) return;
+
 		getHandler().removeCallbacks(hideRunnable);
+
 		if (null != closeListener) {
 			closeListener.onClose(this);
+		}
+
+		if (null != closeCallback) {
+			closeCallback.onClosing(toolTipId, fromUser);
 		}
 	}
 
