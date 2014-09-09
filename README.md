@@ -8,7 +8,7 @@ Master: ![travis-ci](https://travis-ci.org/sephiroth74/android-target-tooltip.sv
 Installation
 ===
 
-	compile('it.sephiroth.android.library.targettooltip:target-tooltip-library:+@aar'){
+	compile('it.sephiroth.android.library.targettooltip:target-tooltip-library:1.2.2@aar'){
         transitive=true
 	}
 	
