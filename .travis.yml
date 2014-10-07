@@ -10,14 +10,14 @@ notifications:
 before_install:
 
   # environment info
-  - gradle -v
+  - ./gradlew -v
   - uname -a
 
   # for gradle output style
   - export TERM=dumb
 
   # just to test gradle version, against our provided one
-  - gradle -v
+  - ./gradlew -v
 
   # Install required components.
   # For a full list, run `android list sdk -a --extended`
@@ -41,6 +41,6 @@ android:
 
 
 # Let's try to build...
-install: gradle clean build
+install: ./gradlew clean build
 
-script: gradle check
+script: ./gradlew check
