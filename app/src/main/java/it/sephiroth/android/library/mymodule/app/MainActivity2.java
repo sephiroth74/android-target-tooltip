@@ -71,7 +71,7 @@ public class MainActivity2 extends ActionBarActivity implements View.OnClickList
 
 		if (id == mButton1.getId()) {
 			manager.create(0)
-			       .anchor(mButton1, TooltipManager.Gravity.BOTTOM)
+			       .anchor(mButton1, TooltipManager.Gravity.RIGHT)
 			       .actionBarSize(Utils.getActionBarSize(getBaseContext()))
 			       .closePolicy(TooltipManager.ClosePolicy.TouchOutside, 3000)
 			       .text(R.string.hello_world)
@@ -83,7 +83,7 @@ public class MainActivity2 extends ActionBarActivity implements View.OnClickList
 		}
 		else if (id == mButton2.getId()) {
 			manager.create(1)
-			       .anchor(mButton2, TooltipManager.Gravity.RIGHT)
+			       .anchor(mButton2, TooltipManager.Gravity.BOTTOM)
 			       .actionBarSize(Utils.getActionBarSize(getBaseContext()))
 			       .closePolicy(TooltipManager.ClosePolicy.TouchInside, 0)
 			       .text(R.string.hello_world)
