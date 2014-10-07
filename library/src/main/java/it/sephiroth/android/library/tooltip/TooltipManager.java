@@ -221,6 +221,7 @@ public class TooltipManager {
 		View view;
 		Gravity gravity;
 		int actionbarSize = 0;
+		int backgroundColorResId = 0;
 		int textResId = R.layout.tooltip_textview;
 		ClosePolicy closePolicy;
 		long showDuration;
@@ -351,6 +352,11 @@ public class TooltipManager {
 
 		public Builder showDelay(long ms) {
 			this.showDelay = ms;
+			return this;
+		}
+		
+		public Builder background(int colorResId) {
+			this.backgroundColorResId = colorResId;
 			return this;
 		}
 
