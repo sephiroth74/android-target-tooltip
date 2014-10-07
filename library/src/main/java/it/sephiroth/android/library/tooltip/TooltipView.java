@@ -91,6 +91,10 @@ class TooltipView extends ViewGroup implements Tooltip {
 		this.fadeDuration = builder.fadeDuration;
 		this.closeCallback = builder.closeCallback;
 
+		if (builder.backgroundColorResId > 0) {
+			setBackgroundColor(context.getResources().getColor(builder.backgroundColorResId));
+		}
+
 		if (null != builder.point) {
 			this.point = new Point(builder.point);
 			this.point.y += topRule;

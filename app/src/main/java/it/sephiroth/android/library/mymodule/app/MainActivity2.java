@@ -22,6 +22,7 @@ public class MainActivity2 extends ActionBarActivity implements View.OnClickList
 
 	Button mButton1;
 	Button mButton2;
+	Button mButton3;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -30,8 +31,10 @@ public class MainActivity2 extends ActionBarActivity implements View.OnClickList
 
 		mButton1 = (Button) findViewById(R.id.button1);
 		mButton2 = (Button) findViewById(R.id.button2);
+		mButton3 = (Button) findViewById(R.id.button3);
 		mButton1.setOnClickListener(this);
 		mButton2.setOnClickListener(this);
+		mButton3.setOnClickListener(this);
 	}
 
 
@@ -90,6 +93,18 @@ public class MainActivity2 extends ActionBarActivity implements View.OnClickList
 			       .toggleArrow(true)
 			       .maxWidth(400)
 			       .withCallback(this)
+			       .show();
+		}
+		else if (id == mButton3.getId()) {
+			manager.create(2)
+			       .anchor(mButton3, TooltipManager.Gravity.BOTTOM)
+			       .actionBarSize(Utils.getActionBarSize(getBaseContext()))
+			       .closePolicy(TooltipManager.ClosePolicy.TouchOutside, 0)
+			       .text(R.string.hello_world)
+			       .toggleArrow(true)
+			       .maxWidth(400)
+			       .withCallback(this)
+			       .background(R.color.black_dark_transparent)
 			       .show();
 		}
 	}
