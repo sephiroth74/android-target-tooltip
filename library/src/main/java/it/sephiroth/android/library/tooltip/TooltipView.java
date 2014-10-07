@@ -688,7 +688,7 @@ class TooltipView extends ViewGroup implements Tooltip {
 				}
 				else {
 					onClose(true);
-					return drawRect.contains((int) event.getX(), (int) event.getY());
+					return true; // Swallow all touches
 				}
 			}
 		}
