@@ -670,23 +670,26 @@ class TooltipView extends ViewGroup implements Tooltip {
 
 		if (DBG) Log.i(TAG, "onTouchEvent: " + event.getAction() + ", active: " + mActivated);
 
-		final int action = event.getAction();
+		final int action = event.getActionMasked();
 
-		if (closePolicy == ClosePolicy.TouchOutside 
-    		    || closePolicy == ClosePolicy.TouchInside
-		    || closePolicy == ClosePolicy.TouchOutsideExclusive) {
+		if (closePolicy == ClosePolicy.TouchOutside
+    		|| closePolicy == ClosePolicy.TouchInside
+            || closePolicy == ClosePolicy.TouchInsideExclusive
+		    || closePolicy == ClosePolicy.TouchOutsideExclusive
+            ) {
+
 			if (! mActivated) {
 				if (DBG) Log.w(TAG, "not yet activated..., " + action);
 				return true;
 			}
 
 			if (action == MotionEvent.ACTION_DOWN) {
-				if (closePolicy == ClosePolicy.TouchInside) {
+				if (closePolicy == ClosePolicy.TouchInside || closePolicy == ClosePolicy.TouchInsideExclusive) {
 					if (drawRect.contains((int) event.getX(), (int) event.getY())) {
 						onClose(true);
 						return true;
 					}
-					return false;
+					return closePolicy == ClosePolicy.TouchInsideExclusive;
 				}
 				else {
 					onClose(true);

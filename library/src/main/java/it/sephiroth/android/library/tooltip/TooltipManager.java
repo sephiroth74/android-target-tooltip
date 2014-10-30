@@ -387,6 +387,14 @@ public class TooltipManager {
 		 * If delay is '0' the tooltip will never hide until clicked
 		 */
 		TouchInside,
+
+        /**
+         * tooltip will hide when touching it, or after the specified delay.
+         * If delay is '0' the tooltip will never hide until clicked.
+         * In exclusive mode all touches will be consumed by the tooltip itself
+         */
+        TouchInsideExclusive,
+
 		/**
 		 * tooltip will hide when user touches the screen, or after the specified delay.
 		 * If delay is '0' the tooltip will never hide until clicked

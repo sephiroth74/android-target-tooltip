@@ -26,7 +26,6 @@
 		android:layout_height="wrap_content"
 		android:textColor="@android:color/white"
 		android:singleLine="false"
-		android:maxLines="3"
 		android:textSize="12sp"
 		android:autoLink="all"
 		android:text="ciao">
