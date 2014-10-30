@@ -1,15 +1,10 @@
 package it.sephiroth.android.library.tooltip;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.graphics.Paint;
 import android.graphics.Point;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
-import android.os.Build;
 import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -212,7 +207,7 @@ class TooltipView extends ViewGroup implements Tooltip {
 	Runnable hideRunnable = new Runnable() {
 		@Override
 		public void run() {
-			onClose(false);
+			onClose(false, false);
 		}
 	};
 
@@ -684,17 +679,19 @@ class TooltipView extends ViewGroup implements Tooltip {
 			}
 
 			if (action == MotionEvent.ACTION_DOWN) {
+
+                final boolean containsTouch = drawRect.contains((int) event.getX(), (int) event.getY());
+
 				if (closePolicy == ClosePolicy.TouchInside || closePolicy == ClosePolicy.TouchInsideExclusive) {
-					if (drawRect.contains((int) event.getX(), (int) event.getY())) {
-						onClose(true);
+					if (containsTouch) {
+						onClose(true, true);
 						return true;
 					}
 					return closePolicy == ClosePolicy.TouchInsideExclusive;
 				}
 				else {
-					onClose(true);
-					return closePolicy == ClosePolicy.TouchOutsideExclusive
-						|| drawRect.contains((int) event.getX(), (int) event.getY());
+					onClose(true, containsTouch);
+					return closePolicy == ClosePolicy.TouchOutsideExclusive || containsTouch;
 				}
 			}
 		}
@@ -702,8 +699,8 @@ class TooltipView extends ViewGroup implements Tooltip {
 		return false;
 	}
 
-	private void onClose(boolean fromUser) {
-		if (DBG) Log.i(TAG, "onClose. fromUser: " + fromUser);
+	private void onClose(boolean fromUser, boolean containsTouch) {
+		if (DBG) Log.i(TAG, "onClose. fromUser: " + fromUser + ", containsTouch: " + containsTouch);
 
 		if (null == getHandler()) return;
 		if (! isAttached()) return;
@@ -715,7 +712,7 @@ class TooltipView extends ViewGroup implements Tooltip {
 		}
 
 		if (null != closeCallback) {
-			closeCallback.onClosing(toolTipId, fromUser);
+			closeCallback.onClosing(toolTipId, fromUser, containsTouch);
 		}
 	}
 

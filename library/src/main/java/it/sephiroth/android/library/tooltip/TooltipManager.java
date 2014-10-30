@@ -461,10 +461,10 @@ public class TooltipManager {
 
 		/**
 		 * tooltip is being closed
-		 *
-		 * @param id
+		 *  @param id
 		 * @param fromUser true if the close operation started from a user click
-		 */
-		void onClosing(int id, boolean fromUser);
+         * @param containsTouch true if the original touch came from inside the tooltip
+         */
+		void onClosing(int id, boolean fromUser, final boolean containsTouch);
 	}
 }

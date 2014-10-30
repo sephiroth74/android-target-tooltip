@@ -182,7 +182,7 @@ public class MainActivity3 extends ActionBarActivity
 	}
 
 	@Override
-	public void onClosing(final int id, final boolean fromUser) {
+	public void onClosing(final int id, final boolean fromUser, final boolean containsTouch) {
 		// tooltip is being closed...
 	}
 

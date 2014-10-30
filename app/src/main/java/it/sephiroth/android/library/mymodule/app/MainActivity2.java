@@ -1,9 +1,6 @@
 package it.sephiroth.android.library.mymodule.app;
 
 import android.content.Intent;
-import android.content.res.TypedArray;
-import android.graphics.Point;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.util.DisplayMetrics;
@@ -145,7 +142,7 @@ public class MainActivity2 extends ActionBarActivity implements View.OnClickList
 	}
 
 	@Override
-	public void onClosing(final int id, final boolean fromUser) {
-		Log.d(TAG, "onClosing: " + id + ", fromUser: " + fromUser);
+	public void onClosing(final int id, final boolean fromUser, final boolean containsTouch) {
+		Log.d(TAG, "onClosing: " + id + ", fromUser: " + fromUser + ", containsTouch: " + containsTouch);
 	}
 }
