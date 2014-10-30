@@ -22,5 +22,14 @@
 		android:layout_below="@+id/button1"
 		android:layout_alignParentLeft="true"
 		android:layout_alignParentStart="true" />
+			
+	<Button
+		android:id="@+id/button3"
+		android:text="@string/hello_world"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_below="@+id/button2"
+		android:layout_alignParentLeft="true"
+		android:layout_alignParentStart="true" />
 
 </RelativeLayout>

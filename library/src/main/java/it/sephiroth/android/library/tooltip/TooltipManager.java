@@ -393,6 +393,12 @@ public class TooltipManager {
 		 */
 		TouchOutside,
 		/**
+		 * tooltip will hide when user touches the screen, or after the specified delay.
+		 * If delay is '0' the tooltip will never hide until clicked.
+		 * Touch will be consumed in any case.
+		 */
+		TouchOutsideExclusive,
+		/**
 		 * tooltip is hidden only after the specified delay
 		 */
 		None
