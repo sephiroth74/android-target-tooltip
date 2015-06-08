@@ -8,5 +8,6 @@
 		<item name="ttlm_strokeWeight">@dimen/ttlm_default_stroke_weight</item>
 		<item name="ttlm_cornerRadius">@dimen/ttlm_default_corner_radius</item>
 		<item name="ttlm_arrowRatio">1.4</item>
+		<item name="ttlm_textColor">@color/ttlm_default_text_color</item>
 	</style>
 </resources>

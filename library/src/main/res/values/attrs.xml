@@ -11,5 +11,6 @@
 		<attr name="ttlm_strokeWeight" format="dimension" />
 		<attr name="ttlm_cornerRadius" format="dimension" />
 		<attr name="ttlm_arrowRatio" format="float" />
+		<attr name="ttlm_textColor" format="color" />
 	</declare-styleable>
 </resources>

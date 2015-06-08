@@ -51,6 +51,7 @@ class TooltipView extends ViewGroup implements Tooltip {
 	private final int maxWidth;
 	private final boolean hideArrow;
 	private int padding;
+	private int textColor;
 	private final long activateDelay;
 	private final boolean restrict;
 	private final long fadeDuration;
@@ -68,6 +69,7 @@ class TooltipView extends ViewGroup implements Tooltip {
 
 		TypedArray theme = context.getTheme().obtainStyledAttributes(null, R.styleable.TooltipLayout, builder.defStyleAttr, builder.defStyleRes);
 		this.padding = theme.getDimensionPixelSize(R.styleable.TooltipLayout_ttlm_padding, 30);
+		this.textColor = theme.getColor(R.styleable.TooltipLayout_ttlm_textColor, 0);
 		theme.recycle();
 
 		this.toolTipId = builder.id;
@@ -412,6 +414,7 @@ class TooltipView extends ViewGroup implements Tooltip {
 		}
 
 		mTextView = (TextView) mView.findViewById(android.R.id.text1);
+		mTextView.setTextColor(this.textColor);
 		mTextView.setText(Html.fromHtml((String) this.text));
 		if (maxWidth > - 1) {
 			mTextView.setMaxWidth(maxWidth);

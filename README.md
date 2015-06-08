@@ -38,6 +38,7 @@ Tooltip style can be customized in your style object:
 		<item name="ttlm_backgroundColor">#ffe5da7d</item>
 		<item name="ttlm_strokeWeight">0dip</item>
 		<item name="ttlm_cornerRadius">8dip</item>
+		<item name="ttlm_textColor">#ffffffff</item>
 	</style>
 	
 then pass the style in the Builder method **withStyleId(int resId)**

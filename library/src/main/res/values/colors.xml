@@ -2,4 +2,5 @@
 <resources>
 	<color name="ttlm_default_background_color">#EE131518</color>
 	<color name="ttlm_default_stroke_color">#FFE9ECEF</color>
+	<color name="ttlm_default_text_color">#FFE9ECEF</color>
 </resources>

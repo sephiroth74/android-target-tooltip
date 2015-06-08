@@ -15,6 +15,7 @@
 		<item name="ttlm_backgroundColor">#ffe5da7d</item>
 		<item name="ttlm_strokeWeight">0dip</item>
 		<item name="ttlm_cornerRadius">8dip</item>
+		<item name="ttlm_textColor">#00ff00</item>
 	</style>
 
 </resources>
