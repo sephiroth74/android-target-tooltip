@@ -1,10 +1,16 @@
 package it.sephiroth.android.library.tooltip;
 
+import android.animation.Animator;
+import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.os.Build;
+import android.support.annotation.ColorInt;
+import android.support.annotation.NonNull;
+import android.support.annotation.Size;
 import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -14,11 +20,6 @@ import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.Window;
 import android.widget.TextView;
-
-import com.nineoldandroids.animation.Animator;
-import com.nineoldandroids.animation.ObjectAnimator;
-import com.nineoldandroids.view.ViewHelper;
-import com.nineoldandroids.view.animation.AnimatorProxy;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,6 +32,15 @@ import static it.sephiroth.android.library.tooltip.TooltipManager.Gravity;
 class TooltipView extends ViewGroup implements Tooltip {
 
 	private static final String TAG = "ToolTipLayout";
+
+	private static final List<Gravity> gravities = new ArrayList<>(
+			Arrays.asList(
+					Gravity.LEFT, Gravity.RIGHT, Gravity.TOP, Gravity.BOTTOM, Gravity.CENTER
+			)
+	);
+
+	private final List<Gravity> viewGravities = new ArrayList<>(gravities);
+
 	private final long showDelay;
 
 	private boolean mAttached;
@@ -38,15 +48,19 @@ class TooltipView extends ViewGroup implements Tooltip {
 	private boolean mActivated;
 
 	private final int toolTipId;
-	private final Rect viewRect;
 	private final Rect drawRect;
 	private final Rect tempRect;
+	private Rect viewRect;
 
 	private final long showDuration;
 	private final ClosePolicy closePolicy;
-	private final View targetView;
 	private final Point point;
 	private final int textResId;
+	@ColorInt private final int textColor;
+	@Size private final int textSize;
+	private final int textGravity;
+	private final int textAlignment;
+	private final int textDirection;
 	private final int topRule;
 	private final int maxWidth;
 	private final boolean hideArrow;
@@ -72,6 +86,11 @@ class TooltipView extends ViewGroup implements Tooltip {
 
 		this.toolTipId = builder.id;
 		this.text = builder.text;
+		this.textColor = builder.textColor;
+		this.textSize = builder.textSize;
+		this.textGravity = builder.textGravity;
+		this.textAlignment = builder.textAlignment;
+		this.textDirection = builder.textDirection;
 		this.gravity = builder.gravity;
 		this.textResId = builder.textResId;
 		this.maxWidth = builder.maxWidth;
@@ -81,7 +100,6 @@ class TooltipView extends ViewGroup implements Tooltip {
 		this.showDelay = builder.showDelay;
 		this.hideArrow = builder.hideArrow;
 		this.activateDelay = builder.activateDelay;
-		this.targetView = builder.view;
 		this.restrict = builder.restrictToScreenEdges;
 		this.fadeDuration = builder.fadeDuration;
 		this.closeCallback = builder.closeCallback;
@@ -94,9 +112,15 @@ class TooltipView extends ViewGroup implements Tooltip {
 			this.point = null;
 		}
 
-		this.viewRect = new Rect();
 		this.drawRect = new Rect();
 		this.tempRect = new Rect();
+
+		// get the global visible rect for the target targetView
+		if (null != builder.view) {
+			this.viewRect = new Rect();
+			builder.view.getGlobalVisibleRect(viewRect);
+
+		}
 
 		if (! builder.isCustomView) {
 			this.mDrawable = new TooltipTextDrawable(context, builder);
@@ -253,7 +277,7 @@ class TooltipView extends ViewGroup implements Tooltip {
 		mShowing = false;
 
 		if (fadeDuration > 0) {
-			float alpha = ViewHelper.getAlpha(this);
+			float alpha = 1; // TODO: 8/11/15 Get this from the builder and have a default value.
 			mShowAnimation = ObjectAnimator.ofFloat(this, "alpha", alpha, 0);
 			mShowAnimation.setDuration(fadeDuration);
 			mShowAnimation.addListener(
@@ -320,16 +344,11 @@ class TooltipView extends ViewGroup implements Tooltip {
 		}
 
 		if (changed) {
-
-			List<Gravity> gravities = new ArrayList<Gravity>(
-				Arrays.asList(
-					Gravity.LEFT, Gravity.RIGHT, Gravity.TOP, Gravity.BOTTOM, Gravity.CENTER
-				)
-			);
-
-			gravities.remove(gravity);
-			gravities.add(0, gravity);
-			calculatePositions(gravities);
+			viewGravities.clear();
+			viewGravities.addAll(gravities);
+			viewGravities.remove(gravity);
+			viewGravities.add(0, gravity);
+			calculatePositions(viewGravities);
 		}
 	}
 
@@ -413,6 +432,13 @@ class TooltipView extends ViewGroup implements Tooltip {
 
 		mTextView = (TextView) mView.findViewById(android.R.id.text1);
 		mTextView.setText(Html.fromHtml((String) this.text));
+		mTextView.setTextColor(textColor);
+		mTextView.setTextSize(textSize);
+		mTextView.setGravity(textGravity);
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+			mTextView.setTextAlignment(textAlignment);
+			mTextView.setTextDirection(textDirection);
+		}
 		if (maxWidth > - 1) {
 			mTextView.setMaxWidth(maxWidth);
 		}
@@ -444,21 +470,13 @@ class TooltipView extends ViewGroup implements Tooltip {
 		Window window = ((Activity) getContext()).getWindow();
 		window.getDecorView().getWindowVisibleDisplayFrame(screenRect);
 
-		int statusbarHeight = screenRect.top;
-
-		if (DBG) {
-			Log.d(TAG, "screenRect: " + screenRect + ", topRule: " + topRule + ", statusBar: " + statusbarHeight);
+		if (viewRect == null) {
+			int statusbarHeight = screenRect.top;
+			this.viewRect = new Rect();
+			viewRect.set(point.x, point.y + statusbarHeight, point.x, point.y + statusbarHeight);
 		}
 
 		screenRect.top += topRule;
-
-		// get the global visible rect for the target targetView
-		if (null != targetView) {
-			targetView.getGlobalVisibleRect(viewRect);
-		}
-		else {
-			viewRect.set(point.x, point.y + statusbarHeight, point.x, point.y + statusbarHeight);
-		}
 
 		int width = mView.getWidth();
 		int height = mView.getMeasuredHeight();
@@ -595,8 +613,8 @@ class TooltipView extends ViewGroup implements Tooltip {
 
 		// translate the textview
 
-		ViewHelper.setTranslationX(mView, drawRect.left);
-		ViewHelper.setTranslationY(mView, drawRect.top);
+		mView.setTranslationX(drawRect.left);
+		mView.setTranslationY(drawRect.top);
 
 		if (null != mDrawable) {
 			// get the global rect for the textview
@@ -604,14 +622,6 @@ class TooltipView extends ViewGroup implements Tooltip {
 
 			point.x -= tempRect.left;
 			point.y -= tempRect.top;
-
-			// View.getGlobalVisibleRect doesn't take into account
-			// translationX and translationY if applied using the ViewHelper
-			// on api < 11
-			if (AnimatorProxy.NEEDS_PROXY) {
-				point.x -= drawRect.left;
-				point.y -= drawRect.top;
-			}
 
 			if (! hideArrow) {
 				if (gravity == Gravity.LEFT || gravity == Gravity.RIGHT) {
@@ -632,18 +642,18 @@ class TooltipView extends ViewGroup implements Tooltip {
 
 	@Override
 	public void setOffsetX(int x) {
-		ViewHelper.setTranslationX(this, x - viewRect.left);
+		setTranslationX(x - viewRect.left);
 	}
 
 	@Override
 	public void setOffsetY(int y) {
-		ViewHelper.setTranslationY(this, y - viewRect.top);
+		setTranslationY(y - viewRect.top);
 	}
 
 	@Override
 	public void offsetTo(final int x, final int y) {
-		ViewHelper.setTranslationX(this, x - viewRect.left);
-		ViewHelper.setTranslationY(this, y - viewRect.top);
+		setTranslationX(x - viewRect.left);
+		setTranslationY(y - viewRect.top);
 	}
 
 	@Override
@@ -660,7 +670,7 @@ class TooltipView extends ViewGroup implements Tooltip {
 	}
 
 	@Override
-	public boolean onTouchEvent(final MotionEvent event) {
+	public boolean onTouchEvent(@NonNull final MotionEvent event) {
 		if (! mAttached || ! mShowing || ! isShown()) return false;
 
 		if (DBG) Log.i(TAG, "onTouchEvent: " + event.getAction() + ", active: " + mActivated);
@@ -727,11 +737,11 @@ class TooltipView extends ViewGroup implements Tooltip {
 		this.tooltipListener = listener;
 	}
 
-	static interface OnCloseListener {
+	interface OnCloseListener {
 		void onClose(TooltipView layout);
 	}
 
-	static interface OnToolTipListener {
+	interface OnToolTipListener {
 		void onHideCompleted(TooltipView layout);
 
 		void onShowCompleted(TooltipView layout);

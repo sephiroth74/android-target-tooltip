@@ -1,35 +1,48 @@
 package it.sephiroth.android.library.tooltip;
 
-import android.app.Activity;
 import android.content.res.Resources;
+import android.graphics.Color;
 import android.graphics.Point;
+import android.os.Build;
+import android.support.annotation.ColorInt;
+import android.support.annotation.ColorRes;
+import android.support.annotation.Nullable;
+import android.support.annotation.Size;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.WeakHashMap;
 
 public class TooltipManager {
 	static final boolean DBG = false;
 	private static final String TAG = "TooltipManager";
 
-	public static interface OnTooltipAttachedStateChange {
+	private volatile static TooltipManager INSTANCE;
+
+	private TooltipManager() {}
+
+	public static synchronized TooltipManager getInstance() {
+	    if (INSTANCE == null) {
+	        INSTANCE = new TooltipManager();
+	    }
+
+	    return INSTANCE;
+	}
+
+	public interface OnTooltipAttachedStateChange {
 		void onTooltipAttached(int id);
 
 		void onTooltipDetached(int id);
 	}
 
-	private static ConcurrentHashMap<Integer, TooltipManager> instances = new ConcurrentHashMap<Integer, TooltipManager>();
+	private final List<OnTooltipAttachedStateChange> mTooltipAttachStatusListeners = new ArrayList<>();
 
-	private final List<OnTooltipAttachedStateChange> mTooltipAttachStatusListeners = new ArrayList<OnTooltipAttachedStateChange>();
-
-	final HashMap<Integer, TooltipView> mTooltips = new HashMap<Integer, TooltipView>();
+	final WeakHashMap<Integer, WeakReference<TooltipView>> mTooltips = new WeakHashMap<>();
 	final Object lock = new Object();
-	final Activity mActivity;
 
 	private TooltipView.OnCloseListener mCloseListener = new TooltipView.OnCloseListener() {
 		@Override
@@ -45,7 +58,6 @@ public class TooltipManager {
 			if (DBG) Log.i(TAG, "onHideCompleted: " + layout.getTooltipId());
 			int id = layout.getTooltipId();
 			layout.removeFromParent();
-			printStats();
 			fireOnTooltipDetached(id);
 		}
 
@@ -60,11 +72,6 @@ public class TooltipManager {
 			remove(layout.getTooltipId());
 		}
 	};
-
-	public TooltipManager(final Activity activity) {
-		if (DBG) Log.i(TAG, "TooltipManager: " + activity);
-		mActivity = activity;
-	}
 
 	public void addOnTooltipAttachedStateChange(OnTooltipAttachedStateChange listener) {
 		if (! mTooltipAttachStatusListeners.contains(listener)) {
@@ -105,11 +112,11 @@ public class TooltipManager {
 				return false;
 			}
 
-			TooltipView layout = new TooltipView(mActivity, builder);
+			TooltipView layout = new TooltipView(builder.view.getContext(), builder);
 			layout.setOnCloseListener(mCloseListener);
 			layout.setOnToolTipListener(mTooltipListener);
-			mTooltips.put(builder.id, layout);
-			showInternal(layout, immediate);
+			mTooltips.put(builder.id, new WeakReference<>(layout));
+			showInternal(builder.view.getRootView(), layout, immediate);
 		}
 		printStats();
 		return true;
@@ -118,27 +125,33 @@ public class TooltipManager {
 	public void hide(int id) {
 		if (DBG) Log.i(TAG, "hide: " + id);
 
-		final TooltipView layout;
+		final WeakReference<TooltipView> layout;
 		synchronized (lock) {
 			layout = mTooltips.remove(id);
 		}
 		if (null != layout) {
-			layout.setOnCloseListener(null);
-			layout.hide(true);
-			printStats();
+			TooltipView tooltipView = layout.get();
+			tooltipView.setOnCloseListener(null);
+			tooltipView.hide(true);
 		}
 	}
 
+	@Nullable
 	public TooltipView get(int id) {
 		synchronized (lock) {
-			return mTooltips.get(id);
+			WeakReference<TooltipView> weakReference = mTooltips.get(id);
+
+			if (weakReference != null) {
+				return weakReference.get();
+			}
 		}
+		return null;
 	}
 
 	public void update(int id) {
 		final TooltipView layout;
 		synchronized (lock) {
-			layout = mTooltips.get(id);
+			layout = get(id);
 		}
 		if (null != layout) {
 			if (DBG) Log.i(TAG, "update: " + id);
@@ -153,27 +166,26 @@ public class TooltipManager {
 		}
 	}
 
-	public void remove(int id) {
+	public synchronized void remove(int id) {
 		if (DBG) Log.i(TAG, "remove: " + id);
 
-		final TooltipView layout;
+		final WeakReference<TooltipView> layout;
 		synchronized (lock) {
 			layout = mTooltips.remove(id);
 		}
-
 		if (null != layout) {
-			layout.setOnCloseListener(null);
-			layout.setOnToolTipListener(null);
-			layout.removeFromParent();
+			TooltipView tooltipView = layout.get();
+			tooltipView.setOnCloseListener(null);
+			tooltipView.setOnToolTipListener(null);
+			tooltipView.removeFromParent();
 			fireOnTooltipDetached(id);
 		}
-		printStats();
 	}
 
 	public void setText(int id, final CharSequence text) {
 		TooltipView layout;
 		synchronized (lock) {
-			layout = mTooltips.get(id);
+			layout = get(id);
 		}
 		if (null != layout) {
 			layout.setText(text);
@@ -197,14 +209,12 @@ public class TooltipManager {
 		printStats();
 	}
 
-	private void showInternal(TooltipView layout, boolean immediate) {
-		if (null != mActivity) {
-			ViewGroup decor = (ViewGroup) mActivity.getWindow().getDecorView();
-			if (null == decor) return;
+	private void showInternal(View rootView, TooltipView layout, boolean immediate) {
+		if (null != rootView && rootView instanceof ViewGroup) {
 			if (layout.getParent() == null) {
 				if (DBG) Log.v(TAG, "attach to mToolTipLayout parent");
 				ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-				decor.addView(layout, params);
+				((ViewGroup) rootView).addView(layout, params);
 			}
 
 			if (immediate) {
@@ -237,9 +247,23 @@ public class TooltipManager {
 		long fadeDuration = 200;
 		onTooltipClosingCallback closeCallback;
 
+		@ColorInt int bgColor = Color.DKGRAY;
+		@ColorInt int textColor = Color.WHITE;
+		@ColorInt int strokeColor = Color.DKGRAY;
+
+		@Size int textSize = 14; //sp
+		int textGravity = android.view.Gravity.CENTER;
+		int textAlignment;
+		int textDirection;
+
 		Builder(final TooltipManager manager, int id) {
-			this.manager = new WeakReference<TooltipManager>(manager);
+			this.manager = new WeakReference<>(manager);
 			this.id = id;
+
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+				textAlignment = View.TEXT_ALIGNMENT_CENTER;
+				textDirection = View.TEXT_DIRECTION_INHERIT;
+			}
 		}
 
 		/**
@@ -249,7 +273,7 @@ public class TooltipManager {
 		 *
 		 * @param resId              the custom layout view.
 		 * @param replace_background if true the custom view's background won't be replaced
-		 * @return
+		 * @return the builder for chaining.
 		 */
 		public Builder withCustomView(int resId, boolean replace_background) {
 			this.textResId = resId;
@@ -287,11 +311,8 @@ public class TooltipManager {
 		}
 
 		public Builder text(int resid) {
-			TooltipManager tipManager = manager.get();
-			if (null != tipManager) {
-				if (null != tipManager.mActivity) {
-					return text(tipManager.mActivity.getResources().getString(resid));
-				}
+			if (null != view) {
+				return text(view.getResources().getString(resid));
 			}
 			return this;
 		}
@@ -322,7 +343,7 @@ public class TooltipManager {
 
 		/**
 		 * @param show true to show the arrow, false to hide it
-		 * @return
+		 * @return the builder for chaining.
 		 */
 		public Builder toggleArrow(boolean show) {
 			this.hideArrow = ! show;
@@ -354,6 +375,66 @@ public class TooltipManager {
 			return this;
 		}
 
+		public Builder backgroundRes(@ColorRes int color) {
+			bgColor = view.getContext().getResources().getColor(color);
+			return this;
+		}
+
+		public Builder background(@ColorInt int color) {
+			bgColor = color;
+			return this;
+		}
+
+		public Builder background(String color) {
+			bgColor = Color.parseColor(color);
+			return this;
+		}
+
+		public Builder strokeColorRes(@ColorRes int color) {
+			strokeColor = view.getContext().getResources().getColor(color);
+			return this;
+		}
+
+		public Builder strokeColor(@ColorInt int color) {
+			strokeColor = color;
+			return this;
+		}
+
+		public Builder strokeColor(String color) {
+			strokeColor = Color.parseColor(color);
+			return this;
+		}
+
+		public Builder textResColor(@ColorRes int color) {
+			textColor = view.getContext().getResources().getColor(color);
+			return this;
+		}
+
+		public Builder textColor(@ColorInt int color) {
+			textColor = color;
+			return this;
+		}
+
+		public Builder textColor(String color) {
+			textColor = Color.parseColor(color);
+			return this;
+		}
+
+		public Builder textGravity(int gravity) {
+			textGravity = gravity;
+			return this;
+		}
+
+		public Builder textAlignment(int alignment) {
+			textAlignment = alignment;
+			return this;
+		}
+
+		public Builder textDirection(int direction) {
+			textDirection = direction;
+			return this;
+		}
+
 		public boolean show() {
 			// verification
 			if (null == closePolicy) throw new IllegalStateException("ClosePolicy cannot be null");
@@ -370,18 +451,16 @@ public class TooltipManager {
 		public boolean build() {
 			// verification
 			if (null == closePolicy) throw new IllegalStateException("ClosePolicy cannot be null");
-			if (null == point && null == view) throw new IllegalStateException("Target point or target view must be specified");
+			if (null == point && null == view)
+				throw new IllegalStateException("Target point or target view must be specified");
 			if (gravity == Gravity.CENTER) hideArrow = true;
 
 			TooltipManager tmanager = this.manager.get();
-			if (null != tmanager) {
-				return tmanager.show(this, false);
-			}
-			return false;
+			return null != tmanager && tmanager.show(this, false);
 		}
 	}
 
-	public static enum ClosePolicy {
+	public enum ClosePolicy {
 		/**
 		 * tooltip will hide when touching it, or after the specified delay.
 		 * If delay is '0' the tooltip will never hide until clicked
@@ -412,56 +491,15 @@ public class TooltipManager {
 		None
 	}
 
-	public static enum Gravity {
+	public enum Gravity {
 		LEFT, RIGHT, TOP, BOTTOM, CENTER
 	}
 
-
-	public static void removeInstance(Activity activity) {
-		if (DBG) {
-			Log.i(TAG, "removeInstance: " + activity + ", hashCode: " + activity.hashCode());
-			Log.v(TAG, "instances: " + instances.size());
-		}
-
-		TooltipManager sInstance = instances.remove(activity.hashCode());
-
-		if (sInstance != null) {
-			synchronized (TooltipManager.class) {
-				if (DBG) Log.d(TAG, "destroying instance: " + sInstance);
-				sInstance.destroy();
-			}
-		}
-	}
-
-	public static TooltipManager getInstance(Activity activity) {
-		if (DBG) Log.i(TAG, "getInstance: " + activity + ", hashCode: " + activity.hashCode());
-
-		TooltipManager sInstance = instances.get(activity.hashCode());
-
-		if (DBG) {
-			Log.v(TAG, "instances: " + instances.size());
-			Log.v(TAG, "sInstance: " + sInstance);
-		}
-
-		if (sInstance == null) {
-			synchronized (TooltipManager.class) {
-				sInstance = instances.get(activity.hashCode());
-				if (sInstance == null) {
-					synchronized (TooltipManager.class) {
-						sInstance = new TooltipManager(activity);
-						instances.putIfAbsent(activity.hashCode(), sInstance);
-					}
-				}
-			}
-		}
-		return sInstance;
-	}
-
-	public static interface onTooltipClosingCallback {
+	public interface onTooltipClosingCallback {
 
 		/**
 		 * tooltip is being closed
-		 *  @param id
+		 * @param id
 		 * @param fromUser true if the close operation started from a user click
          * @param containsTouch true if the original touch came from inside the tooltip
          */
