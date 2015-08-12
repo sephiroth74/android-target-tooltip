@@ -3,7 +3,7 @@ Android Tooltip
 
 Create Toast like tooltips, but targets can be specified, plus custom properties and features
 
-Installation (Using [JitPack](https://jitpack.io/#Epsiloni/android-target-tooltip/1.5))
+Installation (Using [JitPack](https://jitpack.io/#Epsiloni/android-target-tooltip/1.7))
 ===
 **Step 1**. Add the JitPack repository to your build file.  
 Add this in your `build.gradle` at the end of repositories:
@@ -16,7 +16,7 @@ Add this in your `build.gradle` at the end of repositories:
 **Step 2**. Add the dependency in the form
 
 	dependencies {
-		        compile 'com.github.Epsiloni:android-target-tooltip:1.5'
+		        compile 'com.github.Epsiloni:android-target-tooltip:1.7'
 	}
 
 Usage
