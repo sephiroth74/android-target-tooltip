@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.res.TypedArray;
 import android.graphics.Point;
 import android.graphics.Rect;
@@ -19,6 +20,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -446,6 +448,17 @@ class TooltipView extends ViewGroup implements Tooltip {
 		this.addView(mView);
 	}
 
+	private static Activity scanForActivity(Context cont) {
+		if (cont == null)
+			return null;
+		else if (cont instanceof Activity)
+			return (Activity)cont;
+		else if (cont instanceof ContextWrapper)
+			return scanForActivity(((ContextWrapper)cont).getBaseContext());
+
+		return null;
+	}
+
 	private void calculatePositions(List<Gravity> gravities) {
 		if (! isAttached()) return;
 
@@ -467,8 +480,15 @@ class TooltipView extends ViewGroup implements Tooltip {
 		gravities.remove(0);
 
 		Rect screenRect = new Rect();
-		Window window = ((Activity) getContext()).getWindow();
-		window.getDecorView().getWindowVisibleDisplayFrame(screenRect);
+		Activity act = scanForActivity(getContext());
+		if (act !=  null) {
+			Window window = act.getWindow();
+			window.getDecorView().getWindowVisibleDisplayFrame(screenRect);
+		} else {
+			WindowManager wm = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
+			android.view.Display display = wm.getDefaultDisplay();
+			display.getRectSize(screenRect);
+		}
 
 		if (viewRect == null) {
 			int statusbarHeight = screenRect.top;
