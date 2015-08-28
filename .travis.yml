@@ -22,7 +22,7 @@ before_install:
   # Install required components.
   # For a full list, run `android list sdk -a --extended`
   - echo yes | android update sdk --filter platform-tools --no-ui --force > /dev/null
-  - echo yes | android update sdk --all --filter build-tools-19.1.0 --no-ui --force > /dev/null
+  - echo yes | android update sdk --all --filter build-tools-23.0.0 --no-ui --force > /dev/null
   - echo yes | android update sdk --filter android-19 --no-ui --force > /dev/null
   - echo yes | android update sdk --filter extra-android-m2repository --no-ui --force > /dev/null
 
@@ -31,9 +31,9 @@ before_install:
 
 android:
   components:
-    - build-tools-19.1.0
-    - android-19
-    - sysimg-19
+    - build-tools-23.0.0
+    - android-22
+    - sysimg-22
     - extra-android-support
   licenses:
     - android-sdk-license-bcbbd656
