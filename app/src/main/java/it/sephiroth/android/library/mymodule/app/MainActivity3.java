@@ -24,202 +24,187 @@ import java.util.List;
 import it.sephiroth.android.library.tooltip.Tooltip;
 import it.sephiroth.android.library.tooltip.TooltipManager;
 
-
 public class MainActivity3 extends ActionBarActivity
-	implements AdapterView.OnItemClickListener, MyTextView.OnAttachStatusListener, TooltipManager.OnTooltipAttachedStateChange,
-	           ViewTreeObserver.OnPreDrawListener, TooltipManager.onTooltipClosingCallback {
+    implements AdapterView.OnItemClickListener, MyTextView.OnAttachStatusListener, TooltipManager.OnTooltipAttachedStateChange,
+               ViewTreeObserver.OnPreDrawListener, TooltipManager.onTooltipClosingCallback {
+    private static final String TAG = "MainActivity3";
+    ListView listView;
+    TooltipManager tooltipManager;
+    static final int TOOLTIP_ID = 101;
+    static final int LIST_POSITION = 15;
+    private Tooltip tooltipView;
+    private View mView;
+    private int[] mTempLocation = {0, 0};
 
-	private static final String TAG = "MainActivity3";
-	ListView listView;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
-	TooltipManager tooltipManager;
+        List<String> array = new ArrayList<String>();
+        for (int i = 0; i < 100; i++) {
+            array.add(String.format("Item %d", i));
+        }
 
-	static final int TOOLTIP_ID = 101;
+        listView = (ListView) findViewById(android.R.id.list);
+        listView.setAdapter(new MyAdapter(this, R.layout.custom_list_textview, android.R.id.text1, array));
+        listView.setOnItemClickListener(this);
 
-	static final int LIST_POSITION = 15;
+        tooltipManager = TooltipManager.getInstance();
+        tooltipManager.addOnTooltipAttachedStateChange(this);
 
-	private Tooltip tooltipView;
+        tooltipManager.create(this, TOOLTIP_ID)
+            .maxWidth(450)
+            .anchor(new Point(80, 0), TooltipManager.Gravity.RIGHT)
+            .closePolicy(TooltipManager.ClosePolicy.TouchInside, 0)
+            .text("Brigthness, Saturation, Contrast and Warmth are now here!")
+            .actionBarSize(Utils.getActionBarSize(this))
+            .fitToScreen(false)
+            .fadeDuration(100)
+            .withCallback(this)
+            .show();
+    }
 
-	private View mView;
+    @Override
+    protected void onDestroy() {
+        TooltipManager.getInstance().removeOnTooltipAttachedStateChange(this);
+        super.onDestroy();
+    }
 
-	private int[] mTempLocation = {0, 0};
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main);
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
 
-		List<String> array = new ArrayList<String>();
-		for (int i = 0; i < 100; i++) {
-			array.add(String.format("Item %d", i));
-		}
+        if (id == R.id.action_demo1) {
+            startActivity(new Intent(this, MainActivity.class));
+        } else if (id == R.id.action_demo2) {
+            startActivity(new Intent(this, MainActivity2.class));
+        } else if (id == R.id.action_demo3) {
+            startActivity(new Intent(this, MainActivity3.class));
+        }
+        return super.onOptionsItemSelected(item);
+    }
 
-		listView = (ListView) findViewById(android.R.id.list);
-		listView.setAdapter(new MyAdapter(this, R.layout.custom_list_textview, android.R.id.text1, array));
-		listView.setOnItemClickListener(this);
+    @Override
+    public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
+        Log.d(TAG, "onItemClick: " + position);
 
-		tooltipManager = TooltipManager.getInstance(this);
-		tooltipManager.addOnTooltipAttachedStateChange(this);
+        if (position == LIST_POSITION) {
+            tooltipManager.remove(TOOLTIP_ID);
+        }
+    }
 
-		tooltipManager.create(TOOLTIP_ID)
-		              .maxWidth(450)
-		              .anchor(new Point(80, 0), TooltipManager.Gravity.RIGHT)
-		              .closePolicy(TooltipManager.ClosePolicy.TouchInside, 0)
-		              .text("Brigthness, Saturation, Contrast and Warmth are now here!")
-		              .actionBarSize(Utils.getActionBarSize(this))
-		              .fitToScreen(false)
-		              .fadeDuration(100)
-		              .withCallback(this)
-		              .build();
-	}
+    @Override
+    public void onAttachedtoWindow(final View view) {
+        Log.i(TAG, "onAttachedtoWindow: " + view);
 
-	@Override
-	protected void onDestroy() {
-		TooltipManager.getInstance(this).removeOnTooltipAttachedStateChange(this);
-		TooltipManager.removeInstance(this);
-		super.onDestroy();
-	}
+        if (null != tooltipView) {
+            tooltipView.show();
+            view.getViewTreeObserver().addOnPreDrawListener(this);
+        }
+    }
 
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		getMenuInflater().inflate(R.menu.main, menu);
-		return true;
-	}
+    @Override
+    public void onDetachedFromWindow(final View view) {
+        onFinishTemporaryDetach(view);
+    }
 
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		int id = item.getItemId();
+    @Override
+    public void onFinishTemporaryDetach(final View view) {
+        Log.i(TAG, "onFinishTemporaryDetach: " + view);
 
-		if (id == R.id.action_demo1) {
-			startActivity(new Intent(this, MainActivity.class));
-		}
-		else if (id == R.id.action_demo2) {
-			startActivity(new Intent(this, MainActivity2.class));
-		}
-		else if (id == R.id.action_demo3) {
-			startActivity(new Intent(this, MainActivity3.class));
-		}
-		return super.onOptionsItemSelected(item);
-	}
+        if (null != tooltipView && tooltipView.isShown()) {
+            tooltipView.hide(false);
+        }
+        removeListeners();
+    }
 
+    @Override
+    public void onTooltipAttached(final int id) {
+        Log.i(TAG, "onTooltipAttached: " + id);
 
-	@Override
-	public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
-		Log.d(TAG, "onItemClick: " + position);
+        if (id == TOOLTIP_ID) {
+            tooltipView = tooltipManager.get(id);
+        }
+    }
 
-		if (position == LIST_POSITION) {
-			tooltipManager.remove(TOOLTIP_ID);
-		}
-	}
+    @Override
+    public void onTooltipDetached(final int id) {
+        Log.i(TAG, "onTooltipDetached: " + id);
+        removeListeners();
 
-	@Override
-	public void onAttachedtoWindow(final View view) {
-		Log.i(TAG, "onAttachedtoWindow: " + view);
+        if (id == TOOLTIP_ID) {
+            tooltipView = null;
+        }
+    }
 
-		if (null != tooltipView) {
-			tooltipView.show();
-			view.getViewTreeObserver().addOnPreDrawListener(this);
-		}
-	}
+    private void removeListeners() {
+        Log.i(TAG, "removeListeners");
 
-	@Override
-	public void onDetachedFromWindow(final View view) {
-		onFinishTemporaryDetach(view);
-	}
+        if (null != mView) {
+            mView.getViewTreeObserver().removeOnPreDrawListener(this);
+            ((MyTextView) mView).setOnAttachStatusListener(null);
+            mView = null;
+        }
+    }
 
-	@Override
-	public void onFinishTemporaryDetach(final View view) {
-		Log.i(TAG, "onFinishTemporaryDetach: " + view);
+    @Override
+    public boolean onPreDraw() {
+        if (null == mView || !mView.isShown() || null == tooltipView) {
+            Log.e(TAG, "!isShown");
+            return true;
+        }
 
-		if (null != tooltipView && tooltipView.isShown()) {
-			tooltipView.hide(false);
-		}
-		removeListeners();
-	}
+        mView.getLocationOnScreen(mTempLocation);
+        tooltipView.setOffsetY(mTempLocation[1]);
 
-	@Override
-	public void onTooltipAttached(final int id) {
-		Log.i(TAG, "onTooltipAttached: " + id);
+        //		Log.v(TAG, "onPreDraw::location: " + mTempLocation[0] + "x" + mTempLocation[1]);
 
-		if (id == TOOLTIP_ID) {
-			tooltipView = tooltipManager.get(id);
-		}
-	}
+        return true;
+    }
 
-	@Override
-	public void onTooltipDetached(final int id) {
-		Log.i(TAG, "onTooltipDetached: " + id);
-		removeListeners();
+    @Override
+    public void onClosing(final int id, final boolean fromUser, final boolean containsTouch) {
+        // tooltip is being closed...
+    }
 
-		if (id == TOOLTIP_ID) {
-			tooltipView = null;
-		}
-	}
+    class MyAdapter extends ArrayAdapter<String> {
+        public MyAdapter(final Context context, final int resource, final int textViewResourceId, final List<String> objects) {
+            super(context, resource, textViewResourceId, objects);
+        }
 
-	private void removeListeners() {
-		Log.i(TAG, "removeListeners");
+        @TargetApi (Build.VERSION_CODES.HONEYCOMB_MR1)
+        @Override
+        public View getView(final int position, View convertView, final ViewGroup parent) {
 
-		if (null != mView) {
-			mView.getViewTreeObserver().removeOnPreDrawListener(this);
-			((MyTextView) mView).setOnAttachStatusListener(null);
-			mView = null;
-		}
-	}
+            final View result = super.getView(position, convertView, parent);
 
-	@Override
-	public boolean onPreDraw() {
-		if (null == mView || ! mView.isShown() || null == tooltipView) {
-			Log.e(TAG, "!isShown");
-			return true;
-		}
+            if (position == LIST_POSITION && null != tooltipView) {
 
-		mView.getLocationOnScreen(mTempLocation);
-		tooltipView.setOffsetY(mTempLocation[1]);
+                final Handler handler = listView.getHandler();
+                if (null != handler) {
+                    handler.post(
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                ((MyTextView) result).setOnAttachStatusListener((MainActivity3) getContext());
+                                MainActivity3.this.onAttachedtoWindow(result);
+                                mView = result;
+                            }
+                        }
+                                );
+                } else {
+                    Log.e(TAG, "handler is null!");
+                }
+            }
 
-//		Log.v(TAG, "onPreDraw::location: " + mTempLocation[0] + "x" + mTempLocation[1]);
-
-		return true;
-	}
-
-	@Override
-	public void onClosing(final int id, final boolean fromUser, final boolean containsTouch) {
-		// tooltip is being closed...
-	}
-
-
-	class MyAdapter extends ArrayAdapter<String> {
-
-		public MyAdapter(final Context context, final int resource, final int textViewResourceId, final List<String> objects) {
-			super(context, resource, textViewResourceId, objects);
-		}
-
-		@TargetApi (Build.VERSION_CODES.HONEYCOMB_MR1)
-		@Override
-		public View getView(final int position, View convertView, final ViewGroup parent) {
-
-			final View result = super.getView(position, convertView, parent);
-
-			if (position == LIST_POSITION && null != tooltipView) {
-
-				final Handler handler = listView.getHandler();
-				if (null != handler) {
-					handler.post(
-						new Runnable() {
-							@Override
-							public void run() {
-								((MyTextView) result).setOnAttachStatusListener((MainActivity3) getContext());
-								MainActivity3.this.onAttachedtoWindow(result);
-								mView = result;
-							}
-						}
-					);
-				}
-				else {
-					Log.e(TAG, "handler is null!");
-				}
-			}
-
-			return result;
-		}
-	}
+            return result;
+        }
+    }
 }
