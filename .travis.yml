@@ -33,7 +33,9 @@ android:
   components:
     - build-tools-23.0.0
     - android-22
-    - sysimg-22
+    - extra-google-m2repository
+    - extra-android-m2repository
+    - sys-img-armeabi-v7a-android-19
     - extra-android-support
   licenses:
     - android-sdk-license-bcbbd656
