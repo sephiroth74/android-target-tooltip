@@ -8,16 +8,14 @@ Master: ![travis-ci](https://travis-ci.org/sephiroth74/android-target-tooltip.sv
 Installation
 ===
 
-	compile('it.sephiroth.android.library.targettooltip:target-tooltip-library:1.2.2@aar'){
-        transitive=true
-	}
+	compile 'it.sephiroth.android.library.targettooltip:target-tooltip-library:1.2.9@aar'
 	
 
 Usage
 ===
 
-	TooltipManager.getInstance(this)
-		.create(MainActivity.TOOLTIP_EDITORIAL_1)
+	TooltipManager.getInstance()
+		.create(this, MainActivity.TOOLTIP_EDITORIAL_1)
 		.anchor(aView, TooltipManager.Gravity.BOTTOM)
 		.closePolicy(TooltipManager.ClosePolicy.TouchOutside, 3000)
 		.activateDelay(800)
