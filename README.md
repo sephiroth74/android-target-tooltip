@@ -40,6 +40,12 @@ Tooltip style can be customized in your style object:
 	
 then pass the style in the Builder method **withStyleId(int resId)**
 
+Screenshots
+===
+With Tooltip arrow:
+![With arrow](pics/arrow.png)
 
+Without Tooltip arrow:
+![Without arrow](pics/noarrow.png)
 
 [1]: https://github.com/sephiroth74/android-target-tooltip/blob/master/library/src/main/java/it/sephiroth/android/library/tooltip/TooltipManager.java#L169
