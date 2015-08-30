@@ -105,6 +105,7 @@ class TooltipView extends ViewGroup implements Tooltip {
 		this.restrict = builder.restrictToScreenEdges;
 		this.fadeDuration = builder.fadeDuration;
 		this.closeCallback = builder.closeCallback;
+		setContentDescription(builder.contentDescription);
 
 		if (null != builder.point) {
 			this.point = new Point(builder.point);

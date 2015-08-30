@@ -227,6 +227,7 @@ public class TooltipManager {
 
 	public static final class Builder {
 		int id;
+		String contentDescription;
 		CharSequence text;
 		View view;
 		Gravity gravity;
@@ -432,6 +433,11 @@ public class TooltipManager {
 
 		public Builder textDirection(int direction) {
 			textDirection = direction;
+			return this;
+		}
+
+		public Builder setContentDescription(String description) {
+			contentDescription = description;
 			return this;
 		}
 
