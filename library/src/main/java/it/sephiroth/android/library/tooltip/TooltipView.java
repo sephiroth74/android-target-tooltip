@@ -19,6 +19,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
+import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
@@ -44,8 +45,9 @@ class TooltipView extends ViewGroup implements Tooltip {
 	private final List<Gravity> viewGravities = new ArrayList<>(gravities);
 
 	private final long showDelay;
+    private View mAnchor;
 
-	private boolean mAttached;
+    private boolean mAttached;
 	private boolean mInitialized;
 	private boolean mActivated;
 
@@ -120,10 +122,10 @@ class TooltipView extends ViewGroup implements Tooltip {
 
 		// get the global visible rect for the target targetView
 		if (null != builder.view) {
-			this.viewRect = new Rect();
-			builder.view.getGlobalVisibleRect(viewRect);
-
-		}
+            this.viewRect = new Rect();
+            mAnchor = builder.view;
+            builder.view.getGlobalVisibleRect(viewRect);
+        }
 
 		if (! builder.isCustomView) {
 			this.mDrawable = new TooltipTextDrawable(context, builder);
@@ -193,6 +195,24 @@ class TooltipView extends ViewGroup implements Tooltip {
 							tooltipListener.onShowCompleted(TooltipView.this);
 							postActivate(activateDelay);
 						}
+
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+
+                            if (mAnchor != null) {
+                                mAnchor.getViewTreeObserver().addOnDrawListener(new ViewTreeObserver.OnDrawListener() {
+                                    @Override
+                                    public void onDraw() {
+                                        mAnchor.getGlobalVisibleRect(viewRect);
+
+                                        viewGravities.clear();
+                                        viewGravities.addAll(gravities);
+                                        viewGravities.remove(gravity);
+                                        viewGravities.add(0, gravity);
+                                        calculatePositions(viewGravities);
+                                    }
+                                });
+                            }
+                        }
 					}
 
 					@Override
@@ -516,22 +536,11 @@ class TooltipView extends ViewGroup implements Tooltip {
 			point.y = viewRect.bottom;
 
 			if (restrict && ! screenRect.contains(drawRect)){
-				if (drawRect.right > screenRect.right){
-					drawRect.offset(screenRect.right - drawRect.right, 0);
-				}
-				else if (drawRect.left < screenRect.left){
-					drawRect.offset(- drawRect.left, 0);
-				}
-				if (drawRect.bottom > screenRect.bottom){
-					// this means there's no enough space!
-					calculatePositions(gravities);
-					return;
-				} else if(drawRect.top < screenRect.top){
-					drawRect.offset(0, screenRect.top-drawRect.top);
-				}
+                onClose(false, true);
+                return;
 			}
 		}
-		else if (gravity == Gravity.TOP){
+		else if (gravity == Gravity.TOP) {
 			drawRect.set(viewRect.centerX() - width / 2,
 			             viewRect.top - height,
 			             viewRect.centerX() + width / 2,
@@ -541,22 +550,11 @@ class TooltipView extends ViewGroup implements Tooltip {
 			point.y = viewRect.top;
 
 			if (restrict && ! screenRect.contains(drawRect)){
-				if (drawRect.right > screenRect.right){
-					drawRect.offset(screenRect.right - drawRect.right, 0);
-				}
-				else if (drawRect.left < screenRect.left){
-					drawRect.offset(- drawRect.left, 0);
-				}
-				if (drawRect.top < screenRect.top){
-					// this means there's no enough space!
-					calculatePositions(gravities);
-					return;
-				} else if(drawRect.bottom > screenRect.bottom){
-					drawRect.offset(0, screenRect.bottom - drawRect.bottom);
-				}
+                onClose(false, true);
+                return;
 			}
 		}
-		else if (gravity == Gravity.RIGHT){
+		else if (gravity == Gravity.RIGHT) {
 			drawRect.set(viewRect.right,
 			             viewRect.centerY() - height / 2,
 			             viewRect.right + width,
@@ -566,22 +564,11 @@ class TooltipView extends ViewGroup implements Tooltip {
 			point.y = viewRect.centerY();
 
 			if (restrict && ! screenRect.contains(drawRect)){
-				if (drawRect.bottom > screenRect.bottom){
-					drawRect.offset(0, screenRect.bottom - drawRect.bottom);
-				}
-				else if (drawRect.top < screenRect.top){
-					drawRect.offset(0, screenRect.top - drawRect.top);
-				}
-				if (drawRect.right > screenRect.right){
-					// this means there's no enough space!
-					calculatePositions(gravities);
-					return;
-				} else if(drawRect.left < screenRect.left){
-					drawRect.offset(screenRect.left - drawRect.left, 0);
-				}
+                onClose(false, true);
+                return;
 			}
 		}
-		else if (gravity == Gravity.LEFT){
+		else if (gravity == Gravity.LEFT) {
 			drawRect.set(viewRect.left - width,
 			             viewRect.centerY() - height / 2,
 			             viewRect.left,
@@ -591,22 +578,10 @@ class TooltipView extends ViewGroup implements Tooltip {
 			point.y = viewRect.centerY();
 
 			if (restrict && ! screenRect.contains(drawRect)){
-				if (drawRect.bottom > screenRect.bottom){
-					drawRect.offset(0, screenRect.bottom - drawRect.bottom);
-				}
-				else if (drawRect.top < screenRect.top){
-					drawRect.offset(0, screenRect.top - drawRect.top);
-				}
-				if (drawRect.left < screenRect.left){
-					// this means there's no enough space!
-					this.gravity = Gravity.RIGHT;
-					calculatePositions(gravities);
-					return;
-				} else if(drawRect.right > screenRect.right){
-					drawRect.offset(screenRect.right - drawRect.right, 0);
-				}
+                onClose(false, true);
+                return;
 			}
-		} else if (this.gravity == Gravity.CENTER){
+		} else if (this.gravity == Gravity.CENTER) {
 			drawRect.set(viewRect.centerX() - width / 2,
 			             viewRect.centerY() - height / 2,
 			             viewRect.centerX() - width / 2,
@@ -615,19 +590,9 @@ class TooltipView extends ViewGroup implements Tooltip {
 			point.x = viewRect.centerX();
 			point.y = viewRect.centerY();
 
-			if (restrict && ! screenRect.contains(drawRect)){
-				if (drawRect.bottom > screenRect.bottom){
-					drawRect.offset(0, screenRect.bottom - drawRect.bottom);
-				}
-				else if (drawRect.top < screenRect.top){
-					drawRect.offset(0, screenRect.top - drawRect.top);
-				}
-				if (drawRect.right > screenRect.right){
-					drawRect.offset(screenRect.right - drawRect.right, 0);
-				}
-				else if (drawRect.left < screenRect.left){
-					drawRect.offset(screenRect.left - drawRect.left, 0);
-				}
+			if (restrict && ! screenRect.contains(drawRect)) {
+                onClose(false, true);
+                return;
 			}
 		}
 		//@formatter:on
