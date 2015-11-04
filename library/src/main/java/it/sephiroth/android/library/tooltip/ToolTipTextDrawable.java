@@ -3,9 +3,11 @@ package it.sephiroth.android.library.tooltip;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.RectF;
@@ -67,7 +69,7 @@ class TooltipTextDrawable extends Drawable {
 
     void calculatePath(Rect outBounds) {
         if (DBG) {
-            Log.i(TAG, "calculateBounds, padding: " + padding + ", gravity: " + gravity);
+            Log.i(TAG, "calculatePath, padding: " + padding + ", gravity: " + gravity + ", bounds: " + getBounds());
         }
 
         int left = outBounds.left + padding;
@@ -81,14 +83,9 @@ class TooltipTextDrawable extends Drawable {
         final float min_x = left + ellipseSize;
 
         if (DBG) {
-            Log.v(TAG, "left: " + left);
-            Log.v(TAG, "top: " + top);
-            Log.v(TAG, "right: " + right);
-            Log.v(TAG, "bottom: " + bottom);
-            Log.v(TAG, "min_y: " + min_y);
-            Log.v(TAG, "max_y: " + max_y);
-            Log.v(TAG, "arrowWeight: " + arrowWeight);
-            Log.v(TAG, "point: " + point);
+            Log.v(TAG, "rect(" + left + ", " + top + ", " + right + ", " + bottom + ")");
+            Log.v(TAG, "min_y: " + min_y + ", max_y: " + max_y);
+            Log.v(TAG, "arrowWeight: " + arrowWeight + ", point: " + point);
         }
 
         boolean drawPoint = false;
@@ -187,7 +184,6 @@ class TooltipTextDrawable extends Drawable {
 
     @Override
     public void draw(final Canvas canvas) {
-
         if (null != bgPaint) {
             canvas.drawPath(path, bgPaint);
         }
@@ -200,7 +196,7 @@ class TooltipTextDrawable extends Drawable {
     @Override
     protected void onBoundsChange(final Rect bounds) {
         if (DBG) {
-            Log.i(TAG, "onBoundsChange");
+            Log.i(TAG, "onBoundsChange: " + bounds);
         }
         super.onBoundsChange(bounds);
         calculatePath(bounds);
@@ -216,11 +212,15 @@ class TooltipTextDrawable extends Drawable {
 
     @Override
     public int getOpacity() {
-        return 0;
+        return PixelFormat.TRANSLUCENT;
     }
 
     public void setAnchor(final TooltipManager.Gravity gravity, int padding, @Nullable Point point) {
-        if (gravity != this.gravity || padding != this.padding || pointEquals(this.point, point)) {
+        if (DBG) {
+            Log.i(TAG, "setAnchor:" + gravity + ", padding: " + padding + ", point: " + point);
+        }
+
+        if (gravity != this.gravity || padding != this.padding || !pointEquals(this.point, point)) {
             this.gravity = gravity;
             this.padding = padding;
             this.arrowWeight = (int) ((float) padding / arrowRatio);
@@ -232,6 +232,7 @@ class TooltipTextDrawable extends Drawable {
             }
 
             calculatePath(getBounds());
+            invalidateSelf();
         }
     }
 

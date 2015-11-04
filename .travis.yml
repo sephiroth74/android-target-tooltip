@@ -1,5 +1,8 @@
 language: android
 
+jdk:
+  - openjdk7
+
 branches:
   only:
     - master
@@ -7,35 +10,18 @@ branches:
 notifications:
   email: true
 
-before_install:
-
-  # environment info
-  - ./gradlew -v
-  - uname -a
-
-  # for gradle output style
-  - export TERM=dumb
-
-  # just to test gradle version, against our provided one
-  - ./gradlew -v
-
-  # Install required components.
-  # For a full list, run `android list sdk -a --extended`
-  - echo yes | android update sdk --filter platform-tools --no-ui --force > /dev/null
-  - echo yes | android update sdk --all --filter build-tools-23.0.0 --no-ui --force > /dev/null
-  - echo yes | android update sdk --filter android-19 --no-ui --force > /dev/null
-  - echo yes | android update sdk --filter extra-android-m2repository --no-ui --force > /dev/null
-
-  # Otherwise
-  #- echo yes | android update sdk -t tools,platform-tools,extra-android-support,extra-android-m2repository,android-19 --force --no-ui
+# Turn off caching to avoid any caching problems
+cache: false
+# Use the Travis Container-Based Infrastructure (see #203)
+sudo: false
 
 android:
   components:
     - build-tools-23.0.0
     - android-22
+    - extra-google-google_play_services
     - extra-google-m2repository
     - extra-android-m2repository
-    - sys-img-armeabi-v7a-android-19
     - extra-android-support
   licenses:
     - android-sdk-license-bcbbd656
@@ -43,6 +29,8 @@ android:
 
 
 # Let's try to build...
-install: ./gradlew clean build
+install:
+  - chmod +x ./gradlew; ls -l gradlew; ./gradlew wrapper -v
 
-script: ./gradlew check
+script:
+      - ./gradlew clean assembleDebug

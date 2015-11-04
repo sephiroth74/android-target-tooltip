@@ -2,5 +2,5 @@
 <resources>
 	<dimen name="ttlm_default_padding">20dip</dimen>
 	<dimen name="ttlm_default_corner_radius">4dip</dimen>
-	<dimen name="ttlm_default_stroke_weight">1.3sp</dimen>
+	<dimen name="ttlm_default_stroke_weight">0sp</dimen>
 </resources>

@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.WeakHashMap;
 
 public class TooltipManager {
-    static final boolean DBG = false;
+    public static boolean DBG = false;
     private static final String TAG = "TooltipManager";
     private volatile static TooltipManager INSTANCE;
 

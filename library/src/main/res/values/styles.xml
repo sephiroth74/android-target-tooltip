@@ -3,11 +3,11 @@
 
     <style name="ToolTipLayoutDefaultStyle">
         <item name="ttlm_padding">@dimen/ttlm_default_padding</item>
-        <item name="ttlm_strokeColor">@color/ttlm_default_stroke_color</item>
-        <item name="ttlm_backgroundColor">@color/ttlm_default_background_color</item>
+        <item name="ttlm_strokeColor">@android:color/transparent</item>
+        <item name="ttlm_backgroundColor">?attr/colorAccent</item>
         <item name="ttlm_strokeWeight">@dimen/ttlm_default_stroke_weight</item>
         <item name="ttlm_cornerRadius">@dimen/ttlm_default_corner_radius</item>
         <item name="ttlm_arrowRatio">1.4</item>
-        <item name="android:textAppearance">@style/TextAppearance.AppCompat.Small.Inverse</item>
+        <item name="android:textAppearance">?android:attr/textAppearanceSmall</item>
     </style>
 </resources>

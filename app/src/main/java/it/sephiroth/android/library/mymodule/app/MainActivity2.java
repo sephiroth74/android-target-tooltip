@@ -4,17 +4,20 @@ import android.content.Intent;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v7.app.ActionBarActivity;
+import android.support.design.widget.TabLayout;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 
 import it.sephiroth.android.library.tooltip.TooltipManager;
 
-public class MainActivity2 extends ActionBarActivity implements View.OnClickListener, TooltipManager.onTooltipClosingCallback {
+public class MainActivity2 extends AppCompatActivity implements View.OnClickListener, TooltipManager.onTooltipClosingCallback {
     private static final String TAG = MainActivity2.class.getSimpleName();
     Button mButton1;
     Button mButton2;
@@ -37,6 +40,43 @@ public class MainActivity2 extends ActionBarActivity implements View.OnClickList
         mButton3.setOnClickListener(this);
         mButton4.setOnClickListener(this);
         mButton5.setOnClickListener(this);
+
+        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
+
+        TabLayout tablayout = (TabLayout) findViewById(R.id.tabs);
+        tablayout.addTab(tablayout.newTab().setText("First"));
+        tablayout.addTab(tablayout.newTab().setText("Second"));
+
+        test();
+    }
+
+    private void test() {
+        TabLayout tablayout = (TabLayout) findViewById(R.id.tabs);
+        final ViewGroup root = (ViewGroup) tablayout.getChildAt(0);
+        final View tab = root.getChildAt(1);
+
+        //        if (tab.getWidth() <= 1) {
+        //
+        //            tab.getViewTreeObserver().addOnGlobalLayoutListener(
+        //                new ViewTreeObserver.OnGlobalLayoutListener() {
+        //                    @Override
+        //                    public void onGlobalLayout() {
+        //                        test();
+        //                        tab.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+        //                    }
+        //                });
+        //            return;
+        //        }
+
+        TooltipManager.getInstance().create(this, 111222)
+            .anchor(tab, TooltipManager.Gravity.BOTTOM)
+            .actionBarSize(Utils.getActionBarSize(getBaseContext()))
+            .closePolicy(TooltipManager.ClosePolicy.TouchOutside, 0)
+            .text(R.string.hello_world)
+            .toggleArrow(true)
+            .maxWidth(400)
+            .withStyleId(R.style.ToolTipLayoutDefaultStyle_TextColor1)
+            .show();
     }
 
     @Override

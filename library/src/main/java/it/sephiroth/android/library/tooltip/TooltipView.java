@@ -29,14 +29,15 @@ import java.util.List;
 import static it.sephiroth.android.library.tooltip.TooltipManager.ClosePolicy;
 import static it.sephiroth.android.library.tooltip.TooltipManager.DBG;
 import static it.sephiroth.android.library.tooltip.TooltipManager.Gravity;
+import static it.sephiroth.android.library.tooltip.TooltipManager.Gravity.BOTTOM;
+import static it.sephiroth.android.library.tooltip.TooltipManager.Gravity.CENTER;
+import static it.sephiroth.android.library.tooltip.TooltipManager.Gravity.LEFT;
+import static it.sephiroth.android.library.tooltip.TooltipManager.Gravity.RIGHT;
+import static it.sephiroth.android.library.tooltip.TooltipManager.Gravity.TOP;
 
 class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGlobalLayoutListener {
-    private static final String TAG = "ToolTipLayout";
-    private static final List<Gravity> gravities = new ArrayList<>(
-        Arrays.asList(
-            Gravity.LEFT, Gravity.RIGHT, Gravity.TOP, Gravity.BOTTOM, Gravity.CENTER
-                     )
-    );
+    private static final String TAG = "TooltipView";
+    private static final List<Gravity> gravities = new ArrayList<>(Arrays.asList(LEFT, RIGHT, TOP, BOTTOM, CENTER));
     private final List<Gravity> viewGravities = new ArrayList<>(gravities);
     private final long showDelay;
     private final int textAppearance;
@@ -416,8 +417,8 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
         }
         super.onAttachedToWindow();
         mAttached = true;
-
         initializeView();
+        show();
     }
 
     @Override
@@ -459,7 +460,6 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
         }
 
         LayoutParams params = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-
         mView = LayoutInflater.from(getContext()).inflate(textResId, this, false);
         mView.setLayoutParams(params);
 
@@ -478,7 +478,6 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
             mTextView.setMaxWidth(maxWidth);
         }
 
-        Log.v(TAG, "textAppearance: " + textAppearance);
         if (0 != textAppearance) {
             mTextView.setTextAppearance(getContext(), textAppearance);
         }
@@ -521,10 +520,6 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
 
         int statusbarHeight = screenRect.top;
 
-        if (DBG) {
-            Log.d(TAG, "screenRect: " + screenRect + ", topRule: " + topRule + ", statusBar: " + statusbarHeight);
-        }
-
         if (viewRect == null) {
             viewRect = new Rect();
             viewRect.set(point.x, point.y + statusbarHeight, point.x, point.y + statusbarHeight);
@@ -535,10 +530,14 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
         int width = mView.getWidth();
         int height = mView.getMeasuredHeight();
 
+        if (DBG) {
+            Log.v(TAG, "mView.size: " + width + "x" + height);
+        }
+
         // get the destination point
         Point point = new Point();
 
-        if (gravity == Gravity.BOTTOM) {
+        if (gravity == BOTTOM) {
             drawRect.set(
                 viewRect.centerX() - width / 2,
                 viewRect.bottom,
@@ -562,7 +561,7 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
                     drawRect.offset(0, screenRect.top - drawRect.top);
                 }
             }
-        } else if (gravity == Gravity.TOP) {
+        } else if (gravity == TOP) {
             drawRect.set(
                 viewRect.centerX() - width / 2,
                 viewRect.top - height,
@@ -586,7 +585,7 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
                     drawRect.offset(0, screenRect.bottom - drawRect.bottom);
                 }
             }
-        } else if (gravity == Gravity.RIGHT) {
+        } else if (gravity == RIGHT) {
             drawRect.set(
                 viewRect.right,
                 viewRect.centerY() - height / 2,
@@ -610,7 +609,7 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
                     drawRect.offset(screenRect.left - drawRect.left, 0);
                 }
             }
-        } else if (gravity == Gravity.LEFT) {
+        } else if (gravity == LEFT) {
             drawRect.set(
                 viewRect.left - width,
                 viewRect.centerY() - height / 2,
@@ -628,14 +627,14 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
                 }
                 if (drawRect.left < screenRect.left) {
                     // this means there's no enough space!
-                    this.gravity = Gravity.RIGHT;
+                    this.gravity = RIGHT;
                     calculatePositions(gravities);
                     return;
                 } else if (drawRect.right > screenRect.right) {
                     drawRect.offset(screenRect.right - drawRect.right, 0);
                 }
             }
-        } else if (this.gravity == Gravity.CENTER) {
+        } else if (this.gravity == CENTER) {
             drawRect.set(
                 viewRect.centerX() - width / 2,
                 viewRect.centerY() - height / 2,
@@ -659,6 +658,11 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
             }
         }
 
+        if (DBG) {
+            Log.d(TAG, "screenRect: " + screenRect + ", topRule: " + topRule + ", statusBar: " + statusbarHeight);
+            Log.d(TAG, "drawRect: " + drawRect);
+        }
+
         // translate the textview
 
         mView.setTranslationX(drawRect.left);
@@ -668,13 +672,17 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
             // get the global rect for the textview
             mView.getGlobalVisibleRect(tempRect);
 
+            if (DBG) {
+                Log.v(TAG, "mView visible rect: " + tempRect);
+            }
+
             point.x -= tempRect.left;
             point.y -= tempRect.top;
 
             if (!hideArrow) {
-                if (gravity == Gravity.LEFT || gravity == Gravity.RIGHT) {
+                if (gravity == LEFT || gravity == RIGHT) {
                     point.y -= padding / 2;
-                } else if (gravity == Gravity.TOP || gravity == Gravity.BOTTOM) {
+                } else if (gravity == TOP || gravity == BOTTOM) {
                     point.x -= padding / 2;
                 }
             }
@@ -803,8 +811,13 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
             return;
         }
 
+        if (DBG) {
+            Log.i(TAG, "onGlobalLayout: " + mViewAnchor);
+        }
+
         if (null != mViewAnchor) {
             View view = mViewAnchor.get();
+
             if (null != view) {
                 Rect rect = new Rect();
                 view.getGlobalVisibleRect(rect);
@@ -822,7 +835,11 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
                     viewGravities.remove(gravity);
                     viewGravities.add(0, gravity);
                     calculatePositions(viewGravities);
-                    mView.postInvalidate();
+                    requestLayout();
+                }
+            } else {
+                if (DBG) {
+                    Log.w(TAG, "view is null");
                 }
             }
         }
