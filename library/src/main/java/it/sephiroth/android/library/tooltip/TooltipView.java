@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.text.Html;
 import android.util.Log;
@@ -15,10 +16,12 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
+import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -27,7 +30,7 @@ import static it.sephiroth.android.library.tooltip.TooltipManager.ClosePolicy;
 import static it.sephiroth.android.library.tooltip.TooltipManager.DBG;
 import static it.sephiroth.android.library.tooltip.TooltipManager.Gravity;
 
-class TooltipView extends ViewGroup implements Tooltip {
+class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGlobalLayoutListener {
     private static final String TAG = "ToolTipLayout";
     private static final List<Gravity> gravities = new ArrayList<>(
         Arrays.asList(
@@ -36,6 +39,8 @@ class TooltipView extends ViewGroup implements Tooltip {
     );
     private final List<Gravity> viewGravities = new ArrayList<>(gravities);
     private final long showDelay;
+    private final int textAppearance;
+    private WeakReference<View> mViewAnchor;
     private boolean mAttached;
     private boolean mInitialized;
     private boolean mActivated;
@@ -67,6 +72,7 @@ class TooltipView extends ViewGroup implements Tooltip {
         TypedArray theme =
             context.getTheme().obtainStyledAttributes(null, R.styleable.TooltipLayout, builder.defStyleAttr, builder.defStyleRes);
         this.padding = theme.getDimensionPixelSize(R.styleable.TooltipLayout_ttlm_padding, 30);
+        this.textAppearance = theme.getResourceId(R.styleable.TooltipLayout_android_textAppearance, 0);
         theme.recycle();
 
         this.toolTipId = builder.id;
@@ -97,6 +103,8 @@ class TooltipView extends ViewGroup implements Tooltip {
         if (null != builder.view) {
             viewRect = new Rect();
             builder.view.getGlobalVisibleRect(viewRect);
+            mViewAnchor = new WeakReference<>(builder.view);
+            builder.view.getViewTreeObserver().addOnGlobalLayoutListener(this);
         }
 
         if (!builder.isCustomView) {
@@ -418,7 +426,26 @@ class TooltipView extends ViewGroup implements Tooltip {
             Log.i(TAG, "onDetachedFromWindow");
         }
         super.onDetachedFromWindow();
+        removeTreeObserver();
         mAttached = false;
+        mViewAnchor = null;
+    }
+
+    private void removeTreeObserver() {
+        if (DBG) {
+            Log.i(TAG, "removeTreeObserver");
+        }
+
+        if (null != mViewAnchor) {
+            View view = mViewAnchor.get();
+            if (null != view) {
+                if (Build.VERSION.SDK_INT >= 16) {
+                    view.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                } else {
+                    view.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                }
+            }
+        }
     }
 
     private void initializeView() {
@@ -449,6 +476,11 @@ class TooltipView extends ViewGroup implements Tooltip {
         mTextView.setText(Html.fromHtml((String) this.text));
         if (maxWidth > -1) {
             mTextView.setMaxWidth(maxWidth);
+        }
+
+        Log.v(TAG, "textAppearance: " + textAppearance);
+        if (0 != textAppearance) {
+            mTextView.setTextAppearance(getContext(), textAppearance);
         }
 
         this.addView(mView);
@@ -646,12 +678,7 @@ class TooltipView extends ViewGroup implements Tooltip {
                     point.x -= padding / 2;
                 }
             }
-
-            mDrawable.setAnchor(gravity, hideArrow ? 0 : padding / 2);
-
-            if (!this.hideArrow) {
-                mDrawable.setDestinationPoint(point);
-            }
+            mDrawable.setAnchor(gravity, hideArrow ? 0 : padding / 2, hideArrow ? null : point);
         }
     }
 
@@ -763,6 +790,42 @@ class TooltipView extends ViewGroup implements Tooltip {
 
     void setOnToolTipListener(OnToolTipListener listener) {
         this.tooltipListener = listener;
+    }
+
+    /**
+     * Callback method to be invoked when the global layout state or the visibility of views
+     * within the view tree changes
+     */
+    @Override
+    public void onGlobalLayout() {
+        if (!mAttached) {
+            removeTreeObserver();
+            return;
+        }
+
+        if (null != mViewAnchor) {
+            View view = mViewAnchor.get();
+            if (null != view) {
+                Rect rect = new Rect();
+                view.getGlobalVisibleRect(rect);
+
+                if (DBG) {
+                    Log.v(TAG, "oldRect: " + viewRect);
+                    Log.v(TAG, "newRect: " + rect);
+                    Log.v(TAG, "equals: " + viewRect.equals(rect));
+                }
+
+                if (!viewRect.equals(rect)) {
+                    viewRect.set(rect);
+                    viewGravities.clear();
+                    viewGravities.addAll(gravities);
+                    viewGravities.remove(gravity);
+                    viewGravities.add(0, gravity);
+                    calculatePositions(viewGravities);
+                    mView.postInvalidate();
+                }
+            }
+        }
     }
 
     interface OnCloseListener {

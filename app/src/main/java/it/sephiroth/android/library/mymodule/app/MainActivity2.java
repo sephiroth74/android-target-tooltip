@@ -3,6 +3,7 @@ package it.sephiroth.android.library.mymodule.app;
 import android.content.Intent;
 import android.graphics.Point;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -72,15 +73,26 @@ public class MainActivity2 extends ActionBarActivity implements View.OnClickList
 
         if (id == mButton1.getId()) {
             manager.create(this, 0)
-                .anchor(mButton1, TooltipManager.Gravity.RIGHT)
+                .anchor(mButton1, TooltipManager.Gravity.BOTTOM)
                 .actionBarSize(Utils.getActionBarSize(getBaseContext()))
-                .closePolicy(TooltipManager.ClosePolicy.TouchOutside, 3000)
+                .closePolicy(TooltipManager.ClosePolicy.TouchOutside, 0)
                 .text(R.string.hello_world)
                 .toggleArrow(true)
                 .maxWidth(400)
-                .showDelay(300)
-                .withCallback(this)
+                .withStyleId(R.style.ToolTipLayoutDefaultStyle_TextColor1)
                 .show();
+
+            final Handler handler = new Handler();
+            final Runnable runnable = new Runnable() {
+                @Override
+                public void run() {
+                    int height = mButton1.getHeight();
+                    mButton1.getLayoutParams().height = height + 500;
+                    mButton1.requestLayout();
+                }
+            };
+            handler.postDelayed(runnable, 1000);
+
         } else if (id == mButton2.getId()) {
             manager.create(this, 1)
                 .anchor(mButton2, TooltipManager.Gravity.LEFT)

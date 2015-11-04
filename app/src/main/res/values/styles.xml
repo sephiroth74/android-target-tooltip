@@ -1,20 +1,24 @@
 <resources>
 
-	<style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
 
-		<!-- set the default style to be used with all the tooltips -->
-		<!--
-		<item name="ttlm_defaultStyle">@style/ToolTipLayoutCustomStyle</item>
-		-->
+        <!-- set the default style to be used with all the tooltips -->
+        <!--
+        <item name="ttlm_defaultStyle">@style/ToolTipLayoutCustomStyle</item>
+        -->
 
-	</style>
+    </style>
 
-	<style name="ToolTipLayoutCustomStyle">
-		<item name="ttlm_padding">25dip</item>
-		<item name="ttlm_strokeColor">#ffe5da7d</item>
-		<item name="ttlm_backgroundColor">#ffe5da7d</item>
-		<item name="ttlm_strokeWeight">0dip</item>
-		<item name="ttlm_cornerRadius">8dip</item>
-	</style>
+    <style name="ToolTipLayoutCustomStyle">
+        <item name="ttlm_padding">25dip</item>
+        <item name="ttlm_strokeColor">#ffe5da7d</item>
+        <item name="ttlm_backgroundColor">#ffe5da7d</item>
+        <item name="ttlm_strokeWeight">0dip</item>
+        <item name="ttlm_cornerRadius">8dip</item>
+    </style>
+
+    <style name="ToolTipLayoutDefaultStyle.TextColor1" parent="ToolTipLayoutDefaultStyle">
+        <item name="android:textAppearance">@style/TextAppearance.AppCompat.Large.Inverse</item>
+    </style>
 
 </resources>
