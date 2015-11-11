@@ -638,7 +638,7 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
             drawRect.set(
                 viewRect.centerX() - width / 2,
                 viewRect.centerY() - height / 2,
-                viewRect.centerX() - width / 2,
+                viewRect.centerX() + width / 2,
                 viewRect.centerY() + height / 2);
 
             point.x = viewRect.centerX();
@@ -733,11 +733,7 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
 
         final int action = event.getActionMasked();
 
-        if (closePolicy == ClosePolicy.TouchOutside
-            || closePolicy == ClosePolicy.TouchInside
-            || closePolicy == ClosePolicy.TouchInsideExclusive
-            || closePolicy == ClosePolicy.TouchOutsideExclusive
-            ) {
+        if (closePolicy != ClosePolicy.None) {
 
             if (!mActivated) {
                 if (DBG) {
@@ -748,17 +744,35 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
 
             if (action == MotionEvent.ACTION_DOWN) {
 
-                final boolean containsTouch = drawRect.contains((int) event.getX(), (int) event.getY());
+                Rect outRect = new Rect();
+                mView.getGlobalVisibleRect(outRect);
+                final boolean containsTouch = outRect.contains((int) event.getX(), (int) event.getY());
 
-                if (closePolicy == ClosePolicy.TouchInside || closePolicy == ClosePolicy.TouchInsideExclusive) {
-                    if (containsTouch) {
-                        onClose(true, true);
-                        return true;
-                    }
-                    return closePolicy == ClosePolicy.TouchInsideExclusive;
-                } else {
-                    onClose(true, containsTouch);
-                    return closePolicy == ClosePolicy.TouchOutsideExclusive || containsTouch;
+                if (DBG) {
+                    Log.v(TAG, "containsTouch: " + containsTouch);
+                    Log.v(TAG, "drawRect: " + drawRect + ", point: " + event.getX() + "x" + event.getY());
+                    Log.v(
+                        TAG, "real drawing rect: " + outRect + ", contains: " + outRect.contains(
+                            (int) event.getX(), (int) event.getY()));
+                }
+
+                switch (closePolicy) {
+                    case TouchInside:
+                    case TouchInsideExclusive:
+                        if (containsTouch) {
+                            onClose(true, true);
+                            return true;
+                        }
+                        return closePolicy == ClosePolicy.TouchInsideExclusive;
+                    case TouchOutside:
+                    case TouchOutsideExclusive:
+                        onClose(true, containsTouch);
+                        return closePolicy == ClosePolicy.TouchOutsideExclusive || containsTouch;
+                    case TouchAnyWhereExcluside:
+                        onClose(true, containsTouch);
+                        return false;
+                    case None:
+                        break;
                 }
             }
         }

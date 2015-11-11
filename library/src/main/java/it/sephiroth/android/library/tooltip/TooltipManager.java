@@ -149,7 +149,7 @@ public class TooltipManager {
     }
 
     @Nullable
-    public TooltipView get(int id) {
+    public Tooltip get(int id) {
         synchronized (lock) {
             WeakReference<TooltipView> weakReference = mTooltips.get(id);
 
@@ -163,7 +163,7 @@ public class TooltipManager {
     public void update(int id) {
         final TooltipView layout;
         synchronized (lock) {
-            layout = get(id);
+            layout = (TooltipView) get(id);
         }
         if (null != layout) {
             if (DBG) {
@@ -201,7 +201,7 @@ public class TooltipManager {
     public void setText(int id, final CharSequence text) {
         TooltipView layout;
         synchronized (lock) {
-            layout = get(id);
+            layout = (TooltipView) get(id);
         }
         if (null != layout) {
             layout.setText(text);
@@ -439,6 +439,11 @@ public class TooltipManager {
          * Touch will be consumed in any case.
          */
         TouchOutsideExclusive,
+        /**
+         * Any touch will hide the tooltip.
+         * Touch is never consumed
+         */
+        TouchAnyWhereExcluside,
         /**
          * tooltip is hidden only after the specified delay
          */

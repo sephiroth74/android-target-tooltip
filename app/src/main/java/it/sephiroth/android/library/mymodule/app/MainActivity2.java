@@ -30,6 +30,8 @@ public class MainActivity2 extends AppCompatActivity implements View.OnClickList
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_activity2);
 
+        TooltipManager.DBG = true;
+
         mButton1 = (Button) findViewById(R.id.button1);
         mButton2 = (Button) findViewById(R.id.button2);
         mButton3 = (Button) findViewById(R.id.button3);
@@ -67,16 +69,6 @@ public class MainActivity2 extends AppCompatActivity implements View.OnClickList
         //                });
         //            return;
         //        }
-
-        TooltipManager.getInstance().create(this, 111222)
-            .anchor(tab, TooltipManager.Gravity.BOTTOM)
-            .actionBarSize(Utils.getActionBarSize(getBaseContext()))
-            .closePolicy(TooltipManager.ClosePolicy.TouchOutside, 0)
-            .text(R.string.hello_world)
-            .toggleArrow(true)
-            .maxWidth(400)
-            .withStyleId(R.style.ToolTipLayoutDefaultStyle_TextColor1)
-            .show();
     }
 
     @Override
@@ -115,10 +107,16 @@ public class MainActivity2 extends AppCompatActivity implements View.OnClickList
             manager.create(this, 0)
                 .anchor(mButton1, TooltipManager.Gravity.BOTTOM)
                 .actionBarSize(Utils.getActionBarSize(getBaseContext()))
-                .closePolicy(TooltipManager.ClosePolicy.TouchOutside, 0)
+                .closePolicy(TooltipManager.ClosePolicy.TouchInsideExclusive, 0)
                 .text(R.string.hello_world)
                 .toggleArrow(true)
                 .maxWidth(400)
+                .withCallback(new TooltipManager.onTooltipClosingCallback() {
+                                  @Override
+                                  public void onClosing(final int id, final boolean fromUser, final boolean containsTouch) {
+
+                                  }
+                              })
                 .withStyleId(R.style.ToolTipLayoutDefaultStyle_TextColor1)
                 .show();
 
@@ -147,7 +145,7 @@ public class MainActivity2 extends AppCompatActivity implements View.OnClickList
             manager.create(this, 2)
                 .anchor(mButton3, TooltipManager.Gravity.BOTTOM)
                 .actionBarSize(Utils.getActionBarSize(getBaseContext()))
-                .closePolicy(TooltipManager.ClosePolicy.TouchOutsideExclusive, 0)
+                .closePolicy(TooltipManager.ClosePolicy.TouchOutside, 0)
                 .text("Touch outside exclusive")
                 .toggleArrow(true)
                 .maxWidth(400)
@@ -160,7 +158,7 @@ public class MainActivity2 extends AppCompatActivity implements View.OnClickList
                 .closePolicy(TooltipManager.ClosePolicy.TouchInsideExclusive, 0)
                 .withCustomView(R.layout.custom_textview, false)
                 .text("Custom view with touch inside exclusive")
-                .toggleArrow(false)
+                .toggleArrow(true)
                 .maxWidth(300)
                 .withCallback(this)
                 .show();
