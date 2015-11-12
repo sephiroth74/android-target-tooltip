@@ -443,7 +443,7 @@ public class TooltipManager {
          * Any touch will hide the tooltip.
          * Touch is never consumed
          */
-        TouchAnyWhereExcluside,
+        TouchAnyWhere,
         /**
          * tooltip is hidden only after the specified delay
          */

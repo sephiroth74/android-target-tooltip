@@ -1,9 +1,10 @@
 package it.sephiroth.android.library.mymodule.app;
 
+import android.annotation.TargetApi;
 import android.content.Intent;
 import android.graphics.Point;
+import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.design.widget.TabLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -13,6 +14,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.Button;
 
 import it.sephiroth.android.library.tooltip.TooltipManager;
@@ -24,6 +26,7 @@ public class MainActivity2 extends AppCompatActivity implements View.OnClickList
     Button mButton3;
     Button mButton4;
     Button mButton5;
+    Button mButton6;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,18 +40,19 @@ public class MainActivity2 extends AppCompatActivity implements View.OnClickList
         mButton3 = (Button) findViewById(R.id.button3);
         mButton4 = (Button) findViewById(R.id.button4);
         mButton5 = (Button) findViewById(R.id.button5);
+        mButton6 = (Button) findViewById(R.id.button6);
         mButton1.setOnClickListener(this);
         mButton2.setOnClickListener(this);
         mButton3.setOnClickListener(this);
         mButton4.setOnClickListener(this);
         mButton5.setOnClickListener(this);
+        mButton6.setOnClickListener(this);
 
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
 
         TabLayout tablayout = (TabLayout) findViewById(R.id.tabs);
         tablayout.addTab(tablayout.newTab().setText("First"));
         tablayout.addTab(tablayout.newTab().setText("Second"));
-
         test();
     }
 
@@ -57,18 +61,22 @@ public class MainActivity2 extends AppCompatActivity implements View.OnClickList
         final ViewGroup root = (ViewGroup) tablayout.getChildAt(0);
         final View tab = root.getChildAt(1);
 
-        //        if (tab.getWidth() <= 1) {
-        //
-        //            tab.getViewTreeObserver().addOnGlobalLayoutListener(
-        //                new ViewTreeObserver.OnGlobalLayoutListener() {
-        //                    @Override
-        //                    public void onGlobalLayout() {
-        //                        test();
-        //                        tab.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-        //                    }
-        //                });
-        //            return;
-        //        }
+        if (tab.getWidth() <= 1) {
+            tab.getViewTreeObserver().addOnGlobalLayoutListener(
+                new ViewTreeObserver.OnGlobalLayoutListener() {
+                    @TargetApi (Build.VERSION_CODES.JELLY_BEAN)
+                    @Override
+                    public void onGlobalLayout() {
+                        test();
+
+                        if (Build.VERSION.SDK_INT >= 16) {
+                            tab.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                        } else {
+                            tab.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                        }
+                    }
+                });
+        }
     }
 
     @Override
@@ -107,31 +115,15 @@ public class MainActivity2 extends AppCompatActivity implements View.OnClickList
             manager.create(this, 0)
                 .anchor(mButton1, TooltipManager.Gravity.BOTTOM)
                 .actionBarSize(Utils.getActionBarSize(getBaseContext()))
-                .closePolicy(TooltipManager.ClosePolicy.TouchInsideExclusive, 0)
+                .closePolicy(TooltipManager.ClosePolicy.TouchOutside, 0)
                 .text(R.string.hello_world)
                 .toggleArrow(true)
                 .maxWidth(400)
-                .withCallback(new TooltipManager.onTooltipClosingCallback() {
-                                  @Override
-                                  public void onClosing(final int id, final boolean fromUser, final boolean containsTouch) {
-
-                                  }
-                              })
                 .withStyleId(R.style.ToolTipLayoutDefaultStyle_TextColor1)
                 .show();
 
-            final Handler handler = new Handler();
-            final Runnable runnable = new Runnable() {
-                @Override
-                public void run() {
-                    int height = mButton1.getHeight();
-                    mButton1.getLayoutParams().height = height + 500;
-                    mButton1.requestLayout();
-                }
-            };
-            handler.postDelayed(runnable, 1000);
-
         } else if (id == mButton2.getId()) {
+
             manager.create(this, 1)
                 .anchor(mButton2, TooltipManager.Gravity.LEFT)
                 .actionBarSize(Utils.getActionBarSize(getBaseContext()))
@@ -145,7 +137,7 @@ public class MainActivity2 extends AppCompatActivity implements View.OnClickList
             manager.create(this, 2)
                 .anchor(mButton3, TooltipManager.Gravity.BOTTOM)
                 .actionBarSize(Utils.getActionBarSize(getBaseContext()))
-                .closePolicy(TooltipManager.ClosePolicy.TouchOutside, 0)
+                .closePolicy(TooltipManager.ClosePolicy.TouchOutsideExclusive, 0)
                 .text("Touch outside exclusive")
                 .toggleArrow(true)
                 .maxWidth(400)
@@ -173,6 +165,17 @@ public class MainActivity2 extends AppCompatActivity implements View.OnClickList
                 .maxWidth(600)
                 .showDelay(300)
                 .activateDelay(2000)
+                .withCallback(this)
+                .show();
+        } else if (id == mButton6.getId()) {
+            manager.create(this, 2)
+                .anchor(v, TooltipManager.Gravity.TOP)
+                .actionBarSize(Utils.getActionBarSize(getBaseContext()))
+                .closePolicy(TooltipManager.ClosePolicy.TouchAnyWhere, 0)
+                .text("Touch Anywhere to dismiss the tooltip")
+                .toggleArrow(true)
+                .maxWidth(400)
+                .showDelay(300)
                 .withCallback(this)
                 .show();
         }

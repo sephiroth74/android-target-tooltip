@@ -768,7 +768,7 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
                     case TouchOutsideExclusive:
                         onClose(true, containsTouch);
                         return closePolicy == ClosePolicy.TouchOutsideExclusive || containsTouch;
-                    case TouchAnyWhereExcluside:
+                    case TouchAnyWhere:
                         onClose(true, containsTouch);
                         return false;
                     case None:
