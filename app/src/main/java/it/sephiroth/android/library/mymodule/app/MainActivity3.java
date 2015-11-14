@@ -23,8 +23,7 @@ import it.sephiroth.android.library.tooltip.Tooltip;
 import it.sephiroth.android.library.tooltip.TooltipManager;
 
 public class MainActivity3 extends AppCompatActivity
-    implements AdapterView.OnItemClickListener, TooltipManager.OnTooltipAttachedStateChange,
-               TooltipManager.onTooltipClosingCallback {
+    implements AdapterView.OnItemClickListener, TooltipManager.OnTooltipAttachedStateChange {
     private static final String TAG = "MainActivity3";
     RecyclerView mRecyclerView;
     TooltipManager mTooltipManager;
@@ -108,11 +107,6 @@ public class MainActivity3 extends AppCompatActivity
         Log.i(TAG, "onTooltipDetached: " + id);
     }
 
-    @Override
-    public void onClosing(final int id, final boolean fromUser, final boolean containsTouch) {
-        Log.i(TAG, "onClosing");
-    }
-
     class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         private final int mResId;
         private final List<String> mData;
@@ -174,7 +168,6 @@ public class MainActivity3 extends AppCompatActivity
                     .text("Brigthness, Saturation, Contrast and Warmth are now here!")
                     .fitToScreen(false)
                     .fadeDuration(100)
-                    .withCallback(MainActivity3.this)
                     .showDelay(200)
                     .withCallback(
                         new TooltipManager.onTooltipClosingCallback() {

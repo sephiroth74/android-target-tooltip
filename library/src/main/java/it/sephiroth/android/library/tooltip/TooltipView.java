@@ -5,6 +5,7 @@ import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Canvas;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Build;
@@ -80,24 +81,27 @@ class TooltipView extends ViewGroup implements Tooltip {
 
         @Override
         public void onViewDetachedFromWindow(final View v) {
-            if (!mAttached) {
-                removeListeners();
-                return;
-            }
-
             if (DBG) {
                 Log.i(TAG, "onViewDetachedFromWindow");
+            }
+
+            removeViewListeners(v);
+
+            if (!mAttached) {
+                Log.w(TAG, "not attached!");
+                return;
             }
 
             Activity activity = (Activity) getContext();
             if (null != activity) {
                 if (activity.isFinishing()) {
+                    Log.w(TAG, "skipped because activity is finishing...");
                     return;
                 }
                 if (Build.VERSION.SDK_INT >= 17 && activity.isDestroyed()) {
                     return;
                 }
-                hide(true, 0);
+                onClose(false, false);
             }
         }
     };
@@ -105,7 +109,8 @@ class TooltipView extends ViewGroup implements Tooltip {
         @Override
         public boolean onPreDraw() {
             if (!mAttached) {
-                removeListeners();
+                Log.w(TAG, "onPreDraw. removeListeners");
+                removePreDrawObserver(null);
                 return true;
             }
 
@@ -121,10 +126,6 @@ class TooltipView extends ViewGroup implements Tooltip {
                     if (mTempLocation[0] != viewRect.top) {
                         setOffsetY(mTempLocation[1]);
                     }
-
-                    if (DBG) {
-                        // Log.i(TAG, "onPreDraw: ");
-                    }
                 }
             }
             return true;
@@ -133,10 +134,9 @@ class TooltipView extends ViewGroup implements Tooltip {
     private final ViewTreeObserver.OnGlobalLayoutListener mGlobalLayoutListener = new ViewTreeObserver.OnGlobalLayoutListener() {
         @Override
         public void onGlobalLayout() {
-            //            removeGlobalLayoutObserver(null);
-
             if (!mAttached) {
-                removeListeners();
+                Log.w(TAG, "onGlobalLayout. removeListeners");
+                removeGlobalLayoutObserver(null);
                 return;
             }
 
@@ -549,6 +549,8 @@ class TooltipView extends ViewGroup implements Tooltip {
         if (DBG) {
             Log.i(TAG, "onDetachedFromWindow");
         }
+
+        Log.w(TAG, "onDetachedFromWindow. removeListeners");
         removeListeners();
         mAttached = false;
         mViewAnchor = null;
@@ -557,20 +559,24 @@ class TooltipView extends ViewGroup implements Tooltip {
 
     private void removeListeners() {
         if (DBG) {
-            Log.i(TAG, "removeTreeObserver");
+            Log.i(TAG, "removeListeners");
         }
 
         mTooltipListener = null;
 
         if (null != mViewAnchor) {
             View view = mViewAnchor.get();
-            if (null != view) {
-                removeGlobalLayoutObserver(view);
-                removePreDrawObserver(view);
-                removeOnAttachStateObserver(view);
-            }
+            removeViewListeners(view);
         }
+    }
 
+    private void removeViewListeners(final View view) {
+        if (DBG) {
+            Log.i(TAG, "removeViewListeners");
+        }
+        removeGlobalLayoutObserver(view);
+        removePreDrawObserver(view);
+        removeOnAttachStateObserver(view);
     }
 
     private void removeGlobalLayoutObserver(@Nullable View view) {
@@ -583,6 +589,8 @@ class TooltipView extends ViewGroup implements Tooltip {
             } else {
                 view.getViewTreeObserver().removeGlobalOnLayoutListener(mGlobalLayoutListener);
             }
+        } else {
+            Log.e(TAG, "removeGlobalLayoutObserver failed");
         }
     }
 
@@ -592,6 +600,8 @@ class TooltipView extends ViewGroup implements Tooltip {
         }
         if (null != view && view.getViewTreeObserver().isAlive()) {
             view.getViewTreeObserver().removeOnPreDrawListener(mPreDrawListener);
+        } else {
+            Log.e(TAG, "removePreDrawObserver failed");
         }
     }
 
@@ -601,6 +611,8 @@ class TooltipView extends ViewGroup implements Tooltip {
         }
         if (null != view) {
             view.removeOnAttachStateChangeListener(mAttachedStateListener);
+        } else {
+            Log.e(TAG, "removeOnAttachStateObserver failed");
         }
     }
 
@@ -877,6 +889,14 @@ class TooltipView extends ViewGroup implements Tooltip {
         if (null != mTextView) {
             mTextView.setText(Html.fromHtml((String) text));
         }
+    }
+
+    @Override
+    protected void onDraw(final Canvas canvas) {
+        if (!mAttached) {
+            return;
+        }
+        super.onDraw(canvas);
     }
 
     @Override
