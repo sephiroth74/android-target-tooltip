@@ -8,7 +8,9 @@ import android.content.res.TypedArray;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Build;
+import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -35,7 +37,7 @@ import static it.sephiroth.android.library.tooltip.TooltipManager.Gravity.LEFT;
 import static it.sephiroth.android.library.tooltip.TooltipManager.Gravity.RIGHT;
 import static it.sephiroth.android.library.tooltip.TooltipManager.Gravity.TOP;
 
-class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGlobalLayoutListener {
+class TooltipView extends ViewGroup implements Tooltip {
     private static final String TAG = "TooltipView";
     private static final List<Gravity> gravities = new ArrayList<>(Arrays.asList(LEFT, RIGHT, TOP, BOTTOM, CENTER));
     private final List<Gravity> viewGravities = new ArrayList<>(gravities);
@@ -66,8 +68,114 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
     private View mView;
     private TextView mTextView;
     private final TooltipTextDrawable mDrawable;
+    private OnToolTipListener mTooltipListener;
+    private final WeakReference<TooltipManager> mTooltipManager;
+    private final int[] mTempLocation = new int[2];
+    private final Handler handler = new Handler();
+    private final View.OnAttachStateChangeListener mAttachedStateListener = new OnAttachStateChangeListener() {
+        @Override
+        public void onViewAttachedToWindow(final View v) {
+            // setVisibility(VISIBLE);
+        }
 
-    public TooltipView(Context context, TooltipManager.Builder builder) {
+        @Override
+        public void onViewDetachedFromWindow(final View v) {
+            if (!mAttached) {
+                removeListeners();
+                return;
+            }
+
+            if (DBG) {
+                Log.i(TAG, "onViewDetachedFromWindow");
+            }
+
+            Activity activity = (Activity) getContext();
+            if (null != activity) {
+                if (activity.isFinishing()) {
+                    return;
+                }
+                if (Build.VERSION.SDK_INT >= 17 && activity.isDestroyed()) {
+                    return;
+                }
+                hide(true, 0);
+            }
+        }
+    };
+    private final ViewTreeObserver.OnPreDrawListener mPreDrawListener = new ViewTreeObserver.OnPreDrawListener() {
+        @Override
+        public boolean onPreDraw() {
+            if (!mAttached) {
+                removeListeners();
+                return true;
+            }
+
+            if (null != mViewAnchor) {
+                View view = mViewAnchor.get();
+                if (null != view) {
+                    view.getLocationOnScreen(mTempLocation);
+
+                    if (mTempLocation[0] != viewRect.left) {
+                        setOffsetX(mTempLocation[0]);
+                    }
+
+                    if (mTempLocation[0] != viewRect.top) {
+                        setOffsetY(mTempLocation[1]);
+                    }
+
+                    if (DBG) {
+                        // Log.i(TAG, "onPreDraw: ");
+                    }
+                }
+            }
+            return true;
+        }
+    };
+    private final ViewTreeObserver.OnGlobalLayoutListener mGlobalLayoutListener = new ViewTreeObserver.OnGlobalLayoutListener() {
+        @Override
+        public void onGlobalLayout() {
+            //            removeGlobalLayoutObserver(null);
+
+            if (!mAttached) {
+                removeListeners();
+                return;
+            }
+
+            if (DBG) {
+                Log.i(TAG, "onGlobalLayout: " + mViewAnchor);
+            }
+
+            if (null != mViewAnchor) {
+                View view = mViewAnchor.get();
+
+                if (null != view) {
+                    Rect rect = new Rect();
+                    view.getGlobalVisibleRect(rect);
+
+                    if (DBG) {
+                        Log.v(TAG, "viewRect.old: " + viewRect);
+                        Log.v(TAG, "viewRect.new: " + rect);
+                        Log.v(TAG, "equals: " + viewRect.equals(rect));
+                    }
+
+                    if (!viewRect.equals(rect)) {
+                        viewRect.set(rect);
+                        viewGravities.clear();
+                        viewGravities.addAll(gravities);
+                        viewGravities.remove(gravity);
+                        viewGravities.add(0, gravity);
+                        calculatePositions(viewGravities);
+                        requestLayout();
+                    }
+                } else {
+                    if (DBG) {
+                        Log.w(TAG, "view is null");
+                    }
+                }
+            }
+        }
+    };
+
+    public TooltipView(Context context, final TooltipManager manager, final TooltipManager.Builder builder) {
         super(context);
 
         TypedArray theme =
@@ -76,6 +184,7 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
         this.textAppearance = theme.getResourceId(R.styleable.TooltipLayout_android_textAppearance, 0);
         theme.recycle();
 
+        this.mTooltipManager = new WeakReference<>(manager);
         this.toolTipId = builder.id;
         this.text = builder.text;
         this.gravity = builder.gravity;
@@ -105,7 +214,12 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
             viewRect = new Rect();
             builder.view.getGlobalVisibleRect(viewRect);
             mViewAnchor = new WeakReference<>(builder.view);
-            builder.view.getViewTreeObserver().addOnGlobalLayoutListener(this);
+
+            if (builder.view.getViewTreeObserver().isAlive()) {
+                builder.view.getViewTreeObserver().addOnGlobalLayoutListener(mGlobalLayoutListener);
+                builder.view.getViewTreeObserver().addOnPreDrawListener(mPreDrawListener);
+                builder.view.addOnAttachStateChangeListener(mAttachedStateListener);
+            }
         }
 
         if (!builder.isCustomView) {
@@ -113,7 +227,6 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
         } else {
             this.mDrawable = null;
         }
-
         setVisibility(INVISIBLE);
     }
 
@@ -132,24 +245,28 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
             }
             return;
         }
-        fadeIn();
+        fadeIn(fadeDuration);
     }
 
     @Override
     public void hide(boolean remove) {
+        hide(remove, fadeDuration);
+    }
+
+    private void hide(boolean remove, long fadeDuration) {
         if (DBG) {
             Log.i(TAG, "hide");
         }
         if (!isAttached()) {
             return;
         }
-        fadeOut(remove);
+        fadeOut(remove, fadeDuration);
     }
 
     Animator mShowAnimation;
     boolean mShowing;
 
-    protected void fadeIn() {
+    protected void fadeIn(final long fadeDuration) {
         if (mShowing) {
             return;
         }
@@ -185,8 +302,8 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
                         if (DBG) {
                             Log.i(TAG, "fadein::onAnimationEnd, cancelled: " + cancelled);
                         }
-                        if (null != tooltipListener && !cancelled) {
-                            tooltipListener.onShowCompleted(TooltipView.this);
+                        if (null != mTooltipListener && !cancelled) {
+                            mTooltipListener.onShowCompleted(TooltipView.this);
                             postActivate(activateDelay);
                         }
                     }
@@ -203,20 +320,19 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
                     public void onAnimationRepeat(final Animator animation) {
 
                     }
-                }
-                                      );
+                });
             mShowAnimation.start();
         } else {
             setVisibility(View.VISIBLE);
-            tooltipListener.onShowCompleted(TooltipView.this);
+            mTooltipListener.onShowCompleted(TooltipView.this);
             if (!mActivated) {
                 postActivate(activateDelay);
             }
         }
 
         if (showDuration > 0) {
-            getHandler().removeCallbacks(hideRunnable);
-            getHandler().postDelayed(hideRunnable, showDuration);
+            handler.removeCallbacks(hideRunnable);
+            handler.postDelayed(hideRunnable, showDuration);
         }
     }
 
@@ -236,7 +352,13 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
         }
     };
 
-    boolean isShowing() {
+    private void removeCallbacks() {
+        handler.removeCallbacks(hideRunnable);
+        handler.removeCallbacks(activateRunnable);
+    }
+
+    @SuppressWarnings ("unused")
+    public boolean isShowing() {
         return mShowing;
     }
 
@@ -246,7 +368,7 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
         }
         if (ms > 0) {
             if (isAttached()) {
-                postDelayed(activateRunnable, ms);
+                handler.postDelayed(activateRunnable, ms);
             }
         } else {
             mActivated = true;
@@ -258,10 +380,9 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
             Log.i(TAG, "removeFromParent: " + toolTipId);
         }
         ViewParent parent = getParent();
+        removeCallbacks();
+
         if (null != parent) {
-            if (null != getHandler()) {
-                getHandler().removeCallbacks(hideRunnable);
-            }
             ((ViewGroup) parent).removeView(TooltipView.this);
 
             if (null != mShowAnimation && mShowAnimation.isStarted()) {
@@ -270,7 +391,7 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
         }
     }
 
-    protected void fadeOut(final boolean remove) {
+    protected void fadeOut(final boolean remove, long fadeDuration) {
         if (!isAttached() || !mShowing) {
             return;
         }
@@ -299,6 +420,7 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
 
                     @Override
                     public void onAnimationEnd(final Animator animation) {
+
                         if (DBG) {
                             Log.i(TAG, "fadeout::onAnimationEnd, cancelled: " + cancelled);
                         }
@@ -324,8 +446,7 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
                     public void onAnimationRepeat(final Animator animation) {
 
                     }
-                }
-                                      );
+                });
             mShowAnimation.start();
         } else {
             setVisibility(View.INVISIBLE);
@@ -336,8 +457,8 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
     }
 
     private void fireOnHideCompleted() {
-        if (null != tooltipListener) {
-            tooltipListener.onHideCompleted(TooltipView.this);
+        if (null != mTooltipListener) {
+            mTooltipListener.onHideCompleted(TooltipView.this);
         }
     }
 
@@ -370,7 +491,7 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
     @Override
     protected void onMeasure(final int widthMeasureSpec, final int heightMeasureSpec) {
         if (DBG) {
-            Log.i(TAG, "onMeasure");
+            Log.i(TAG, "onMeasure: " + getChildCount());
         }
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
@@ -396,14 +517,16 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
             Log.v(TAG, "myHeight: " + myHeight);
         }
 
-        final int count = getChildCount();
-
-        for (int i = 0; i < count; i++) {
-            View child = getChildAt(i);
-            if (child.getVisibility() != GONE) {
+        if (null != mView) {
+            if (mView.getVisibility() != GONE) {
                 int childWidthMeasureSpec = MeasureSpec.makeMeasureSpec(myWidth, MeasureSpec.AT_MOST);
                 int childHeightMeasureSpec = MeasureSpec.makeMeasureSpec(myHeight, MeasureSpec.AT_MOST);
-                child.measure(childWidthMeasureSpec, childHeightMeasureSpec);
+                mView.measure(childWidthMeasureSpec, childHeightMeasureSpec);
+                //                myWidth = mView.getMeasuredWidth();
+                //                myHeight = mView.getMeasuredHeight();
+            } else {
+                myWidth = 0;
+                myHeight = 0;
             }
         }
 
@@ -426,26 +549,58 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
         if (DBG) {
             Log.i(TAG, "onDetachedFromWindow");
         }
-        super.onDetachedFromWindow();
-        removeTreeObserver();
+        removeListeners();
         mAttached = false;
         mViewAnchor = null;
+        super.onDetachedFromWindow();
     }
 
-    private void removeTreeObserver() {
+    private void removeListeners() {
         if (DBG) {
             Log.i(TAG, "removeTreeObserver");
         }
 
+        mTooltipListener = null;
+
         if (null != mViewAnchor) {
             View view = mViewAnchor.get();
             if (null != view) {
-                if (Build.VERSION.SDK_INT >= 16) {
-                    view.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                } else {
-                    view.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-                }
+                removeGlobalLayoutObserver(view);
+                removePreDrawObserver(view);
+                removeOnAttachStateObserver(view);
             }
+        }
+
+    }
+
+    private void removeGlobalLayoutObserver(@Nullable View view) {
+        if (null == view && null != mViewAnchor) {
+            view = mViewAnchor.get();
+        }
+        if (null != view && view.getViewTreeObserver().isAlive()) {
+            if (Build.VERSION.SDK_INT >= 16) {
+                view.getViewTreeObserver().removeOnGlobalLayoutListener(mGlobalLayoutListener);
+            } else {
+                view.getViewTreeObserver().removeGlobalOnLayoutListener(mGlobalLayoutListener);
+            }
+        }
+    }
+
+    private void removePreDrawObserver(@Nullable View view) {
+        if (null == view && null != mViewAnchor) {
+            view = mViewAnchor.get();
+        }
+        if (null != view && view.getViewTreeObserver().isAlive()) {
+            view.getViewTreeObserver().removeOnPreDrawListener(mPreDrawListener);
+        }
+    }
+
+    private void removeOnAttachStateObserver(@Nullable View view) {
+        if (null == view && null != mViewAnchor) {
+            view = mViewAnchor.get();
+        }
+        if (null != view) {
+            view.removeOnAttachStateChangeListener(mAttachedStateListener);
         }
     }
 
@@ -494,8 +649,8 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
         // something wrong with its dimensions or
         // the target position..
         if (gravities.size() < 1) {
-            if (null != tooltipListener) {
-                tooltipListener.onShowFailed(this);
+            if (null != mTooltipListener) {
+                mTooltipListener.onShowFailed(this);
             }
             setVisibility(View.GONE);
             return;
@@ -661,12 +816,15 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
         if (DBG) {
             Log.d(TAG, "screenRect: " + screenRect + ", topRule: " + topRule + ", statusBar: " + statusbarHeight);
             Log.d(TAG, "drawRect: " + drawRect);
+            Log.d(TAG, "viewRect: " + viewRect);
         }
 
         // translate the textview
 
         mView.setTranslationX(drawRect.left);
         mView.setTranslationY(drawRect.top);
+
+        Log.d(TAG, "setTranslationY: " + mView.getTranslationY());
 
         if (null != mDrawable) {
             // get the global rect for the textview
@@ -692,18 +850,18 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
 
     @Override
     public void setOffsetX(int x) {
-        setTranslationX(x - viewRect.left);
+        mView.setTranslationY(x - viewRect.left + drawRect.left);
     }
 
     @Override
     public void setOffsetY(int y) {
-        setTranslationY(y - viewRect.top);
+        mView.setTranslationY(y - viewRect.top + drawRect.top);
     }
 
     @Override
     public void offsetTo(final int x, final int y) {
-        setTranslationX(x - viewRect.left);
-        setTranslationY(y - viewRect.top);
+        mView.setTranslationX(x - viewRect.left + drawRect.left);
+        mView.setTranslationY(y - viewRect.top + drawRect.top);
     }
 
     @Override
@@ -785,82 +943,19 @@ class TooltipView extends ViewGroup implements Tooltip, ViewTreeObserver.OnGloba
             Log.i(TAG, "onClose. fromUser: " + fromUser + ", containsTouch: " + containsTouch);
         }
 
-        if (null == getHandler()) {
-            return;
-        }
         if (!isAttached()) {
             return;
-        }
-
-        getHandler().removeCallbacks(hideRunnable);
-
-        if (null != closeListener) {
-            closeListener.onClose(this);
         }
 
         if (null != closeCallback) {
             closeCallback.onClosing(toolTipId, fromUser, containsTouch);
         }
-    }
 
-    private OnCloseListener closeListener;
-    private OnToolTipListener tooltipListener;
-
-    void setOnCloseListener(OnCloseListener listener) {
-        this.closeListener = listener;
+        hide(true);
     }
 
     void setOnToolTipListener(OnToolTipListener listener) {
-        this.tooltipListener = listener;
-    }
-
-    /**
-     * Callback method to be invoked when the global layout state or the visibility of views
-     * within the view tree changes
-     */
-    @Override
-    public void onGlobalLayout() {
-        if (!mAttached) {
-            removeTreeObserver();
-            return;
-        }
-
-        if (DBG) {
-            Log.i(TAG, "onGlobalLayout: " + mViewAnchor);
-        }
-
-        if (null != mViewAnchor) {
-            View view = mViewAnchor.get();
-
-            if (null != view) {
-                Rect rect = new Rect();
-                view.getGlobalVisibleRect(rect);
-
-                if (DBG) {
-                    Log.v(TAG, "oldRect: " + viewRect);
-                    Log.v(TAG, "newRect: " + rect);
-                    Log.v(TAG, "equals: " + viewRect.equals(rect));
-                }
-
-                if (!viewRect.equals(rect)) {
-                    viewRect.set(rect);
-                    viewGravities.clear();
-                    viewGravities.addAll(gravities);
-                    viewGravities.remove(gravity);
-                    viewGravities.add(0, gravity);
-                    calculatePositions(viewGravities);
-                    requestLayout();
-                }
-            } else {
-                if (DBG) {
-                    Log.w(TAG, "view is null");
-                }
-            }
-        }
-    }
-
-    interface OnCloseListener {
-        void onClose(TooltipView layout);
+        this.mTooltipListener = listener;
     }
 
     interface OnToolTipListener {

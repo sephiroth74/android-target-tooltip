@@ -17,4 +17,6 @@ public interface Tooltip {
     boolean isAttached();
 
     boolean isShown();
+
+    void requestLayout();
 }
