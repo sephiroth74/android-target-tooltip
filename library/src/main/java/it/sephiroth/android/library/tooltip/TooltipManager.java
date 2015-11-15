@@ -15,6 +15,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.WeakHashMap;
 
+import static android.util.Log.INFO;
+import static android.util.Log.VERBOSE;
+
 public class TooltipManager {
     public static boolean DBG = false;
     private static final String TAG = "TooltipManager";
@@ -32,24 +35,18 @@ public class TooltipManager {
     private TooltipView.OnToolTipListener mTooltipListener = new TooltipView.OnToolTipListener() {
         @Override
         public void onHideCompleted(final TooltipView layout) {
-            if (DBG) {
-                Log.i(TAG, "onHideCompleted: " + layout.getTooltipId());
-            }
+            log(TAG, INFO, "onHideCompleted: %d", layout.getTooltipId());
             remove(layout.getTooltipId());
         }
 
         @Override
         public void onShowCompleted(final TooltipView layout) {
-            if (DBG) {
-                Log.i(TAG, "onShowCompleted: " + layout.getTooltipId());
-            }
+            log(TAG, INFO, "onShowCompleted: %d", layout.getTooltipId());
         }
 
         @Override
         public void onShowFailed(final TooltipView layout) {
-            if (DBG) {
-                Log.i(TAG, "onShowFailed: " + layout.getTooltipId());
-            }
+            log(TAG, INFO, "onShowFailed: %d", layout.getTooltipId());
             remove(layout.getTooltipId());
         }
     };
@@ -86,9 +83,7 @@ public class TooltipManager {
 
     @SuppressWarnings ("unused")
     public boolean show(Builder builder) {
-        if (DBG) {
-            Log.i(TAG, "show");
-        }
+        log(TAG, INFO, "show");
 
         if (!builder.completed) {
             throw new IllegalArgumentException("Builder incomplete. Call 'build()' first");
@@ -116,9 +111,7 @@ public class TooltipManager {
 
     @SuppressWarnings ("unused")
     public void hide(int id) {
-        if (DBG) {
-            Log.i(TAG, "hide: " + id);
-        }
+        log(TAG, INFO, "hide(%d)", id);
 
         final WeakReference<TooltipView> layout;
         synchronized (mLock) {
@@ -151,9 +144,7 @@ public class TooltipManager {
 
     @SuppressWarnings ("unused")
     public void remove(int id) {
-        if (DBG) {
-            Log.i(TAG, "remove: " + id);
-        }
+        log(TAG, INFO, "remove(%d)", id);
 
         final WeakReference<TooltipView> layout;
         synchronized (mLock) {
@@ -179,15 +170,12 @@ public class TooltipManager {
     }
 
     private void printStats() {
-        if (DBG) {
-            Log.d(TAG, "active tooltips: " + mTooltips.size());
-        }
+        log(TAG, VERBOSE, "active tooltips: %d", mTooltips.size());
     }
 
     private void destroy() {
-        if (DBG) {
-            Log.i(TAG, "destroy");
-        }
+        log(TAG, INFO, "destroy");
+
         synchronized (mLock) {
             for (int id : mTooltips.keySet()) {
                 remove(id);
@@ -200,9 +188,8 @@ public class TooltipManager {
     private void showInternal(View rootView, TooltipView layout, boolean immediate) {
         if (null != rootView && rootView instanceof ViewGroup) {
             if (layout.getParent() == null) {
-                if (DBG) {
-                    Log.v(TAG, "attach to mToolTipLayout parent");
-                }
+                log(TAG, VERBOSE, "attach to mToolTipLayout parent");
+
                 ViewGroup.LayoutParams params =
                     new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
                 ((ViewGroup) rootView).addView(layout, params);
@@ -439,5 +426,28 @@ public class TooltipManager {
          * @param containsTouch true if the original touch came from inside the tooltip
          */
         void onClosing(int id, boolean fromUser, final boolean containsTouch);
+    }
+
+    static void log(final String tag, final int level, final String format, Object... args) {
+        if (DBG) {
+            switch (level) {
+                case Log.DEBUG:
+                    Log.d(tag, String.format(format, args));
+                    break;
+                case Log.ERROR:
+                    Log.e(tag, String.format(format, args));
+                    break;
+                case INFO:
+                    Log.i(tag, String.format(format, args));
+                    break;
+                case Log.WARN:
+                    Log.w(tag, String.format(format, args));
+                    break;
+                default:
+                case VERBOSE:
+                    Log.v(tag, String.format(format, args));
+                    break;
+            }
+        }
     }
 }

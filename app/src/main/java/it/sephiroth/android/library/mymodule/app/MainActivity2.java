@@ -1,9 +1,7 @@
 package it.sephiroth.android.library.mymodule.app;
 
-import android.annotation.TargetApi;
 import android.content.Intent;
 import android.graphics.Point;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -14,7 +12,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.widget.Button;
 
 import it.sephiroth.android.library.tooltip.TooltipManager;
@@ -63,22 +60,17 @@ public class MainActivity2 extends AppCompatActivity implements View.OnClickList
         final ViewGroup root = (ViewGroup) tablayout.getChildAt(0);
         final View tab = root.getChildAt(1);
 
-        if (tab.getWidth() <= 1) {
-            tab.getViewTreeObserver().addOnGlobalLayoutListener(
-                new ViewTreeObserver.OnGlobalLayoutListener() {
-                    @TargetApi (Build.VERSION_CODES.JELLY_BEAN)
-                    @Override
-                    public void onGlobalLayout() {
-                        test();
-
-                        if (Build.VERSION.SDK_INT >= 16) {
-                            tab.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                        } else {
-                            tab.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-                        }
-                    }
-                });
-        }
+        mTooltipManager.show(
+            new TooltipManager.Builder(101)
+                .anchor(tab, TooltipManager.Gravity.BOTTOM)
+                .closePolicy(TooltipManager.ClosePolicy.TouchAnyWhere, 3000)
+                .text("Tooltip on a TabLayout child...")
+                .fadeDuration(200)
+                .fitToScreen(false)
+                .maxWidth(400)
+                .showDelay(400)
+                .toggleArrow(true)
+                .build());
     }
 
     @Override

@@ -167,8 +167,8 @@ public class MainActivity3 extends AppCompatActivity
                     .closePolicy(TooltipManager.ClosePolicy.TouchInside, 0)
                     .text("Brigthness, Saturation, Contrast and Warmth are now here!")
                     .fitToScreen(false)
-                    .fadeDuration(100)
-                    .showDelay(200)
+                    .fadeDuration(200)
+                    .showDelay(300)
                     .withCallback(
                         new TooltipManager.onTooltipClosingCallback() {
                             @Override
