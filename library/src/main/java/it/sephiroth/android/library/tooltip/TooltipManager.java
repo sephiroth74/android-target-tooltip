@@ -20,7 +20,8 @@ public class TooltipManager {
     private static final String TAG = "TooltipManager";
     private volatile static TooltipManager INSTANCE;
 
-    private TooltipManager() {}
+    private TooltipManager() {
+    }
 
     public static synchronized TooltipManager getInstance() {
         if (INSTANCE == null) {
@@ -44,6 +45,10 @@ public class TooltipManager {
         public void onClose(final TooltipView layout) {
             if (DBG) {
                 Log.i(TAG, "onClose: " + layout.getTooltipId());
+            }
+            //if in the fragment mTooltips will be null,then it can't be close, i dont' know why.
+            if (mTooltips.size() == 0) {
+                mTooltips.put(layout.getTooltipId(), new WeakReference<>(layout));
             }
             hide(layout.getTooltipId());
         }
@@ -234,7 +239,7 @@ public class TooltipManager {
                     Log.v(TAG, "attach to mToolTipLayout parent");
                 }
                 ViewGroup.LayoutParams params =
-                    new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+                        new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
                 ((ViewGroup) rootView).addView(layout, params);
             }
 
