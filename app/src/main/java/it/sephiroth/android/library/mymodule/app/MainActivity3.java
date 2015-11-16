@@ -168,7 +168,7 @@ public class MainActivity3 extends AppCompatActivity
                     .text("Brigthness, Saturation, Contrast and Warmth are now here!")
                     .fitToScreen(false)
                     .fadeDuration(200)
-                    .showDelay(300)
+                    .showDelay(50)
                     .withCallback(
                         new TooltipManager.onTooltipClosingCallback() {
                             @Override

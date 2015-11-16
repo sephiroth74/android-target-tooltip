@@ -28,9 +28,6 @@ class TooltipTextDrawable extends Drawable {
     private final Paint stPaint;
     private final float arrowRatio;
     private final float ellipseSize;
-    private final int strokeWidth;
-    private final int strokeColor;
-    private final int backgroundColor;
     private int padding = 0;
     private int arrowWeight = 0;
     private TooltipManager.Gravity gravity;
@@ -40,9 +37,9 @@ class TooltipTextDrawable extends Drawable {
         TypedArray theme =
             context.getTheme().obtainStyledAttributes(null, R.styleable.TooltipLayout, builder.defStyleAttr, builder.defStyleRes);
         this.ellipseSize = theme.getDimensionPixelSize(R.styleable.TooltipLayout_ttlm_cornerRadius, 4);
-        this.strokeWidth = theme.getDimensionPixelSize(R.styleable.TooltipLayout_ttlm_strokeWeight, 30);
-        this.backgroundColor = theme.getColor(R.styleable.TooltipLayout_ttlm_backgroundColor, 0);
-        this.strokeColor = theme.getColor(R.styleable.TooltipLayout_ttlm_strokeColor, 0);
+        final int strokeWidth = theme.getDimensionPixelSize(R.styleable.TooltipLayout_ttlm_strokeWeight, 30);
+        final int backgroundColor = theme.getColor(R.styleable.TooltipLayout_ttlm_backgroundColor, 0);
+        final int strokeColor = theme.getColor(R.styleable.TooltipLayout_ttlm_strokeColor, 0);
         this.arrowRatio = theme.getFloat(R.styleable.TooltipLayout_ttlm_arrowRatio, 1.4f);
         theme.recycle();
 
@@ -50,7 +47,7 @@ class TooltipTextDrawable extends Drawable {
 
         if (backgroundColor != 0) {
             bgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-            bgPaint.setColor(this.backgroundColor);
+            bgPaint.setColor(backgroundColor);
             bgPaint.setStyle(Paint.Style.FILL);
         } else {
             bgPaint = null;
@@ -69,7 +66,6 @@ class TooltipTextDrawable extends Drawable {
     }
 
     void calculatePath(Rect outBounds) {
-
         if (DBG) {
             log(TAG, INFO, "calculatePath. padding: %d, gravity: %s, bounds: %s", padding, gravity, getBounds());
         }
@@ -225,8 +221,11 @@ class TooltipTextDrawable extends Drawable {
                 this.point = null;
             }
 
-            calculatePath(getBounds());
-            invalidateSelf();
+            final Rect bounds = getBounds();
+            if (!bounds.isEmpty()) {
+                calculatePath(getBounds());
+                invalidateSelf();
+            }
         }
     }
 
