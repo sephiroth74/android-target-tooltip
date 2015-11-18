@@ -3,10 +3,6 @@ language: android
 jdk:
   - openjdk7
 
-branches:
-  only:
-    - master
-
 notifications:
   email: true
 
