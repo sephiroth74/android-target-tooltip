@@ -8,20 +8,25 @@ Master: ![travis-ci](https://travis-ci.org/sephiroth74/android-target-tooltip.sv
 Installation
 ===
 
-	compile 'it.sephiroth.android.library.targettooltip:target-tooltip-library:1.2.9@aar'
+	compile 'it.sephiroth.android.library.targettooltip:target-tooltip-library:1.3.2a'
 	
 
 Usage
 ===
 
-	TooltipManager.getInstance()
-		.create(this, MainActivity.TOOLTIP_EDITORIAL_1)
-		.anchor(aView, TooltipManager.Gravity.BOTTOM)
-		.closePolicy(TooltipManager.ClosePolicy.TouchOutside, 3000)
-		.activateDelay(800)
-		.text("Something to display in the tooltip...")
-		.maxWidth(500)
-		.show();
+	TooltipManager manager = new TooltipManager(this);
+	manager
+		.show(
+			new TooltipManager.Builder(101)
+			.anchor(aView, TooltipManager.Gravity.BOTTOM)
+			.closePolicy(TooltipManager.ClosePolicy.TouchOutside, 3000)
+			.activateDelay(800)
+			.showDelay(300)
+			.text(R.string.hello_world)
+			.maxWidth(500)
+			.toggleArrow(true)
+			.build()
+		);
 
 See the inner [Builder][1] class for the complete set of options
 
@@ -30,13 +35,15 @@ Customization
 
 Tooltip style can be customized in your style object:
 
-	<style name="ToolTipLayoutCustomStyle">
-		<item name="ttlm_padding">25dip</item>
-		<item name="ttlm_strokeColor">#ffe5da7d</item>
-		<item name="ttlm_backgroundColor">#ffe5da7d</item>
-		<item name="ttlm_strokeWeight">0dip</item>
-		<item name="ttlm_cornerRadius">8dip</item>
-	</style>
+	<declare-styleable name="TooltipLayout">
+		<attr name="ttlm_padding" format="dimension" />
+		<attr name="ttlm_strokeColor" format="color" />
+		<attr name="ttlm_backgroundColor" format="color" />
+		<attr name="ttlm_strokeWeight" format="dimension" />
+		<attr name="ttlm_cornerRadius" format="dimension" />
+		<attr name="ttlm_arrowRatio" format="float" />
+		<attr name="android:textAppearance" />
+	</declare-styleable>
 	
 then pass the style in the Builder method **withStyleId(int resId)**
 
