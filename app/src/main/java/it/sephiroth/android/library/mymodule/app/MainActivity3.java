@@ -1,22 +1,20 @@
 package it.sephiroth.android.library.mymodule.app;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Point;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,50 +22,51 @@ import java.util.List;
 import it.sephiroth.android.library.tooltip.Tooltip;
 import it.sephiroth.android.library.tooltip.TooltipManager;
 
-public class MainActivity3 extends ActionBarActivity
-    implements AdapterView.OnItemClickListener, MyTextView.OnAttachStatusListener, TooltipManager.OnTooltipAttachedStateChange,
-               ViewTreeObserver.OnPreDrawListener, TooltipManager.onTooltipClosingCallback {
+public class MainActivity3 extends AppCompatActivity
+    implements AdapterView.OnItemClickListener, TooltipManager.OnTooltipAttachedStateChange {
     private static final String TAG = "MainActivity3";
-    ListView listView;
-    TooltipManager tooltipManager;
+    RecyclerView mRecyclerView;
+    TooltipManager mTooltipManager;
     static final int TOOLTIP_ID = 101;
-    static final int LIST_POSITION = 15;
-    private Tooltip tooltipView;
-    private View mView;
-    private int[] mTempLocation = {0, 0};
+    static final int LIST_POSITION = 5;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
 
-        List<String> array = new ArrayList<String>();
+        setContentView(R.layout.activity_main_activity3);
+        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
+
+        List<String> array = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
             array.add(String.format("Item %d", i));
         }
 
-        listView = (ListView) findViewById(android.R.id.list);
-        listView.setAdapter(new MyAdapter(this, R.layout.custom_list_textview, android.R.id.text1, array));
-        listView.setOnItemClickListener(this);
+        mRecyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+        mRecyclerView.setAdapter(new MyAdapter(this, R.layout.custom_list_textview, array));
+        mRecyclerView.setHasFixedSize(true);
+        mRecyclerView.addOnScrollListener(
+            new RecyclerView.OnScrollListener() {
+                @Override
+                public void onScrollStateChanged(
+                    final RecyclerView recyclerView, final int newState) {
+                    super.onScrollStateChanged(recyclerView, newState);
 
-        tooltipManager = TooltipManager.getInstance();
-        tooltipManager.addOnTooltipAttachedStateChange(this);
+                    if (newState == RecyclerView.SCROLL_STATE_IDLE) {
 
-        tooltipManager.create(this, TOOLTIP_ID)
-            .maxWidth(450)
-            .anchor(new Point(80, 0), TooltipManager.Gravity.RIGHT)
-            .closePolicy(TooltipManager.ClosePolicy.TouchInside, 0)
-            .text("Brigthness, Saturation, Contrast and Warmth are now here!")
-            .actionBarSize(Utils.getActionBarSize(this))
-            .fitToScreen(false)
-            .fadeDuration(100)
-            .withCallback(this)
-            .show();
+                    }
+                }
+            });
+
+        TooltipManager.DBG = true;
+        mTooltipManager = new TooltipManager(this);
+        mTooltipManager.addOnTooltipAttachedStateChange(this);
     }
 
     @Override
     protected void onDestroy() {
-        TooltipManager.getInstance().removeOnTooltipAttachedStateChange(this);
+        mTooltipManager.removeOnTooltipAttachedStateChange(this);
         super.onDestroy();
     }
 
@@ -81,9 +80,7 @@ public class MainActivity3 extends ActionBarActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        if (id == R.id.action_demo1) {
-            startActivity(new Intent(this, MainActivity.class));
-        } else if (id == R.id.action_demo2) {
+        if (id == R.id.action_demo2) {
             startActivity(new Intent(this, MainActivity2.class));
         } else if (id == R.id.action_demo3) {
             startActivity(new Intent(this, MainActivity3.class));
@@ -96,115 +93,92 @@ public class MainActivity3 extends ActionBarActivity
         Log.d(TAG, "onItemClick: " + position);
 
         if (position == LIST_POSITION) {
-            tooltipManager.remove(TOOLTIP_ID);
+            mTooltipManager.remove(TOOLTIP_ID);
         }
-    }
-
-    @Override
-    public void onAttachedtoWindow(final View view) {
-        Log.i(TAG, "onAttachedtoWindow: " + view);
-
-        if (null != tooltipView) {
-            tooltipView.show();
-            view.getViewTreeObserver().addOnPreDrawListener(this);
-        }
-    }
-
-    @Override
-    public void onDetachedFromWindow(final View view) {
-        onFinishTemporaryDetach(view);
-    }
-
-    @Override
-    public void onFinishTemporaryDetach(final View view) {
-        Log.i(TAG, "onFinishTemporaryDetach: " + view);
-
-        if (null != tooltipView && tooltipView.isShown()) {
-            tooltipView.hide(false);
-        }
-        removeListeners();
     }
 
     @Override
     public void onTooltipAttached(final int id) {
         Log.i(TAG, "onTooltipAttached: " + id);
-
-        if (id == TOOLTIP_ID) {
-            tooltipView = tooltipManager.get(id);
-        }
     }
 
     @Override
     public void onTooltipDetached(final int id) {
         Log.i(TAG, "onTooltipDetached: " + id);
-        removeListeners();
-
-        if (id == TOOLTIP_ID) {
-            tooltipView = null;
-        }
     }
 
-    private void removeListeners() {
-        Log.i(TAG, "removeListeners");
+    class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+        private final int mResId;
+        private final List<String> mData;
 
-        if (null != mView) {
-            mView.getViewTreeObserver().removeOnPreDrawListener(this);
-            ((MyTextView) mView).setOnAttachStatusListener(null);
-            mView = null;
-        }
-    }
-
-    @Override
-    public boolean onPreDraw() {
-        if (null == mView || !mView.isShown() || null == tooltipView) {
-            Log.e(TAG, "!isShown");
-            return true;
+        public MyAdapter(final Context context, final int resource, final List<String> objects) {
+            super();
+            setHasStableIds(true);
+            mResId = resource;
+            mData = objects;
         }
 
-        mView.getLocationOnScreen(mTempLocation);
-        tooltipView.setOffsetY(mTempLocation[1]);
-
-        //		Log.v(TAG, "onPreDraw::location: " + mTempLocation[0] + "x" + mTempLocation[1]);
-
-        return true;
-    }
-
-    @Override
-    public void onClosing(final int id, final boolean fromUser, final boolean containsTouch) {
-        // tooltip is being closed...
-    }
-
-    class MyAdapter extends ArrayAdapter<String> {
-        public MyAdapter(final Context context, final int resource, final int textViewResourceId, final List<String> objects) {
-            super(context, resource, textViewResourceId, objects);
-        }
-
-        @TargetApi (Build.VERSION_CODES.HONEYCOMB_MR1)
         @Override
-        public View getView(final int position, View convertView, final ViewGroup parent) {
+        public int getItemCount() {
+            return mData.size();
+        }
 
-            final View result = super.getView(position, convertView, parent);
+        @Override
+        public long getItemId(final int position) {
+            return position;
+        }
 
-            if (position == LIST_POSITION && null != tooltipView) {
-
-                final Handler handler = listView.getHandler();
-                if (null != handler) {
-                    handler.post(
-                        new Runnable() {
-                            @Override
-                            public void run() {
-                                ((MyTextView) result).setOnAttachStatusListener((MainActivity3) getContext());
-                                MainActivity3.this.onAttachedtoWindow(result);
-                                mView = result;
-                            }
+        @Override
+        public RecyclerView.ViewHolder onCreateViewHolder(final ViewGroup parent, final int viewType) {
+            View view = LayoutInflater.from(MainActivity3.this).inflate(mResId, parent, false);
+            final RecyclerView.ViewHolder holder = new RecyclerView.ViewHolder(view) { };
+            view.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(final View v) {
+                        // mTooltipManager.remove(TOOLTIP_ID);
+                        final Tooltip tooltip = mTooltipManager.get(TOOLTIP_ID);
+                        if (null != tooltip) {
+                            tooltip.hide(true);
+                        } else {
+                            showTooltip(holder);
                         }
-                                );
-                } else {
-                    Log.e(TAG, "handler is null!");
-                }
-            }
+                    }
+                });
+            return holder;
+        }
 
-            return result;
+        @Override
+        public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
+            ((TextView) holder.itemView.findViewById(android.R.id.text1)).setText(mData.get(position));
+
+            if (position == LIST_POSITION) {
+                showTooltip(holder);
+            }
+        }
+
+        private void showTooltip(final RecyclerView.ViewHolder holder) {
+            mTooltipManager.remove(TOOLTIP_ID);
+
+            mTooltipManager.show(
+                new TooltipManager.Builder(TOOLTIP_ID)
+                    .maxWidth(450)
+                    .anchor(holder.itemView.findViewById(android.R.id.text1), TooltipManager.Gravity.RIGHT)
+                    .closePolicy(TooltipManager.ClosePolicy.TouchInside, 0)
+                    .text("Brigthness, Saturation, Contrast and Warmth are now here!")
+                    .fitToScreen(false)
+                    .fadeDuration(200)
+                    .showDelay(50)
+                    .withCallback(
+                        new TooltipManager.onTooltipClosingCallback() {
+                            @Override
+                            public void onClosing(final int id, final boolean fromUser, final boolean containsTouch) {
+                                Log.w(
+                                    TAG, "onClosing: " + id + ", fromUser: " + fromUser + ", containsTouch: " + containsTouch);
+                            }
+                        })
+                    .build());
+
         }
     }
 }

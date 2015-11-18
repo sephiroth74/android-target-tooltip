@@ -15,20 +15,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.WeakHashMap;
 
+import static android.util.Log.INFO;
+import static android.util.Log.VERBOSE;
+
 public class TooltipManager {
     public static boolean DBG = false;
     private static final String TAG = "TooltipManager";
-    private volatile static TooltipManager INSTANCE;
-
-    private TooltipManager() {}
-
-    public static synchronized TooltipManager getInstance() {
-        if (INSTANCE == null) {
-            INSTANCE = new TooltipManager();
-        }
-
-        return INSTANCE;
-    }
+    private final WeakReference<Context> mContextRef;
+    private final List<OnTooltipAttachedStateChange> mTooltipAttachStatusListeners = new ArrayList<>();
+    final WeakHashMap<Integer, WeakReference<TooltipView>> mTooltips = new WeakHashMap<>();
+    private final Object mLock = new Object();
 
     public interface OnTooltipAttachedStateChange {
         void onTooltipAttached(int id);
@@ -36,44 +32,28 @@ public class TooltipManager {
         void onTooltipDetached(int id);
     }
 
-    private final List<OnTooltipAttachedStateChange> mTooltipAttachStatusListeners = new ArrayList<>();
-    final WeakHashMap<Integer, WeakReference<TooltipView>> mTooltips = new WeakHashMap<>();
-    final Object lock = new Object();
-    private TooltipView.OnCloseListener mCloseListener = new TooltipView.OnCloseListener() {
-        @Override
-        public void onClose(final TooltipView layout) {
-            if (DBG) {
-                Log.i(TAG, "onClose: " + layout.getTooltipId());
-            }
-            hide(layout.getTooltipId());
-        }
-    };
     private TooltipView.OnToolTipListener mTooltipListener = new TooltipView.OnToolTipListener() {
         @Override
         public void onHideCompleted(final TooltipView layout) {
-            if (DBG) {
-                Log.i(TAG, "onHideCompleted: " + layout.getTooltipId());
-            }
-            int id = layout.getTooltipId();
-            layout.removeFromParent();
-            fireOnTooltipDetached(id);
+            log(TAG, INFO, "onHideCompleted: %d", layout.getTooltipId());
+            remove(layout.getTooltipId());
         }
 
         @Override
         public void onShowCompleted(final TooltipView layout) {
-            if (DBG) {
-                Log.i(TAG, "onShowCompleted: " + layout.getTooltipId());
-            }
+            log(TAG, INFO, "onShowCompleted: %d", layout.getTooltipId());
         }
 
         @Override
         public void onShowFailed(final TooltipView layout) {
-            if (DBG) {
-                Log.i(TAG, "onShowFailed: " + layout.getTooltipId());
-            }
+            log(TAG, INFO, "onShowFailed: %d", layout.getTooltipId());
             remove(layout.getTooltipId());
         }
     };
+
+    public TooltipManager(final Context context) {
+        mContextRef = new WeakReference<>(context);
+    }
 
     public void addOnTooltipAttachedStateChange(OnTooltipAttachedStateChange listener) {
         if (!mTooltipAttachStatusListeners.contains(listener)) {
@@ -101,56 +81,51 @@ public class TooltipManager {
         }
     }
 
-    public Builder create(final Context context, int id) {
-        return new Builder(this, context, id);
-    }
+    @SuppressWarnings ("unused")
+    public boolean show(Builder builder) {
+        log(TAG, INFO, "show");
 
-    private boolean show(Builder builder, boolean immediate) {
-        if (DBG) {
-            Log.i(TAG, "show");
+        if (!builder.completed) {
+            throw new IllegalArgumentException("Builder incomplete. Call 'build()' first");
         }
 
-        synchronized (lock) {
+        synchronized (mLock) {
             if (mTooltips.containsKey(builder.id)) {
                 Log.w(TAG, "A Tooltip with the same id was walready specified");
                 return false;
             }
 
-            TooltipView layout = new TooltipView(builder.context, builder);
-            layout.setOnCloseListener(mCloseListener);
-            layout.setOnToolTipListener(mTooltipListener);
-            mTooltips.put(builder.id, new WeakReference<>(layout));
-
-            final Activity act = getActivity(builder.context);
-
-            if (null == act || act.getWindow() == null || act.getWindow().getDecorView() == null) {
+            final Activity act = getActivity(mContextRef.get());
+            if (null == act || act.getWindow() == null || act.getWindow().getDecorView() == null || act.isFinishing()) {
                 return false;
             }
-            showInternal(act.getWindow().getDecorView(), layout, immediate);
+
+            TooltipView layout = new TooltipView(mContextRef.get(), this, builder);
+            layout.setOnToolTipListener(mTooltipListener);
+            mTooltips.put(builder.id, new WeakReference<>(layout));
+            showInternal(act.getWindow().getDecorView(), layout, true);
         }
         printStats();
         return true;
     }
 
+    @SuppressWarnings ("unused")
     public void hide(int id) {
-        if (DBG) {
-            Log.i(TAG, "hide: " + id);
-        }
+        log(TAG, INFO, "hide(%d)", id);
 
         final WeakReference<TooltipView> layout;
-        synchronized (lock) {
+        synchronized (mLock) {
             layout = mTooltips.remove(id);
         }
         if (null != layout) {
             TooltipView tooltipView = layout.get();
-            tooltipView.setOnCloseListener(null);
             tooltipView.hide(true);
         }
     }
 
     @Nullable
     public Tooltip get(int id) {
-        synchronized (lock) {
+        synchronized (mLock) {
             WeakReference<TooltipView> weakReference = mTooltips.get(id);
 
             if (weakReference != null) {
@@ -160,47 +135,33 @@ public class TooltipManager {
         return null;
     }
 
-    public void update(int id) {
-        final TooltipView layout;
-        synchronized (lock) {
-            layout = (TooltipView) get(id);
-        }
-        if (null != layout) {
-            if (DBG) {
-                Log.i(TAG, "update: " + id);
-            }
-            layout.layout(layout.getLeft(), layout.getTop(), layout.getRight(), layout.getBottom());
-            layout.requestLayout();
-        }
-    }
-
+    @SuppressWarnings ("unused")
     public boolean active(int id) {
-        synchronized (lock) {
+        synchronized (mLock) {
             return mTooltips.containsKey(id);
         }
     }
 
-    public synchronized void remove(int id) {
-        if (DBG) {
-            Log.i(TAG, "remove: " + id);
-        }
+    @SuppressWarnings ("unused")
+    public void remove(int id) {
+        log(TAG, INFO, "remove(%d)", id);
 
         final WeakReference<TooltipView> layout;
-        synchronized (lock) {
+        synchronized (mLock) {
             layout = mTooltips.remove(id);
         }
         if (null != layout) {
             TooltipView tooltipView = layout.get();
-            tooltipView.setOnCloseListener(null);
             tooltipView.setOnToolTipListener(null);
             tooltipView.removeFromParent();
             fireOnTooltipDetached(id);
         }
     }
 
+    @SuppressWarnings ("unused")
     public void setText(int id, final CharSequence text) {
         TooltipView layout;
-        synchronized (lock) {
+        synchronized (mLock) {
             layout = (TooltipView) get(id);
         }
         if (null != layout) {
@@ -209,16 +170,13 @@ public class TooltipManager {
     }
 
     private void printStats() {
-        if (DBG) {
-            Log.d(TAG, "active tooltips: " + mTooltips.size());
-        }
+        log(TAG, VERBOSE, "active tooltips: %d", mTooltips.size());
     }
 
     private void destroy() {
-        if (DBG) {
-            Log.i(TAG, "destroy");
-        }
-        synchronized (lock) {
+        log(TAG, INFO, "destroy");
+
+        synchronized (mLock) {
             for (int id : mTooltips.keySet()) {
                 remove(id);
             }
@@ -230,9 +188,8 @@ public class TooltipManager {
     private void showInternal(View rootView, TooltipView layout, boolean immediate) {
         if (null != rootView && rootView instanceof ViewGroup) {
             if (layout.getParent() == null) {
-                if (DBG) {
-                    Log.v(TAG, "attach to mToolTipLayout parent");
-                }
+                log(TAG, VERBOSE, "attach to mToolTipLayout parent");
+
                 ViewGroup.LayoutParams params =
                     new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
                 ((ViewGroup) rootView).addView(layout, params);
@@ -259,7 +216,6 @@ public class TooltipManager {
     }
 
     public static final class Builder {
-        final Context context;
         int id;
         CharSequence text;
         View view;
@@ -269,7 +225,6 @@ public class TooltipManager {
         ClosePolicy closePolicy;
         long showDuration;
         Point point;
-        WeakReference<TooltipManager> manager;
         long showDelay = 0;
         boolean hideArrow;
         int maxWidth = -1;
@@ -280,11 +235,16 @@ public class TooltipManager {
         boolean restrictToScreenEdges = true;
         long fadeDuration = 200;
         onTooltipClosingCallback closeCallback;
+        boolean completed;
 
-        Builder(final TooltipManager manager, final Context context, int id) {
-            this.manager = new WeakReference<>(manager);
+        public Builder(int id) {
             this.id = id;
-            this.context = context;
+        }
+
+        private void throwIfCompleted() {
+            if (completed) {
+                throw new IllegalStateException("Builder cannot be modified");
+            }
         }
 
         /**
@@ -303,35 +263,42 @@ public class TooltipManager {
         }
 
         public Builder withCustomView(int resId) {
+            throwIfCompleted();
             return withCustomView(resId, true);
         }
 
         public Builder withStyleId(int styleId) {
+            throwIfCompleted();
             this.defStyleAttr = 0;
             this.defStyleRes = styleId;
             return this;
         }
 
         public Builder fitToScreen(boolean value) {
+            throwIfCompleted();
             restrictToScreenEdges = value;
             return this;
         }
 
         public Builder fadeDuration(long ms) {
+            throwIfCompleted();
             fadeDuration = ms;
             return this;
         }
 
         public Builder withCallback(onTooltipClosingCallback callback) {
+            throwIfCompleted();
             this.closeCallback = callback;
             return this;
         }
 
         public Builder text(Resources res, int resid) {
+            throwIfCompleted();
             return text(res.getString(resid));
         }
 
         public Builder text(int resid) {
+            throwIfCompleted();
             if (null != view) {
                 return text(view.getResources().getString(resid));
             }
@@ -339,16 +306,19 @@ public class TooltipManager {
         }
 
         public Builder text(CharSequence text) {
+            throwIfCompleted();
             this.text = text;
             return this;
         }
 
         public Builder maxWidth(int maxWidth) {
+            throwIfCompleted();
             this.maxWidth = maxWidth;
             return this;
         }
 
         public Builder anchor(View view, Gravity gravity) {
+            throwIfCompleted();
             this.point = null;
             this.view = view;
             this.gravity = gravity;
@@ -356,6 +326,7 @@ public class TooltipManager {
         }
 
         public Builder anchor(final Point point, final Gravity gravity) {
+            throwIfCompleted();
             this.view = null;
             this.point = new Point(point);
             this.gravity = gravity;
@@ -367,11 +338,13 @@ public class TooltipManager {
          * @return the builder for chaining.
          */
         public Builder toggleArrow(boolean show) {
+            throwIfCompleted();
             this.hideArrow = !show;
             return this;
         }
 
         public Builder actionBarSize(final int actionBarSize) {
+            throwIfCompleted();
             this.actionbarSize = actionBarSize;
             return this;
         }
@@ -381,38 +354,28 @@ public class TooltipManager {
         }
 
         public Builder closePolicy(ClosePolicy policy, long milliseconds) {
+            throwIfCompleted();
             this.closePolicy = policy;
             this.showDuration = milliseconds;
             return this;
         }
 
         public Builder activateDelay(long ms) {
+            throwIfCompleted();
             this.activateDelay = ms;
             return this;
         }
 
         public Builder showDelay(long ms) {
+            throwIfCompleted();
             this.showDelay = ms;
             return this;
         }
 
-        public boolean show() {
-            // verification
-            if (null == closePolicy) {
-                throw new IllegalStateException("ClosePolicy cannot be null");
-            }
-            if (null == point && null == view) {
-                throw new IllegalStateException("Target point or target view must be specified");
-            }
-            if (gravity == Gravity.CENTER) {
-                hideArrow = true;
-            }
-
-            TooltipManager tmanager = this.manager.get();
-            if (null != tmanager) {
-                return tmanager.show(this, true);
-            }
-            return false;
+        public Builder build() {
+            throwIfCompleted();
+            completed = true;
+            return this;
         }
     }
 
@@ -463,5 +426,28 @@ public class TooltipManager {
          * @param containsTouch true if the original touch came from inside the tooltip
          */
         void onClosing(int id, boolean fromUser, final boolean containsTouch);
+    }
+
+    static void log(final String tag, final int level, final String format, Object... args) {
+        if (DBG) {
+            switch (level) {
+                case Log.DEBUG:
+                    Log.d(tag, String.format(format, args));
+                    break;
+                case Log.ERROR:
+                    Log.e(tag, String.format(format, args));
+                    break;
+                case INFO:
+                    Log.i(tag, String.format(format, args));
+                    break;
+                case Log.WARN:
+                    Log.w(tag, String.format(format, args));
+                    break;
+                default:
+                case VERBOSE:
+                    Log.v(tag, String.format(format, args));
+                    break;
+            }
+        }
     }
 }

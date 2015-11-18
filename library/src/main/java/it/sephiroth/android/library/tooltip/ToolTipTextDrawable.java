@@ -3,7 +3,6 @@ package it.sephiroth.android.library.tooltip;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.Path;
@@ -13,9 +12,11 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
+import static android.util.Log.INFO;
+import static android.util.Log.VERBOSE;
 import static it.sephiroth.android.library.tooltip.TooltipManager.DBG;
+import static it.sephiroth.android.library.tooltip.TooltipManager.log;
 
 class TooltipTextDrawable extends Drawable {
     static final String TAG = "ToolTipTextDrawable";
@@ -27,9 +28,6 @@ class TooltipTextDrawable extends Drawable {
     private final Paint stPaint;
     private final float arrowRatio;
     private final float ellipseSize;
-    private final int strokeWidth;
-    private final int strokeColor;
-    private final int backgroundColor;
     private int padding = 0;
     private int arrowWeight = 0;
     private TooltipManager.Gravity gravity;
@@ -39,9 +37,9 @@ class TooltipTextDrawable extends Drawable {
         TypedArray theme =
             context.getTheme().obtainStyledAttributes(null, R.styleable.TooltipLayout, builder.defStyleAttr, builder.defStyleRes);
         this.ellipseSize = theme.getDimensionPixelSize(R.styleable.TooltipLayout_ttlm_cornerRadius, 4);
-        this.strokeWidth = theme.getDimensionPixelSize(R.styleable.TooltipLayout_ttlm_strokeWeight, 30);
-        this.backgroundColor = theme.getColor(R.styleable.TooltipLayout_ttlm_backgroundColor, 0);
-        this.strokeColor = theme.getColor(R.styleable.TooltipLayout_ttlm_strokeColor, 0);
+        final int strokeWidth = theme.getDimensionPixelSize(R.styleable.TooltipLayout_ttlm_strokeWeight, 30);
+        final int backgroundColor = theme.getColor(R.styleable.TooltipLayout_ttlm_backgroundColor, 0);
+        final int strokeColor = theme.getColor(R.styleable.TooltipLayout_ttlm_strokeColor, 0);
         this.arrowRatio = theme.getFloat(R.styleable.TooltipLayout_ttlm_arrowRatio, 1.4f);
         theme.recycle();
 
@@ -49,7 +47,7 @@ class TooltipTextDrawable extends Drawable {
 
         if (backgroundColor != 0) {
             bgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-            bgPaint.setColor(this.backgroundColor);
+            bgPaint.setColor(backgroundColor);
             bgPaint.setStyle(Paint.Style.FILL);
         } else {
             bgPaint = null;
@@ -69,7 +67,7 @@ class TooltipTextDrawable extends Drawable {
 
     void calculatePath(Rect outBounds) {
         if (DBG) {
-            Log.i(TAG, "calculatePath, padding: " + padding + ", gravity: " + gravity + ", bounds: " + getBounds());
+            log(TAG, INFO, "calculatePath. padding: %d, gravity: %s, bounds: %s", padding, gravity, getBounds());
         }
 
         int left = outBounds.left + padding;
@@ -83,9 +81,9 @@ class TooltipTextDrawable extends Drawable {
         final float min_x = left + ellipseSize;
 
         if (DBG) {
-            Log.v(TAG, "rect(" + left + ", " + top + ", " + right + ", " + bottom + ")");
-            Log.v(TAG, "min_y: " + min_y + ", max_y: " + max_y);
-            Log.v(TAG, "arrowWeight: " + arrowWeight + ", point: " + point);
+            log(TAG, VERBOSE, "rect: (%d, %d, %d, %d)", left, top, right, bottom);
+            log(TAG, VERBOSE, "min_y: %g, max_y: %g", min_y, max_y);
+            log(TAG, VERBOSE, "arrowWeight: %d, point: %s", arrowWeight, point);
         }
 
         boolean drawPoint = false;
@@ -113,10 +111,6 @@ class TooltipTextDrawable extends Drawable {
                         drawPoint = true;
                     }
                 }
-            }
-
-            if (DBG) {
-                Log.w(TAG, "point: " + tmpPoint);
             }
 
             path.reset();
@@ -195,9 +189,7 @@ class TooltipTextDrawable extends Drawable {
 
     @Override
     protected void onBoundsChange(final Rect bounds) {
-        if (DBG) {
-            Log.i(TAG, "onBoundsChange: " + bounds);
-        }
+        log(TAG, INFO, "onBoundsChange: %s", bounds);
         super.onBoundsChange(bounds);
         calculatePath(bounds);
     }
@@ -216,9 +208,7 @@ class TooltipTextDrawable extends Drawable {
     }
 
     public void setAnchor(final TooltipManager.Gravity gravity, int padding, @Nullable Point point) {
-        if (DBG) {
-            Log.i(TAG, "setAnchor:" + gravity + ", padding: " + padding + ", point: " + point);
-        }
+        log(TAG, INFO, "setAnchor(%s, %d, %s)", gravity, padding, point);
 
         if (gravity != this.gravity || padding != this.padding || !pointEquals(this.point, point)) {
             this.gravity = gravity;
@@ -231,8 +221,11 @@ class TooltipTextDrawable extends Drawable {
                 this.point = null;
             }
 
-            calculatePath(getBounds());
-            invalidateSelf();
+            final Rect bounds = getBounds();
+            if (!bounds.isEmpty()) {
+                calculatePath(getBounds());
+                invalidateSelf();
+            }
         }
     }
 
