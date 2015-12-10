@@ -18,8 +18,8 @@ import static android.util.Log.VERBOSE;
 import static it.sephiroth.android.library.tooltip.TooltipManager.DBG;
 import static it.sephiroth.android.library.tooltip.TooltipManager.log;
 
-class TooltipTextDrawable extends Drawable {
-    static final String TAG = "TooltipTextDrawable";
+class ATooltipTextDrawable extends Drawable {
+    static final String TAG = "ATooltipTextDrawable";
     private final RectF rectF;
     private final Path path;
     private Point point;
@@ -32,7 +32,7 @@ class TooltipTextDrawable extends Drawable {
     private int arrowWeight = 0;
     private TooltipManager.Gravity gravity;
 
-    public TooltipTextDrawable(final Context context, final TooltipManager.Builder builder) {
+    public ATooltipTextDrawable(final Context context, final TooltipManager.Builder builder) {
 
         TypedArray theme =
             context.getTheme().obtainStyledAttributes(null, R.styleable.TooltipLayout, builder.defStyleAttr, builder.defStyleRes);

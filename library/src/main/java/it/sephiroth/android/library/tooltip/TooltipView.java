@@ -63,7 +63,7 @@ class TooltipView extends ViewGroup implements Tooltip {
     private final boolean mRestrict;
     private final long mFadeDuration;
     private final TooltipManager.onTooltipClosingCallback mCloseCallback;
-    private final TooltipTextDrawable mDrawable;
+    private final ATooltipTextDrawable mDrawable;
     private final int[] mTempLocation = new int[2];
     private final Handler mHandler = new Handler();
     private final Rect mScreenRect = new Rect();
@@ -237,7 +237,7 @@ class TooltipView extends ViewGroup implements Tooltip {
         }
 
         if (!builder.isCustomView) {
-            this.mDrawable = new TooltipTextDrawable(context, builder);
+            this.mDrawable = new ATooltipTextDrawable(context, builder);
         } else {
             this.mDrawable = null;
         }
