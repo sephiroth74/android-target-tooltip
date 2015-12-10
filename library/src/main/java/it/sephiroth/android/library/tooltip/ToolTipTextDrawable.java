@@ -19,7 +19,7 @@ import static it.sephiroth.android.library.tooltip.TooltipManager.DBG;
 import static it.sephiroth.android.library.tooltip.TooltipManager.log;
 
 class TooltipTextDrawable extends Drawable {
-    static final String TAG = "ToolTipTextDrawable";
+    static final String TAG = "TooltipTextDrawable";
     private final RectF rectF;
     private final Path path;
     private Point point;

@@ -8,6 +8,8 @@ public interface Tooltip {
 
     void hide(boolean remove);
 
+    int getTooltipId();
+
     void setOffsetX(int x);
 
     void setOffsetY(int y);

@@ -244,7 +244,8 @@ class TooltipView extends ViewGroup implements Tooltip {
         setVisibility(INVISIBLE);
     }
 
-    int getTooltipId() {
+    @Override
+    public int getTooltipId() {
         return mToolTipId;
     }
 

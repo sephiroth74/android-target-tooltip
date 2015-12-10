@@ -82,31 +82,34 @@ public class TooltipManager {
     }
 
     @SuppressWarnings ("unused")
-    public boolean show(Builder builder) {
+    public Tooltip show(Builder builder) {
         log(TAG, INFO, "show");
 
         if (!builder.completed) {
             throw new IllegalArgumentException("Builder incomplete. Call 'build()' first");
         }
 
+        TooltipView view;
+
         synchronized (mLock) {
             if (mTooltips.containsKey(builder.id)) {
                 Log.w(TAG, "A Tooltip with the same id was walready specified");
-                return false;
+                return null;
             }
 
             final Activity act = getActivity(mContextRef.get());
             if (null == act || act.getWindow() == null || act.getWindow().getDecorView() == null || act.isFinishing()) {
-                return false;
+                return null;
             }
 
-            TooltipView layout = new TooltipView(mContextRef.get(), this, builder);
-            layout.setOnToolTipListener(mTooltipListener);
-            mTooltips.put(builder.id, new WeakReference<>(layout));
-            showInternal(act.getWindow().getDecorView(), layout, true);
+            view = new TooltipView(mContextRef.get(), this, builder);
+            view.setOnToolTipListener(mTooltipListener);
+            mTooltips.put(builder.id, new WeakReference<>(view));
+            showInternal(act.getWindow().getDecorView(), view, true);
         }
+
         printStats();
-        return true;
+        return view;
     }
 
     @SuppressWarnings ("unused")
