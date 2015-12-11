@@ -68,6 +68,7 @@ class TooltipView extends ViewGroup implements Tooltip {
     private final Handler mHandler = new Handler();
     private final Rect mScreenRect = new Rect();
     private final Point mTmpPoint = new Point();
+    private int[] mOldLocation;
     private Gravity mGravity;
     private Animator mShowAnimation;
     private boolean mShowing;
@@ -106,25 +107,38 @@ class TooltipView extends ViewGroup implements Tooltip {
             if (null != mViewAnchor && mAttached) {
                 View view = mViewAnchor.get();
                 if (null != view) {
-                    if (view.isDirty()) {
-                        return true;
-                    }
+                    view.getGlobalVisibleRect(mTempRect);
+                    view.getLocationOnScreen(mTempLocation);
 
                     if (DBG) {
-                        Rect drawRect = new Rect();
-                        view.getDrawingRect(drawRect);
-                        log(TAG, DEBUG, "[%d] onPreDraw: global: %s, draw: %s", mToolTipId, mViewRect, drawRect);
+                        log(TAG, DEBUG, "[%d] onPreDraw: global: %s, draw: %s, dirty: %b", mToolTipId, mViewRect, mDrawRect, view
+                            .isDirty());
                     }
 
-                    view.getLocationOnScreen(mTempLocation);
-                    int left = mTempLocation[0] - mViewRect.left;
-                    int top = mTempLocation[1] - mViewRect.top;
+                    final boolean intersetcs = Rect.intersects(mScreenRect, mTempRect);
 
-                    mViewRect.offset(left, top);
-                    mDrawRect.offset(left, top);
+                    if (intersetcs) {
+                        mViewRect.set(mTempRect);
+                        calculatePositions(false);
+                    }
 
-                    mView.setTranslationX(mDrawRect.left);
-                    mView.setTranslationY(mDrawRect.top);
+                    if (mOldLocation == null) {
+                        mOldLocation = new int[]{mTempLocation[0], mTempLocation[1]};
+                    }
+
+                    log(TAG, WARN, "location: %dx%d << %dx%d", mTempLocation[0], mTempLocation[1], mOldLocation[0],
+                        mOldLocation[1]
+                    );
+
+                    if (!intersetcs) {
+                        if (mOldLocation[0] != mTempLocation[0] || mOldLocation[1] != mTempLocation[1]) {
+                            mView.setTranslationX(mTempLocation[0] - mOldLocation[0] + mView.getTranslationX());
+                            mView.setTranslationY(mTempLocation[1] - mOldLocation[1] + mView.getTranslationY());
+                        }
+                    }
+
+                    mOldLocation[0] = mTempLocation[0];
+                    mOldLocation[1] = mTempLocation[1];
                 }
             }
             return true;
@@ -556,7 +570,7 @@ class TooltipView extends ViewGroup implements Tooltip {
                     @Override
                     public void onAnimationStart(final Animator animation) {
                         log(TAG, VERBOSE, "[%d] fadein onAnimationStart", mToolTipId);
-                        updateViewRectAndPositions();
+                        //                        updateViewRectAndPositions();
                         setVisibility(View.VISIBLE);
                         cancelled = false;
                     }
@@ -632,7 +646,6 @@ class TooltipView extends ViewGroup implements Tooltip {
     }
 
     private void calculatePositions(List<Gravity> gravities, final boolean checkEdges) {
-        final long t1 = System.currentTimeMillis();
         if (!isAttached()) {
             return;
         }

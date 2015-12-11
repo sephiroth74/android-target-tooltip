@@ -238,7 +238,7 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
 
                 mTooltipManager.show(
                     new TooltipManager.Builder(ID_BUTTON2)
-                        .anchor(mButton2, TooltipManager.Gravity.BOTTOM)
+                        .anchor(mButton2, TooltipManager.Gravity.LEFT)
                         .actionBarSize(Utils.getActionBarSize(getActivity()))
                         .closePolicy(TooltipManager.ClosePolicy.TouchInside, 0)
                         .text(R.string.hello_world)
@@ -250,9 +250,9 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
                 mButton2.getHandler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        final ViewGroup.LayoutParams params = mButton2.getLayoutParams();
-                        params.height += 100;
-                        mButton2.requestLayout();
+//                        final ViewGroup.LayoutParams params = mButton2.getLayoutParams();
+//                        params.height += 100;
+//                        mButton2.requestLayout();
 
                     }
                 }, 100);
