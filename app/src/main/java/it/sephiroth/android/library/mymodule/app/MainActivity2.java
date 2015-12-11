@@ -3,6 +3,7 @@ package it.sephiroth.android.library.mymodule.app;
 import android.content.Intent;
 import android.graphics.Point;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -44,6 +45,7 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
         mViewPager = (ViewPager) findViewById(R.id.viewpager);
         mViewPager.addOnPageChangeListener(this);
         mAdapter = setupViewPager(mViewPager);
+
     }
 
     private Adapter setupViewPager(ViewPager viewPager) {
@@ -238,24 +240,15 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
 
                 mTooltipManager.show(
                     new TooltipManager.Builder(ID_BUTTON2)
-                        .anchor(mButton2, TooltipManager.Gravity.LEFT)
+                        .anchor(mButton2, TooltipManager.Gravity.RIGHT)
+                        .fitToScreen(true)
                         .actionBarSize(Utils.getActionBarSize(getActivity()))
                         .closePolicy(TooltipManager.ClosePolicy.TouchInside, 0)
-                        .text(R.string.hello_world)
+                        .text("Touch inside a button ID_BUTTON2. Tooltip will disappear when touched inside")
                         .toggleArrow(true)
-                        .maxWidth(400)
+                        .maxWidth(600)
                         .withCallback(this)
                         .build());
-
-                mButton2.getHandler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-//                        final ViewGroup.LayoutParams params = mButton2.getLayoutParams();
-//                        params.height += 100;
-//                        mButton2.requestLayout();
-
-                    }
-                }, 100);
 
             } else if (id == mButton3.getId()) {
                 mTooltipManager.show(

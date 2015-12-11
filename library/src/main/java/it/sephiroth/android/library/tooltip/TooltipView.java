@@ -79,9 +79,11 @@ class TooltipView extends ViewGroup implements Tooltip {
     private int mPadding;
     private CharSequence mText;
     private Rect mViewRect;
+    private final Rect mHitRect = new Rect();
     private View mView;
     private TextView mTextView;
     private OnToolTipListener mTooltipListener;
+    private int mGlobalLayoutPasses;
     Runnable hideRunnable = new Runnable() {
         @Override
         public void run() {
@@ -107,34 +109,45 @@ class TooltipView extends ViewGroup implements Tooltip {
             if (null != mViewAnchor && mAttached) {
                 View view = mViewAnchor.get();
                 if (null != view) {
-                    view.getGlobalVisibleRect(mTempRect);
+                    //                    final Rect hitRect = new Rect();
+                    //                    view.getHitRect(hitRect);
+
+                    final Rect hitRect = new Rect();
+                    view.getHitRect(hitRect);
+
+                    boolean changed = !mHitRect.equals(hitRect);
+
                     view.getLocationOnScreen(mTempLocation);
 
-                    if (DBG) {
-                        log(TAG, DEBUG, "[%d] onPreDraw: global: %s, draw: %s, dirty: %b", mToolTipId, mViewRect, mDrawRect, view
-                            .isDirty());
-                    }
 
-                    final boolean intersetcs = Rect.intersects(mScreenRect, mTempRect);
+                    // getGlobalVisibleRect(view, mTempRect, mTempLocation);
 
-                    if (intersetcs) {
-                        mViewRect.set(mTempRect);
-                        calculatePositions(false);
-                    }
+                    log(TAG, INFO, "[%d] onPreDraw %s <--> %s (dirty: %b, changed: %b)",
+                        mToolTipId,
+                        hitRect,
+                        mHitRect,
+                        view.isDirty(),
+                        changed);
+
+                    hitRect.offsetTo(mTempLocation[0], mTempLocation[1]);
+                    //                    log(TAG, VERBOSE, "[%d] hitRect: %s, old: %s", mToolTipId, hitRect, mHitRect);
+                    //                    log(TAG, VERBOSE, "[%d] globalRect: %s, old: %s", mToolTipId, mTempRect, mViewRect);
+
+                    //                    if (!hitRect.equals(mHitRect)) {
+                    //                        log(TAG, WARN, "hitRect != mHitRect");
+                    //                        mHitRect.set(hitRect);
+                    //                    }
 
                     if (mOldLocation == null) {
                         mOldLocation = new int[]{mTempLocation[0], mTempLocation[1]};
                     }
 
-                    log(TAG, WARN, "location: %dx%d << %dx%d", mTempLocation[0], mTempLocation[1], mOldLocation[0],
+                    log(TAG, VERBOSE, "location: %dx%d << %dx%d", mTempLocation[0], mTempLocation[1], mOldLocation[0],
                         mOldLocation[1]
                     );
-
-                    if (!intersetcs) {
-                        if (mOldLocation[0] != mTempLocation[0] || mOldLocation[1] != mTempLocation[1]) {
-                            mView.setTranslationX(mTempLocation[0] - mOldLocation[0] + mView.getTranslationX());
-                            mView.setTranslationY(mTempLocation[1] - mOldLocation[1] + mView.getTranslationY());
-                        }
+                    if (mOldLocation[0] != mTempLocation[0] || mOldLocation[1] != mTempLocation[1]) {
+                        mView.setTranslationX(mTempLocation[0] - mOldLocation[0] + mView.getTranslationX());
+                        mView.setTranslationY(mTempLocation[1] - mOldLocation[1] + mView.getTranslationY());
                     }
 
                     mOldLocation[0] = mTempLocation[0];
@@ -157,27 +170,61 @@ class TooltipView extends ViewGroup implements Tooltip {
                 View view = mViewAnchor.get();
 
                 if (null != view) {
-                    Rect globalRect = new Rect();
-                    Rect localRect = new Rect();
-                    view.getGlobalVisibleRect(globalRect);
-                    view.getLocalVisibleRect(localRect);
+                    //                    Rect globalRect = new Rect();
+                    //                    Rect localRect = new Rect();
+                    //                    Rect hitRect = new Rect();
+
+                    final Rect hitRect = new Rect();
+                    //                    final int[] outLocation = new int[2];
+                    view.getHitRect(hitRect);
+                    //                    view.getLocationOnScreen(outLocation);
+
+                    //                    globalRect.set(hitRect);
+                    //                    globalRect.offsetTo(outLocation[0], outLocation[1]);
+                    //                    getGlobalVisibleRect(view, globalRect, null);
+
+                    //                    view.getLocalVisibleRect(localRect);
+                    //                    view.getHitRect(hitRect);
 
                     if (DBG) {
-                        log(TAG, INFO, "[%d] onGlobalLayout: %s >> %s", mToolTipId, mViewRect, globalRect);
+                        log(TAG, INFO, "[%d] onGlobalLayout(dirty: %b)", mToolTipId, view.isDirty());
+                        log(TAG, VERBOSE, "[%d] hitRect: %s, old: %s", mToolTipId, hitRect, mHitRect);
+                        //                        log(TAG, VERBOSE, "[%d] globalRect: %s, old: %s", mToolTipId, globalRect,
+                        // mViewRect);
                     }
 
-                    if (!Rect.intersects(mScreenRect, localRect)) {
-                        if (DBG) {
-                            log(TAG, WARN, "[%d] invalid rect", mToolTipId);
-                        }
-                        return;
+                    if (!hitRect.equals(mHitRect)) {
+                        log(TAG, WARN, "globalRect != mViewRect");
+                        updateViewRectAndPositions();
+                        mHitRect.set(hitRect);
                     }
 
-                    if (!mViewRect.equals(globalRect)) {
-                        mViewRect.set(globalRect);
-                        calculatePositions(false);
-                        requestLayout();
-                    }
+                    //
+                    //                    if (view.isDirty()) {
+                    //                        mViewWasDirty = true;
+                    //                    }
+                    //
+                    //                    if (!Rect.intersects(mScreenRect, localRect)) {
+                    //                        if (DBG) {
+                    //                            log(TAG, WARN, "[%d] invalid rect", mToolTipId);
+                    //                        }
+                    //                        return;
+                    //                    }
+
+                    //                    if (!mViewRect.equals(globalRect)) {
+                    //                        if (mGlobalLayoutPasses < 1) {
+                    //                            updateViewRectAndPositions();
+                    //                        } else {
+                    //                            if (!rectsAreSameSize(mViewRect, globalRect)) {
+                    //                                mViewRect.set(globalRect);
+                    //                                calculatePositions(false);
+                    //                            }
+                    //                        }
+                    //
+                    //                        //requestLayout();
+                    //                    }
+
+                    mGlobalLayoutPasses++;
 
                     //  removeGlobalLayoutObserver(view);
                 } else {
@@ -255,7 +302,17 @@ class TooltipView extends ViewGroup implements Tooltip {
 
         if (null != builder.view) {
             mViewRect = new Rect();
-            builder.view.getGlobalVisibleRect(mViewRect);
+
+            final int[] outLocation = new int[2];
+            builder.view.getHitRect(mHitRect);
+            builder.view.getLocationOnScreen(outLocation);
+
+            mViewRect.set(mHitRect);
+            mViewRect.offsetTo(outLocation[0], outLocation[1]);
+
+            //            getGlobalVisibleRect(builder.view, mViewRect, null);
+            //            builder.view.getHitRect(mHitRect);
+
             mViewAnchor = new WeakReference<>(builder.view);
 
             if (builder.view.getViewTreeObserver().isAlive()) {
@@ -272,6 +329,27 @@ class TooltipView extends ViewGroup implements Tooltip {
         }
         setVisibility(INVISIBLE);
     }
+
+    private static boolean rectsAreSameSize(@NonNull final Rect rect1, @NonNull final Rect rect2) {
+        return rect1.width() == rect2.width() && rect1.height() == rect2.height();
+    }
+
+    //    private static int[] getGlobalVisibleRect(@NonNull final View view, Rect outRect, @Nullable int[] location) {
+    //        final int[] tmp;
+    //
+    //        if (null == location) {
+    //            tmp = new int[2];
+    //        } else {
+    //            tmp = location;
+    //        }
+    //
+    //        view.getLocationOnScreen(tmp);
+    //
+    //        outRect.setEmpty();
+    //        view.getHitRect(outRect);
+    //        outRect.offsetTo(tmp[0], tmp[1]);
+    //        return tmp;
+    //    }
 
     @Override
     public int getTooltipId() {
@@ -343,7 +421,6 @@ class TooltipView extends ViewGroup implements Tooltip {
 
         if (changed) {
             updateViewRectAndPositions();
-            // calculatePositions();
         }
     }
 
@@ -570,7 +647,7 @@ class TooltipView extends ViewGroup implements Tooltip {
                     @Override
                     public void onAnimationStart(final Animator animation) {
                         log(TAG, VERBOSE, "[%d] fadein onAnimationStart", mToolTipId);
-                        //                        updateViewRectAndPositions();
+//                        updateViewRectAndPositions();
                         setVisibility(View.VISIBLE);
                         cancelled = false;
                     }
@@ -623,11 +700,19 @@ class TooltipView extends ViewGroup implements Tooltip {
     }
 
     private void updateViewRectAndPositions() {
-        log(TAG, INFO, "[%d] updateViewRectAndPositions", mToolTipId);
+        log(TAG, VERBOSE, "[%d] updateViewRectAndPositions", mToolTipId);
         if (mViewAnchor != null) {
             View view = mViewAnchor.get();
             if (null != view) {
-                view.getGlobalVisibleRect(mViewRect);
+                final Rect outRect = new Rect();
+                final int[] outLocation = new int[2];
+                view.getHitRect(outRect);
+                view.getLocationOnScreen(outLocation);
+                outRect.offsetTo(outLocation[0], outLocation[1]);
+
+                // getGlobalVisibleRect(view, mViewRect, null);
+                mViewRect.set(outRect);
+
                 calculatePositions();
             }
         }
@@ -665,7 +750,7 @@ class TooltipView extends ViewGroup implements Tooltip {
 
         if (DBG) {
             log(
-                TAG, INFO, "[%s] calculatePositions. gravity: %s, gravities: %d, restrict: %b", mToolTipId, gravity,
+                TAG, DEBUG, "[%s] calculatePositions. gravity: %s, gravities: %d, restrict: %b", mToolTipId, gravity,
                 gravities.size(), checkEdges
             );
         }

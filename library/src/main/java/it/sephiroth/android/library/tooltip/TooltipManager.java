@@ -19,7 +19,7 @@ import static android.util.Log.INFO;
 import static android.util.Log.VERBOSE;
 
 public class TooltipManager {
-    public static boolean DBG = false;
+    public static boolean DBG = true;
     private static final String TAG = "TooltipManager";
     private final WeakReference<Context> mContextRef;
     private final List<OnTooltipAttachedStateChange> mTooltipAttachStatusListeners = new ArrayList<>();

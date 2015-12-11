@@ -13,10 +13,7 @@ import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
 
-import static android.util.Log.INFO;
-import static android.util.Log.VERBOSE;
 import static it.sephiroth.android.library.tooltip.TooltipManager.DBG;
-import static it.sephiroth.android.library.tooltip.TooltipManager.log;
 
 class TooltipTextDrawable extends Drawable {
     static final String TAG = "TooltipTextDrawable";
@@ -66,10 +63,6 @@ class TooltipTextDrawable extends Drawable {
     }
 
     void calculatePath(Rect outBounds) {
-        if (DBG) {
-            log(TAG, INFO, "calculatePath. padding: %d, gravity: %s, bounds: %s", padding, gravity, getBounds());
-        }
-
         int left = outBounds.left + padding;
         int top = outBounds.top + padding;
         int right = outBounds.right - padding;
@@ -81,9 +74,9 @@ class TooltipTextDrawable extends Drawable {
         final float min_x = left + ellipseSize;
 
         if (DBG) {
-            log(TAG, VERBOSE, "rect: (%d, %d, %d, %d)", left, top, right, bottom);
-            log(TAG, VERBOSE, "min_y: %g, max_y: %g", min_y, max_y);
-            log(TAG, VERBOSE, "arrowWeight: %d, point: %s", arrowWeight, point);
+            //            log(TAG, VERBOSE, "rect: (%d, %d, %d, %d)", left, top, right, bottom);
+            //            log(TAG, VERBOSE, "min_y: %g, max_y: %g", min_y, max_y);
+            //            log(TAG, VERBOSE, "arrowWeight: %d, point: %s", arrowWeight, point);
         }
 
         boolean drawPoint = false;
@@ -189,7 +182,6 @@ class TooltipTextDrawable extends Drawable {
 
     @Override
     protected void onBoundsChange(final Rect bounds) {
-        log(TAG, INFO, "onBoundsChange: %s", bounds);
         super.onBoundsChange(bounds);
         calculatePath(bounds);
     }
@@ -208,8 +200,6 @@ class TooltipTextDrawable extends Drawable {
     }
 
     public void setAnchor(final TooltipManager.Gravity gravity, int padding, @Nullable Point point) {
-        log(TAG, INFO, "setAnchor(%s, %d, %s)", gravity, padding, point);
-
         if (gravity != this.gravity || padding != this.padding || !pointEquals(this.point, point)) {
             this.gravity = gravity;
             this.padding = padding;
