@@ -114,7 +114,7 @@ class TooltipView extends ViewGroup implements Tooltip {
                         setOffsetX(mTempLocation[0]);
                     }
 
-                    if (mTempLocation[0] != mViewRect.top) {
+                    if (mTempLocation[1] != mViewRect.top) {
                         setOffsetY(mTempLocation[1]);
                     }
                 }
@@ -499,7 +499,7 @@ class TooltipView extends ViewGroup implements Tooltip {
 
     @Override
     public void setOffsetX(int x) {
-        mView.setTranslationY(x - mViewRect.left + mDrawRect.left);
+        mView.setTranslationX(x - mViewRect.left + mDrawRect.left);
     }
 
     @Override
