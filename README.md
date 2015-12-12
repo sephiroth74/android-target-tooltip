@@ -14,10 +14,8 @@ Installation
 Usage
 ===
 
-	TooltipManager manager = new TooltipManager(this);
-	manager
-		.show(
-			new TooltipManager.Builder(101)
+	Tooltip.make(this,
+			new Tooltip.Builder(101)
 			.anchor(aView, TooltipManager.Gravity.BOTTOM)
 			.closePolicy(TooltipManager.ClosePolicy.TouchOutside, 3000)
 			.activateDelay(800)
@@ -27,7 +25,7 @@ Usage
 			.withArrow(true)
 			.withOverlay(true)
 			.build()
-		);
+		).show();
 
 See the inner [Builder][1] class for the complete set of options
 

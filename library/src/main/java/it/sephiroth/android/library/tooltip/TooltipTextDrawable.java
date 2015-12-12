@@ -13,8 +13,6 @@ import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
 
-import static it.sephiroth.android.library.tooltip.TooltipManager.DBG;
-
 class TooltipTextDrawable extends Drawable {
     static final String TAG = "TooltipTextDrawable";
     private final RectF rectF;
@@ -27,12 +25,12 @@ class TooltipTextDrawable extends Drawable {
     private final float ellipseSize;
     private int padding = 0;
     private int arrowWeight = 0;
-    private TooltipManager.Gravity gravity;
+    private Tooltip.Gravity gravity;
 
-    public TooltipTextDrawable(final Context context, final TooltipManager.Builder builder) {
+    public TooltipTextDrawable(final Context context, final Tooltip.Builder builder) {
 
         TypedArray theme =
-            context.getTheme().obtainStyledAttributes(null, R.styleable.TooltipLayout, builder.defStyleAttr, builder.defStyleRes);
+                context.getTheme().obtainStyledAttributes(null, R.styleable.TooltipLayout, builder.defStyleAttr, builder.defStyleRes);
         this.ellipseSize = theme.getDimensionPixelSize(R.styleable.TooltipLayout_ttlm_cornerRadius, 4);
         final int strokeWidth = theme.getDimensionPixelSize(R.styleable.TooltipLayout_ttlm_strokeWeight, 30);
         final int backgroundColor = theme.getColor(R.styleable.TooltipLayout_ttlm_backgroundColor, 0);
@@ -73,18 +71,12 @@ class TooltipTextDrawable extends Drawable {
         final float min_y = top + ellipseSize;
         final float min_x = left + ellipseSize;
 
-        if (DBG) {
-            //            log(TAG, VERBOSE, "rect: (%d, %d, %d, %d)", left, top, right, bottom);
-            //            log(TAG, VERBOSE, "min_y: %g, max_y: %g", min_y, max_y);
-            //            log(TAG, VERBOSE, "arrowWeight: %d, point: %s", arrowWeight, point);
-        }
-
         boolean drawPoint = false;
 
         if (null != point && null != gravity) {
             tmpPoint.set(point.x, point.y);
 
-            if (gravity == TooltipManager.Gravity.RIGHT || gravity == TooltipManager.Gravity.LEFT) {
+            if (gravity == Tooltip.Gravity.RIGHT || gravity == Tooltip.Gravity.LEFT) {
                 if (tmpPoint.y >= top && tmpPoint.y <= bottom) {
                     if (top + tmpPoint.y + arrowWeight > max_y) {
                         tmpPoint.y = (int) (max_y - arrowWeight - top);
@@ -124,7 +116,7 @@ class TooltipTextDrawable extends Drawable {
             // top/left
             path.moveTo(left + ellipseSize, top);
 
-            if (drawPoint && gravity == TooltipManager.Gravity.BOTTOM) {
+            if (drawPoint && gravity == Tooltip.Gravity.BOTTOM) {
                 path.lineTo(left + tmpPoint.x - arrowWeight, top);
                 path.lineTo(left + tmpPoint.x, outBounds.top);
                 path.lineTo(left + tmpPoint.x + arrowWeight, top);
@@ -134,7 +126,7 @@ class TooltipTextDrawable extends Drawable {
             path.lineTo(right - ellipseSize, top);
             path.quadTo(right, top, right, top + ellipseSize);
 
-            if (drawPoint && gravity == TooltipManager.Gravity.LEFT) {
+            if (drawPoint && gravity == Tooltip.Gravity.LEFT) {
                 path.lineTo(right, top + tmpPoint.y - arrowWeight);
                 path.lineTo(outBounds.right, top + tmpPoint.y);
                 path.lineTo(right, top + tmpPoint.y + arrowWeight);
@@ -144,7 +136,7 @@ class TooltipTextDrawable extends Drawable {
             path.lineTo(right, bottom - ellipseSize);
             path.quadTo(right, bottom, right - ellipseSize, bottom);
 
-            if (drawPoint && gravity == TooltipManager.Gravity.TOP) {
+            if (drawPoint && gravity == Tooltip.Gravity.TOP) {
                 path.lineTo(left + tmpPoint.x + arrowWeight, bottom);
                 path.lineTo(left + tmpPoint.x, outBounds.bottom);
                 path.lineTo(left + tmpPoint.x - arrowWeight, bottom);
@@ -154,7 +146,7 @@ class TooltipTextDrawable extends Drawable {
             path.lineTo(left + ellipseSize, bottom);
             path.quadTo(left, bottom, left, bottom - ellipseSize);
 
-            if (drawPoint && gravity == TooltipManager.Gravity.RIGHT) {
+            if (drawPoint && gravity == Tooltip.Gravity.RIGHT) {
                 path.lineTo(left, top + tmpPoint.y + arrowWeight);
                 path.lineTo(outBounds.left, top + tmpPoint.y);
                 path.lineTo(left, top + tmpPoint.y - arrowWeight);
@@ -199,7 +191,7 @@ class TooltipTextDrawable extends Drawable {
         return PixelFormat.TRANSLUCENT;
     }
 
-    public void setAnchor(final TooltipManager.Gravity gravity, int padding, @Nullable Point point) {
+    public void setAnchor(final Tooltip.Gravity gravity, int padding, @Nullable Point point) {
         if (gravity != this.gravity || padding != this.padding || !pointEquals(this.point, point)) {
             this.gravity = gravity;
             this.padding = padding;

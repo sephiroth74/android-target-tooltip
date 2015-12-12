@@ -23,11 +23,10 @@ import android.widget.Button;
 import java.util.ArrayList;
 import java.util.List;
 
-import it.sephiroth.android.library.tooltip.TooltipManager;
+import it.sephiroth.android.library.tooltip.Tooltip;
 
 public class MainActivity2 extends AppCompatActivity implements OnPageChangeListener {
     private static final String TAG = MainActivity2.class.getSimpleName();
-    TooltipManager mTooltipManager;
     ViewPager mViewPager;
     private Adapter mAdapter;
 
@@ -35,9 +34,6 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_activity2);
-
-        mTooltipManager = new TooltipManager(this);
-
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
 
         mViewPager = (ViewPager) findViewById(R.id.viewpager);
@@ -69,17 +65,17 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
         final ViewGroup root = (ViewGroup) tablayout.getChildAt(0);
         final View tab = root.getChildAt(1);
 
-        mTooltipManager.show(
-                new TooltipManager.Builder(101)
-                        .anchor(tab, TooltipManager.Gravity.BOTTOM)
-                        .closePolicy(TooltipManager.ClosePolicy.TouchAnyWhere, 3000)
+        Tooltip.make(this,
+                new Tooltip.Builder(101)
+                        .anchor(tab, Tooltip.Gravity.BOTTOM)
+                        .closePolicy(Tooltip.ClosePolicy.TouchAnyWhere, 3000)
                         .text("Tooltip on a TabLayout child...")
                         .fadeDuration(200)
                         .fitToScreen(false)
                         .maxWidth(400)
                         .showDelay(400)
                         .toggleArrow(true)
-                        .build());
+                        .build()).show();
     }
 
     @Override
@@ -166,7 +162,7 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
 
     static int tooltip_id = 0;
 
-    public static class Fragment1 extends Fragment implements View.OnClickListener, TooltipManager.onTooltipClosingCallback {
+    public static class Fragment1 extends Fragment implements View.OnClickListener, Tooltip.Callback {
         Button mButton1;
         Button mButton2;
         Button mButton3;
@@ -177,7 +173,7 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
         private final int ID_BUTTON3 = tooltip_id++;
         private final int ID_BUTTON4 = tooltip_id++;
         private final int ID_BUTTON5 = tooltip_id++;
-        private TooltipManager mTooltipManager;
+        private Tooltip.TooltipView tooltip;
 
         @Nullable
         @Override
@@ -205,7 +201,6 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
         @Override
         public void onActivityCreated(@Nullable final Bundle savedInstanceState) {
             super.onActivityCreated(savedInstanceState);
-            mTooltipManager = new TooltipManager(getActivity());
         }
 
         @Override
@@ -218,73 +213,99 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
 
             if (id == mButton1.getId()) {
 
-
-                mTooltipManager.show(
-                        new TooltipManager.Builder(ID_BUTTON1)
-                                .anchor(v, TooltipManager.Gravity.RIGHT)
-                                .closePolicy(TooltipManager.ClosePolicy.TouchAnyWhere, 0)
+                Tooltip.make(getContext(),
+                        new Tooltip.Builder(ID_BUTTON1)
+                                .anchor(v, Tooltip.Gravity.RIGHT)
+                                .closePolicy(Tooltip.ClosePolicy.TouchAnyWhere, 0)
                                 .text("RIGHT. Touch outside to close this tooltip")
                                 .withArrow(true)
                                 .fitToScreen(true)
                                 .maxWidth((int) (metrics.widthPixels / 1.8))
                                 .withOverlay(true)
-                                .build());
+                                .withCallback(this)
+                                .build()).show();
 
             } else if (id == mButton2.getId()) {
 
-                mTooltipManager.show(
-                        new TooltipManager.Builder(ID_BUTTON2)
-                                .anchor(mButton2, TooltipManager.Gravity.BOTTOM)
+                Tooltip.make(getContext(),
+                        new Tooltip.Builder(ID_BUTTON2)
+                                .anchor(mButton2, Tooltip.Gravity.BOTTOM)
                                 .fitToScreen(true)
-                                .closePolicy(TooltipManager.ClosePolicy.TouchAnyWhereExclusive, 0)
+                                .closePolicy(Tooltip.ClosePolicy.TouchAnyWhereExclusive, 0)
                                 .text("BOTTOM. Touch outside to dismiss the tooltip")
                                 .withArrow(true)
                                 .maxWidth(metrics.widthPixels / 2)
                                 .withCallback(this)
-                                .build());
+                                .build()).show();
 
             } else if (id == mButton3.getId()) {
-                mTooltipManager.show(
-                        new TooltipManager.Builder(ID_BUTTON3)
-                                .anchor(mButton3, TooltipManager.Gravity.TOP)
-                                .closePolicy(TooltipManager.ClosePolicy.TouchInside, 0)
+                Tooltip.make(getContext(),
+                        new Tooltip.Builder(ID_BUTTON3)
+                                .anchor(mButton3, Tooltip.Gravity.TOP)
+                                .closePolicy(Tooltip.ClosePolicy.TouchInside, 0)
                                 .text("TOP. Touch Inside the tooltip to dismiss..")
                                 .withArrow(true)
                                 .maxWidth((int) (metrics.widthPixels / 2.5))
                                 .withCallback(this)
-                                .build());
+                                .build()).show();
 
             } else if (id == mButton4.getId()) {
-                mTooltipManager.show(
-                        new TooltipManager.Builder(ID_BUTTON4)
-                                .anchor(v, TooltipManager.Gravity.TOP)
-                                .closePolicy(TooltipManager.ClosePolicy.TouchInsideExclusive, 0)
+                Tooltip.make(getContext(),
+                        new Tooltip.Builder(ID_BUTTON4)
+                                .anchor(v, Tooltip.Gravity.TOP)
+                                .closePolicy(Tooltip.ClosePolicy.TouchInsideExclusive, 0)
                                 .text("TOP. Touch Inside exclusive.")
                                 .withArrow(true)
                                 .withOverlay(false)
                                 .maxWidth(metrics.widthPixels / 3)
                                 .withCallback(this)
-                                .build());
+                                .build()).show();
 
             } else if (id == mButton5.getId()) {
-                mTooltipManager.show(
-                        new TooltipManager.Builder(ID_BUTTON5)
-                                .anchor(v, TooltipManager.Gravity.LEFT)
-                                .closePolicy(TooltipManager.ClosePolicy.None, 3000)
-                                .text("LEFT. Touch None, so the tooltip won't disappear with a touch, but with a delay")
-                                .withArrow(false)
-                                .withOverlay(false)
-                                .maxWidth(metrics.widthPixels / 3)
-                                .showDelay(300)
-                                .withCallback(this)
-                                .build());
+
+                if (null == tooltip) {
+
+                    tooltip = Tooltip.make(getActivity(),
+                            new Tooltip.Builder(ID_BUTTON5)
+                                    .anchor(v, Tooltip.Gravity.LEFT)
+                                    .closePolicy(Tooltip.ClosePolicy.None, 3000)
+                                    .text("LEFT. Touch None, so the tooltip won't disappear with a touch, but with a delay")
+                                    .withArrow(false)
+                                    .withOverlay(false)
+                                    .maxWidth(metrics.widthPixels / 3)
+                                    .showDelay(300)
+                                    .withCallback(this)
+                                    .build());
+                    tooltip.show();
+                } else {
+                    tooltip.hide();
+                    tooltip = null;
+                }
 
             }
         }
 
         @Override
-        public void onClosing(final int id, final boolean fromUser, final boolean containsTouch) {
-            Log.d(TAG, "onClosing: " + id + ", fromUser: " + fromUser + ", containsTouch: " + containsTouch);
+        public void onTooltipClose(final Tooltip.TooltipView view, final boolean fromUser, final boolean containsTouch) {
+            Log.d(TAG, "onTooltipClose: " + view + ", fromUser: " + fromUser + ", containsTouch: " + containsTouch);
+            if (null != tooltip && tooltip.getTooltipId() == view.getTooltipId()) {
+                tooltip = null;
+            }
+        }
+
+        @Override
+        public void onTooltipFailed(Tooltip.TooltipView view) {
+            Log.d(TAG, "onTooltipFailed: " + view.getTooltipId());
+        }
+
+        @Override
+        public void onTooltipShown(Tooltip.TooltipView view) {
+            Log.d(TAG, "onTooltipShown: " + view.getTooltipId());
+        }
+
+        @Override
+        public void onTooltipHidden(Tooltip.TooltipView view) {
+            Log.d(TAG, "onTooltipHidden: " + view.getTooltipId());
         }
     }
 }
