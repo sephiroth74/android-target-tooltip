@@ -1,14 +1,17 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+        <item name="colorAccent" tools:ignore="NewApi">#ff6600</item>
+        <item name="colorPrimary" tools:ignore="NewApi">#0000ff</item>
+        <item name="colorPrimaryDark" tools:ignore="NewApi">#00007f</item>
     </style>
 
     <style name="ToolTipLayoutCustomStyle">
         <item name="ttlm_padding">25dip</item>
         <item name="ttlm_strokeColor">#ffe5da7d</item>
-        <item name="ttlm_backgroundColor">#ffe5da7d</item>
+        <item name="ttlm_backgroundColor">?attr/colorAccent</item>
         <item name="ttlm_strokeWeight">0dip</item>
         <item name="ttlm_cornerRadius">8dip</item>
     </style>
