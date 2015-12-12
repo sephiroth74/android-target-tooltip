@@ -62,4 +62,4 @@ Screenshots
 ===
 ![Screen shot](screenshots/image01.png)
 
-[1]: https://github.com/sephiroth74/android-target-tooltip/blob/master/library/src/main/java/it/sephiroth/android/library/tooltip/TooltipManager.java#L169
+[1]: https://github.com/sephiroth74/android-target-tooltip/blob/feature/remove_manager/library/src/main/java/it/sephiroth/android/library/tooltip/Tooltip.java#L1191
