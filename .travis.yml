@@ -6,9 +6,7 @@ jdk:
 notifications:
   email: true
 
-# Turn off caching to avoid any caching problems
 cache: false
-# Use the Travis Container-Based Infrastructure (see #203)
 sudo: false
 
 android:
