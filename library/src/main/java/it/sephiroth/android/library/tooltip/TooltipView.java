@@ -14,6 +14,7 @@ import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.Html;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -33,6 +34,7 @@ import static android.util.Log.ERROR;
 import static android.util.Log.INFO;
 import static android.util.Log.VERBOSE;
 import static android.util.Log.WARN;
+import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 import static it.sephiroth.android.library.tooltip.TooltipManager.ClosePolicy;
 import static it.sephiroth.android.library.tooltip.TooltipManager.DBG;
 import static it.sephiroth.android.library.tooltip.TooltipManager.Gravity;
@@ -46,6 +48,7 @@ import static it.sephiroth.android.library.tooltip.TooltipManager.log;
 class TooltipView extends ViewGroup implements Tooltip {
     private static final String TAG = "TooltipView";
     private static final List<Gravity> gravities = new ArrayList<>(Arrays.asList(LEFT, RIGHT, TOP, BOTTOM, CENTER));
+    public static final int TOLERANCE_VALUE = 10;
     private final List<Gravity> viewGravities = new ArrayList<>(gravities);
     private final long mShowDelay;
     private final int mTextAppearance;
@@ -63,6 +66,7 @@ class TooltipView extends ViewGroup implements Tooltip {
     private final long mFadeDuration;
     private final TooltipManager.onTooltipClosingCallback mCloseCallback;
     private final TooltipTextDrawable mDrawable;
+
     private final Rect mTempRect = new Rect();
     private final int[] mTempLocation = new int[2];
     private final Handler mHandler = new Handler();
@@ -81,8 +85,10 @@ class TooltipView extends ViewGroup implements Tooltip {
     private Rect mViewRect;
     private final Rect mHitRect = new Rect();
     private View mView;
+    private TooltipOverlay mViewOverlay;
     private TextView mTextView;
     private OnToolTipListener mTooltipListener;
+    private int mSizeTolerance;
 
     Runnable hideRunnable = new Runnable() {
         @Override
@@ -111,33 +117,32 @@ class TooltipView extends ViewGroup implements Tooltip {
             if (null != mViewAnchor && mAttached) {
                 View view = mViewAnchor.get();
                 if (null != view) {
-
-//                    view.getHitRect(mTempRect);
                     view.getLocationOnScreen(mTempLocation);
 
-//                    boolean changed = !mHitRect.equals(mTempRect);
-
-                    if (DBG) {
-                        log(TAG, INFO, "[%d] onPreDraw %s <--> %s (dirty: %b)",
-                                mToolTipId,
-                                mTempRect,
-                                mHitRect,
-                                view.isDirty()
-                        );
-                    }
-
-//                    mTempRect.offsetTo(mTempLocation[0], mTempLocation[1]);
+//                    if (DBG) {
+//                        log(TAG, INFO, "[%d] onPreDraw %s <--> %s (dirty: %b)",
+//                                mToolTipId,
+//                                mTempRect,
+//                                mHitRect,
+//                                view.isDirty()
+//                        );
+//                    }
 
                     if (mOldLocation == null) {
                         mOldLocation = new int[]{mTempLocation[0], mTempLocation[1]};
                     }
 
-                    log(TAG, VERBOSE, "location: %dx%d << %dx%d", mTempLocation[0], mTempLocation[1], mOldLocation[0],
-                            mOldLocation[1]
-                    );
+//                    log(TAG, VERBOSE, "location: %dx%d << %dx%d", mTempLocation[0], mTempLocation[1], mOldLocation[0],
+//                            mOldLocation[1]
+//                    );
                     if (mOldLocation[0] != mTempLocation[0] || mOldLocation[1] != mTempLocation[1]) {
                         mView.setTranslationX(mTempLocation[0] - mOldLocation[0] + mView.getTranslationX());
                         mView.setTranslationY(mTempLocation[1] - mOldLocation[1] + mView.getTranslationY());
+
+                        if (null != mViewOverlay) {
+                            mViewOverlay.setTranslationX(mTempLocation[0] - mOldLocation[0] + mViewOverlay.getTranslationX());
+                            mViewOverlay.setTranslationY(mTempLocation[1] - mOldLocation[1] + mViewOverlay.getTranslationY());
+                        }
                     }
 
                     mOldLocation[0] = mTempLocation[0];
@@ -176,7 +181,6 @@ class TooltipView extends ViewGroup implements Tooltip {
                         mViewRect.set(mTempRect);
                         calculatePositions();
                     }
-
                 } else {
                     if (DBG) {
                         log(TAG, WARN, "[%d] view is null", mToolTipId);
@@ -224,6 +228,7 @@ class TooltipView extends ViewGroup implements Tooltip {
                 context.getTheme().obtainStyledAttributes(null, R.styleable.TooltipLayout, builder.defStyleAttr, builder.defStyleRes);
         this.mPadding = theme.getDimensionPixelSize(R.styleable.TooltipLayout_ttlm_padding, 30);
         this.mTextAppearance = theme.getResourceId(R.styleable.TooltipLayout_android_textAppearance, 0);
+        int overlayStyle = theme.getResourceId(R.styleable.TooltipLayout_ttlm_overlayStyle, R.style.ToolTipOverlayDefaultStyle);
         theme.recycle();
 
         this.mToolTipId = builder.id;
@@ -240,6 +245,7 @@ class TooltipView extends ViewGroup implements Tooltip {
         this.mRestrict = builder.restrictToScreenEdges;
         this.mFadeDuration = builder.fadeDuration;
         this.mCloseCallback = builder.closeCallback;
+        this.mSizeTolerance = (int) (context.getResources().getDisplayMetrics().density * TOLERANCE_VALUE);
 
         if (null != builder.point) {
             this.mPoint = new Point(builder.point);
@@ -266,6 +272,12 @@ class TooltipView extends ViewGroup implements Tooltip {
                 builder.view.getViewTreeObserver().addOnPreDrawListener(mPreDrawListener);
                 builder.view.addOnAttachStateChangeListener(mAttachedStateListener);
             }
+        }
+
+        if (builder.overlay) {
+            mViewOverlay = new TooltipOverlay(getContext(), null, 0, overlayStyle);
+            mViewOverlay.setAdjustViewBounds(true);
+            mViewOverlay.setLayoutParams(new LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
         }
 
         if (!builder.isCustomView) {
@@ -343,10 +355,17 @@ class TooltipView extends ViewGroup implements Tooltip {
     protected void onLayout(final boolean changed, final int l, final int t, final int r, final int b) {
         log(TAG, INFO, "[%d] onLayout(%b, %d, %d, %d, %d)", mToolTipId, changed, l, t, r, b);
 
-        //  The layout has actually already been performed and the positions
-        //  cached.  Apply the cached values to the children.
         if (null != mView) {
             mView.layout(mView.getLeft(), mView.getTop(), mView.getMeasuredWidth(), mView.getMeasuredHeight());
+            Log.d(TAG, "view.width: " + mView.getMeasuredWidth());
+        }
+
+        if (null != mViewOverlay) {
+            mViewOverlay.layout(
+                    mViewOverlay.getLeft(),
+                    mViewOverlay.getTop(),
+                    mViewOverlay.getMeasuredWidth(),
+                    mViewOverlay.getMeasuredHeight());
         }
 
         if (changed) {
@@ -424,7 +443,7 @@ class TooltipView extends ViewGroup implements Tooltip {
 
         log(TAG, VERBOSE, "[%d] initializeView", mToolTipId);
 
-        LayoutParams params = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+        LayoutParams params = new LayoutParams(WRAP_CONTENT, WRAP_CONTENT);
         mView = LayoutInflater.from(getContext()).inflate(mTextResId, this, false);
         mView.setLayoutParams(params);
 
@@ -439,11 +458,10 @@ class TooltipView extends ViewGroup implements Tooltip {
 
         mTextView = (TextView) mView.findViewById(android.R.id.text1);
 
-        log(TAG, VERBOSE, "text: %s", this.mText);
-
         mTextView.setText(Html.fromHtml((String) this.mText));
         if (mMaxWidth > -1) {
             mTextView.setMaxWidth(mMaxWidth);
+            log(TAG, VERBOSE, "[%d] maxWidth: %d", mToolTipId, mMaxWidth);
         }
 
         if (0 != mTextAppearance) {
@@ -451,6 +469,10 @@ class TooltipView extends ViewGroup implements Tooltip {
         }
 
         this.addView(mView);
+
+        if (null != mViewOverlay) {
+            this.addView(mViewOverlay);
+        }
     }
 
     @Override
@@ -679,6 +701,19 @@ class TooltipView extends ViewGroup implements Tooltip {
 
         int statusbarHeight = mScreenRect.top;
 
+        final int overlayWidth;
+        final int overlayHeight;
+
+        if (null != mViewOverlay && gravity != CENTER) {
+            overlayWidth = mViewOverlay.getWidth() / 2;
+            overlayHeight = mViewOverlay.getHeight() / 2;
+        } else {
+            overlayWidth = 0;
+            overlayHeight = 0;
+        }
+
+        log(TAG, VERBOSE, "overlaySize: %d, %d", overlayWidth, overlayHeight);
+
         if (mViewRect == null) {
             mViewRect = new Rect();
             mViewRect.set(mPoint.x, mPoint.y + statusbarHeight, mPoint.x, mPoint.y + statusbarHeight);
@@ -688,10 +723,6 @@ class TooltipView extends ViewGroup implements Tooltip {
 
         int width = mView.getWidth();
         int height = mView.getHeight();
-
-        if (DBG) {
-            log(TAG, VERBOSE, "[%d] mView.size: %dx%d", mToolTipId, width, height);
-        }
 
         // get the destination mPoint
 
@@ -703,7 +734,11 @@ class TooltipView extends ViewGroup implements Tooltip {
                     mViewRect.bottom + height
             );
 
-            if (checkEdges && !mScreenRect.contains(mDrawRect)) {
+            if (mViewRect.height() / 2 < overlayHeight) {
+                mDrawRect.offset(0, overlayHeight);
+            }
+
+            if (checkEdges && !rectContainsRectWithTolerance(mScreenRect, mDrawRect, mSizeTolerance)) {
                 if (mDrawRect.right > mScreenRect.right) {
                     mDrawRect.offset(mScreenRect.right - mDrawRect.right, 0);
                 } else if (mDrawRect.left < mScreenRect.left) {
@@ -725,7 +760,11 @@ class TooltipView extends ViewGroup implements Tooltip {
                     mViewRect.top
             );
 
-            if (checkEdges && !mScreenRect.contains(mDrawRect)) {
+            if ((mViewRect.height() / 2) < overlayHeight) {
+                mDrawRect.offset(0, -(overlayHeight - (mViewRect.height() / 2)));
+            }
+
+            if (checkEdges && !rectContainsRectWithTolerance(mScreenRect, mDrawRect, mSizeTolerance)) {
                 if (mDrawRect.right > mScreenRect.right) {
                     mDrawRect.offset(mScreenRect.right - mDrawRect.right, 0);
                 } else if (mDrawRect.left < mScreenRect.left) {
@@ -747,7 +786,11 @@ class TooltipView extends ViewGroup implements Tooltip {
                     mViewRect.centerY() + height / 2
             );
 
-            if (checkEdges && !mScreenRect.contains(mDrawRect)) {
+            if ((mViewRect.width() / 2) < overlayWidth) {
+                mDrawRect.offset(overlayWidth - mViewRect.width() / 2, 0);
+            }
+
+            if (checkEdges && !rectContainsRectWithTolerance(mScreenRect, mDrawRect, mSizeTolerance)) {
                 if (mDrawRect.bottom > mScreenRect.bottom) {
                     mDrawRect.offset(0, mScreenRect.bottom - mDrawRect.bottom);
                 } else if (mDrawRect.top < screenTop) {
@@ -769,7 +812,11 @@ class TooltipView extends ViewGroup implements Tooltip {
                     mViewRect.centerY() + height / 2
             );
 
-            if (checkEdges && !mScreenRect.contains(mDrawRect)) {
+            if ((mViewRect.width() / 2) < overlayWidth) {
+                mDrawRect.offset(-(overlayWidth - (mViewRect.width() / 2)), 0);
+            }
+
+            if (checkEdges && !rectContainsRectWithTolerance(mScreenRect, mDrawRect, mSizeTolerance)) {
                 if (mDrawRect.bottom > mScreenRect.bottom) {
                     mDrawRect.offset(0, mScreenRect.bottom - mDrawRect.bottom);
                 } else if (mDrawRect.top < screenTop) {
@@ -777,14 +824,13 @@ class TooltipView extends ViewGroup implements Tooltip {
                 }
                 if (mDrawRect.left < mScreenRect.left) {
                     // this means there's no enough space!
-                    this.mGravity = RIGHT;
                     calculatePositions(gravities, checkEdges);
                     return;
                 } else if (mDrawRect.right > mScreenRect.right) {
                     mDrawRect.offset(mScreenRect.right - mDrawRect.right, 0);
                 }
             }
-        } else if (this.mGravity == CENTER) {
+        } else if (gravity == CENTER) {
             mDrawRect.set(
                     mViewRect.centerX() - width / 2,
                     mViewRect.centerY() - height / 2,
@@ -792,7 +838,7 @@ class TooltipView extends ViewGroup implements Tooltip {
                     mViewRect.centerY() + height / 2
             );
 
-            if (checkEdges && !mScreenRect.contains(mDrawRect)) {
+            if (checkEdges && !rectContainsRectWithTolerance(mScreenRect, mDrawRect, mSizeTolerance)) {
                 if (mDrawRect.bottom > mScreenRect.bottom) {
                     mDrawRect.offset(0, mScreenRect.bottom - mDrawRect.bottom);
                 } else if (mDrawRect.top < screenTop) {
@@ -807,14 +853,34 @@ class TooltipView extends ViewGroup implements Tooltip {
         }
 
         if (DBG) {
-            log(TAG, VERBOSE, "[%d] mScreenRect: %s, mTopRule: %d, statusBar: %d", mToolTipId, mScreenRect, mTopRule,
-                    statusbarHeight
-            );
+            log(TAG, VERBOSE, "[%d] mScreenRect: %s, mTopRule: %d, statusBar: %d",
+                    mToolTipId,
+                    mScreenRect,
+                    mTopRule,
+                    statusbarHeight);
             log(TAG, VERBOSE, "[%d] mDrawRect: %s", mToolTipId, mDrawRect);
             log(TAG, VERBOSE, "[%d] mViewRect: %s", mToolTipId, mViewRect);
         }
 
-        // translate the textview
+        if (gravity != mGravity) {
+            log(TAG, ERROR, "gravity changed from %s to %s", mGravity, gravity);
+
+            mGravity = gravity;
+
+            if (gravity == CENTER && null != mViewOverlay) {
+                log(TAG, VERBOSE, "remove overlay");
+                removeView(mViewOverlay);
+                mViewOverlay = null;
+            }
+        }
+
+
+        if (null != mViewOverlay) {
+            mViewOverlay.setTranslationX(mViewRect.centerX() - mViewOverlay.getWidth() / 2);
+            mViewOverlay.setTranslationY(mViewRect.centerY() - mViewOverlay.getHeight() / 2);
+        }
+
+        // translate the text view
         mView.setTranslationX(mDrawRect.left);
         mView.setTranslationY(mDrawRect.top);
 
@@ -822,6 +888,10 @@ class TooltipView extends ViewGroup implements Tooltip {
             getAnchorPoint(gravity, mTmpPoint);
             mDrawable.setAnchor(gravity, mHideArrow ? 0 : mPadding / 2, mHideArrow ? null : mTmpPoint);
         }
+    }
+
+    static boolean rectContainsRectWithTolerance(@NonNull final Rect parentRect, @NonNull final Rect childRect, final int t) {
+        return parentRect.contains(childRect.left + t, childRect.top + t, childRect.right - t, childRect.bottom - t);
     }
 
     void getAnchorPoint(final Gravity gravity, Point outPoint) {
@@ -883,7 +953,15 @@ class TooltipView extends ViewGroup implements Tooltip {
 
                 Rect outRect = new Rect();
                 mView.getGlobalVisibleRect(outRect);
-                final boolean containsTouch = outRect.contains((int) event.getX(), (int) event.getY());
+                log(TAG, VERBOSE, "[%d] text rect: %s", mToolTipId, outRect);
+
+                boolean containsTouch = outRect.contains((int) event.getX(), (int) event.getY());
+
+                if (null != mViewOverlay) {
+                    mViewOverlay.getGlobalVisibleRect(outRect);
+                    containsTouch |= outRect.contains((int) event.getX(), (int) event.getY());
+                    log(TAG, VERBOSE, "[%d] overlay rect: %s", mToolTipId, outRect);
+                }
 
                 if (DBG) {
                     log(TAG, VERBOSE, "[%d] containsTouch: %b", mToolTipId, containsTouch);
@@ -900,16 +978,13 @@ class TooltipView extends ViewGroup implements Tooltip {
                     case TouchInsideExclusive:
                         if (containsTouch) {
                             onClose(true, true, false);
-                            return true;
+                            return mClosePolicy == ClosePolicy.TouchInsideExclusive;
                         }
                         return mClosePolicy == ClosePolicy.TouchInsideExclusive;
-                    case TouchOutside:
-                    case TouchOutsideExclusive:
-                        onClose(true, containsTouch, false);
-                        return mClosePolicy == ClosePolicy.TouchOutsideExclusive || containsTouch;
                     case TouchAnyWhere:
+                    case TouchAnyWhereExclusive:
                         onClose(true, containsTouch, false);
-                        return false;
+                        return mClosePolicy == ClosePolicy.TouchAnyWhereExclusive || containsTouch;
                     case None:
                         break;
                 }
@@ -936,8 +1011,8 @@ class TooltipView extends ViewGroup implements Tooltip {
 
         final int widthMode = MeasureSpec.getMode(widthMeasureSpec);
         final int heightMode = MeasureSpec.getMode(heightMeasureSpec);
-        final int widthSize = MeasureSpec.getSize(widthMeasureSpec);
-        final int heightSize = MeasureSpec.getSize(heightMeasureSpec);
+        int widthSize = MeasureSpec.getSize(widthMeasureSpec);
+        int heightSize = MeasureSpec.getSize(heightMeasureSpec);
 
         // Record our dimensions if they are known;
         if (widthMode != MeasureSpec.UNSPECIFIED) {
@@ -948,7 +1023,7 @@ class TooltipView extends ViewGroup implements Tooltip {
             myHeight = heightSize;
         }
 
-        log(TAG, VERBOSE, "[%d] myWidth: %d, myHeight: %d", mToolTipId, myWidth, myHeight);
+        log(TAG, VERBOSE, "[%d] onMeasure myWidth: %d, myHeight: %d", mToolTipId, myWidth, myHeight);
 
         if (null != mView) {
             if (mView.getVisibility() != GONE) {
@@ -959,6 +1034,30 @@ class TooltipView extends ViewGroup implements Tooltip {
                 myWidth = 0;
                 myHeight = 0;
             }
+        }
+
+        if (null != mViewOverlay && mViewOverlay.getVisibility() != GONE) {
+
+            final int childWidthMeasureSpec;
+            final int childHeightMeasureSpec;
+//                final View view = null != mViewAnchor ? mViewAnchor.get() : null;
+            LayoutParams params = mViewOverlay.getLayoutParams();
+//                childWidthMeasureSpec = MeasureSpec.makeMeasureSpec(params.width, MeasureSpec.EXACTLY);
+//                childHeightMeasureSpec = MeasureSpec.makeMeasureSpec(params.height, MeasureSpec.EXACTLY);
+
+            childWidthMeasureSpec = MeasureSpec.makeMeasureSpec(widthSize, MeasureSpec.AT_MOST);
+            childHeightMeasureSpec = MeasureSpec.makeMeasureSpec(heightSize, MeasureSpec.AT_MOST);
+            mViewOverlay.measure(childWidthMeasureSpec, childHeightMeasureSpec);
+
+//                if (null != view) {
+//                    widthSize = view.getMeasuredWidth();
+//                    heightSize = view.getMeasuredHeight();
+//                    childWidthMeasureSpec = MeasureSpec.makeMeasureSpec(widthSize, MeasureSpec.EXACTLY);
+//                    childHeightMeasureSpec = MeasureSpec.makeMeasureSpec(heightSize, MeasureSpec.EXACTLY);
+//                } else {
+//                }
+
+//                mViewOverlay.measure(childWidthMeasureSpec, childHeightMeasureSpec);
         }
 
         setMeasuredDimension(myWidth, myHeight);

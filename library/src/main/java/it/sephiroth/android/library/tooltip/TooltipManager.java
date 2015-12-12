@@ -241,6 +241,7 @@ public class TooltipManager {
         long fadeDuration = 200;
         onTooltipClosingCallback closeCallback;
         boolean completed;
+        boolean overlay = true;
 
         public Builder(int id) {
             this.id = id;
@@ -317,6 +318,17 @@ public class TooltipManager {
             return this;
         }
 
+        /**
+         * Enable/disable the default overlay view
+         *
+         * @param value false to disable the overlay view. True by default
+         */
+        public Builder withOverlay(boolean value) {
+            throwIfCompleted();
+            this.overlay = value;
+            return this;
+        }
+
         public Builder anchor(View view, Gravity gravity) {
             throwIfCompleted();
             this.point = null;
@@ -334,10 +346,20 @@ public class TooltipManager {
         }
 
         /**
+         * @deprecated use {#withArrow} instead
+         */
+        @Deprecated
+        public Builder toggleArrow(boolean show) {
+            return withArrow(show);
+        }
+
+        /**
+         * Hide/Show the tooltip arrow (trueby default)
+         *
          * @param show true to show the arrow, false to hide it
          * @return the builder for chaining.
          */
-        public Builder toggleArrow(boolean show) {
+        public Builder withArrow(boolean show) {
             throwIfCompleted();
             this.hideArrow = !show;
             return this;
@@ -375,6 +397,7 @@ public class TooltipManager {
         public Builder build() {
             throwIfCompleted();
             completed = true;
+            overlay = overlay && gravity != Gravity.CENTER;
             return this;
         }
     }
@@ -391,22 +414,18 @@ public class TooltipManager {
          * In exclusive mode all touches will be consumed by the tooltip itself
          */
         TouchInsideExclusive,
+
         /**
-         * tooltip will hide when user touches the screen, or after the specified delay.
+         * tooltip will hide when user touches anywhere the screen, or after the specified delay.
          * If delay is '0' the tooltip will never hide until clicked
          */
-        TouchOutside,
+        TouchAnyWhere,
         /**
-         * tooltip will hide when user touches the screen, or after the specified delay.
+         * tooltip will hide when user touches anywhere the screen, or after the specified delay.
          * If delay is '0' the tooltip will never hide until clicked.
          * Touch will be consumed in any case.
          */
-        TouchOutsideExclusive,
-        /**
-         * Any touch will hide the tooltip.
-         * Touch is never consumed
-         */
-        TouchAnyWhere,
+        TouchAnyWhereExclusive,
         /**
          * tooltip is hidden only after the specified delay
          */

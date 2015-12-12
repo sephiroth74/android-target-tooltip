@@ -3,17 +3,25 @@
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
-        <item name="colorAccent" tools:ignore="NewApi">#ff6600</item>
-        <item name="colorPrimary" tools:ignore="NewApi">#0000ff</item>
-        <item name="colorPrimaryDark" tools:ignore="NewApi">#00007f</item>
+        <item name="colorAccent" tools:ignore="NewApi">#0072ff</item>
+        <item name="colorPrimary" tools:ignore="NewApi">#ffcc00</item>
+        <item name="colorPrimaryDark" tools:ignore="NewApi">#ff6600</item>
     </style>
 
     <style name="ToolTipLayoutCustomStyle">
         <item name="ttlm_padding">25dip</item>
-        <item name="ttlm_strokeColor">#ffe5da7d</item>
-        <item name="ttlm_backgroundColor">?attr/colorAccent</item>
-        <item name="ttlm_strokeWeight">0dip</item>
+        <item name="ttlm_strokeColor">#ffe5a000</item>
+        <item name="ttlm_backgroundColor">#ffe5c700</item>
+        <item name="ttlm_strokeWeight">2dip</item>
         <item name="ttlm_cornerRadius">8dip</item>
+        <item name="ttlm_overlayStyle">@style/ToolTipOverlayCustomStyle</item>
+        <item name="android:textAppearance">?android:attr/textAppearanceInverse</item>
+    </style>
+
+    <style name="ToolTipOverlayCustomStyle">
+        <item name="android:color">#66ff0000</item>
+        <item name="ttlm_repeatCount">999</item>
+        <item name="ttlm_duration">400</item>
     </style>
 
     <style name="ToolTipLayoutDefaultStyle.TextColor1" parent="ToolTipLayoutDefaultStyle"></style>

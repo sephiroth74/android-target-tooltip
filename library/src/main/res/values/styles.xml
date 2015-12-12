@@ -9,5 +9,14 @@
         <item name="ttlm_cornerRadius">@dimen/ttlm_default_corner_radius</item>
         <item name="ttlm_arrowRatio">1.4</item>
         <item name="android:textAppearance">?android:attr/textAppearanceSmall</item>
+        <item name="ttlm_overlayStyle">@style/ToolTipOverlayDefaultStyle</item>
     </style>
+
+    <style name="ToolTipOverlayDefaultStyle">
+        <item name="android:color">?attr/colorAccent</item>
+        <item name="ttlm_repeatCount">99</item>
+        <item name="ttlm_duration">600</item>
+        <item name="android:alpha">0.5</item>
+    </style>
+
 </resources>
