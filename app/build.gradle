@@ -1,12 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion ANDROID_BUILD_SDK_VERSION as int
+    compileSdkVersion 23
     buildToolsVersion ANDROID_BUILD_TOOLS_VERSION
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion ANDROID_BUILD_TARGET_SDK_VERSION as int
+        targetSdkVersion 23
         versionCode 1
         versionName VERSION_NAME
     }

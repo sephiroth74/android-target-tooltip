@@ -51,7 +51,6 @@ class TooltipView extends ViewGroup implements Tooltip {
     private final int mTextAppearance;
     private final int mToolTipId;
     private final Rect mDrawRect;
-    private final Rect mTempRect;
     private final long mShowDuration;
     private final ClosePolicy mClosePolicy;
     private final Point mPoint;
@@ -64,6 +63,7 @@ class TooltipView extends ViewGroup implements Tooltip {
     private final long mFadeDuration;
     private final TooltipManager.onTooltipClosingCallback mCloseCallback;
     private final TooltipTextDrawable mDrawable;
+    private final Rect mTempRect = new Rect();
     private final int[] mTempLocation = new int[2];
     private final Handler mHandler = new Handler();
     private final Rect mScreenRect = new Rect();
@@ -83,13 +83,14 @@ class TooltipView extends ViewGroup implements Tooltip {
     private View mView;
     private TextView mTextView;
     private OnToolTipListener mTooltipListener;
-    private int mGlobalLayoutPasses;
+
     Runnable hideRunnable = new Runnable() {
         @Override
         public void run() {
             onClose(false, false, false);
         }
     };
+
     Runnable activateRunnable = new Runnable() {
         @Override
         public void run() {
@@ -97,6 +98,7 @@ class TooltipView extends ViewGroup implements Tooltip {
             mActivated = true;
         }
     };
+
     private final ViewTreeObserver.OnPreDrawListener mPreDrawListener = new ViewTreeObserver.OnPreDrawListener() {
         @Override
         public boolean onPreDraw() {
@@ -109,41 +111,29 @@ class TooltipView extends ViewGroup implements Tooltip {
             if (null != mViewAnchor && mAttached) {
                 View view = mViewAnchor.get();
                 if (null != view) {
-                    //                    final Rect hitRect = new Rect();
-                    //                    view.getHitRect(hitRect);
 
-                    final Rect hitRect = new Rect();
-                    view.getHitRect(hitRect);
-
-                    boolean changed = !mHitRect.equals(hitRect);
-
+//                    view.getHitRect(mTempRect);
                     view.getLocationOnScreen(mTempLocation);
 
+//                    boolean changed = !mHitRect.equals(mTempRect);
 
-                    // getGlobalVisibleRect(view, mTempRect, mTempLocation);
+                    if (DBG) {
+                        log(TAG, INFO, "[%d] onPreDraw %s <--> %s (dirty: %b)",
+                                mToolTipId,
+                                mTempRect,
+                                mHitRect,
+                                view.isDirty()
+                        );
+                    }
 
-                    log(TAG, INFO, "[%d] onPreDraw %s <--> %s (dirty: %b, changed: %b)",
-                        mToolTipId,
-                        hitRect,
-                        mHitRect,
-                        view.isDirty(),
-                        changed);
-
-                    hitRect.offsetTo(mTempLocation[0], mTempLocation[1]);
-                    //                    log(TAG, VERBOSE, "[%d] hitRect: %s, old: %s", mToolTipId, hitRect, mHitRect);
-                    //                    log(TAG, VERBOSE, "[%d] globalRect: %s, old: %s", mToolTipId, mTempRect, mViewRect);
-
-                    //                    if (!hitRect.equals(mHitRect)) {
-                    //                        log(TAG, WARN, "hitRect != mHitRect");
-                    //                        mHitRect.set(hitRect);
-                    //                    }
+//                    mTempRect.offsetTo(mTempLocation[0], mTempLocation[1]);
 
                     if (mOldLocation == null) {
                         mOldLocation = new int[]{mTempLocation[0], mTempLocation[1]};
                     }
 
                     log(TAG, VERBOSE, "location: %dx%d << %dx%d", mTempLocation[0], mTempLocation[1], mOldLocation[0],
-                        mOldLocation[1]
+                            mOldLocation[1]
                     );
                     if (mOldLocation[0] != mTempLocation[0] || mOldLocation[1] != mTempLocation[1]) {
                         mView.setTranslationX(mTempLocation[0] - mOldLocation[0] + mView.getTranslationX());
@@ -157,6 +147,7 @@ class TooltipView extends ViewGroup implements Tooltip {
             return true;
         }
     };
+
     private final ViewTreeObserver.OnGlobalLayoutListener mGlobalLayoutListener = new ViewTreeObserver.OnGlobalLayoutListener() {
         @Override
         public void onGlobalLayout() {
@@ -170,63 +161,22 @@ class TooltipView extends ViewGroup implements Tooltip {
                 View view = mViewAnchor.get();
 
                 if (null != view) {
-                    //                    Rect globalRect = new Rect();
-                    //                    Rect localRect = new Rect();
-                    //                    Rect hitRect = new Rect();
-
-                    final Rect hitRect = new Rect();
-                    //                    final int[] outLocation = new int[2];
-                    view.getHitRect(hitRect);
-                    //                    view.getLocationOnScreen(outLocation);
-
-                    //                    globalRect.set(hitRect);
-                    //                    globalRect.offsetTo(outLocation[0], outLocation[1]);
-                    //                    getGlobalVisibleRect(view, globalRect, null);
-
-                    //                    view.getLocalVisibleRect(localRect);
-                    //                    view.getHitRect(hitRect);
+                    view.getHitRect(mTempRect);
+                    view.getLocationOnScreen(mTempLocation);
 
                     if (DBG) {
                         log(TAG, INFO, "[%d] onGlobalLayout(dirty: %b)", mToolTipId, view.isDirty());
-                        log(TAG, VERBOSE, "[%d] hitRect: %s, old: %s", mToolTipId, hitRect, mHitRect);
-                        //                        log(TAG, VERBOSE, "[%d] globalRect: %s, old: %s", mToolTipId, globalRect,
-                        // mViewRect);
+                        log(TAG, VERBOSE, "[%d] hitRect: %s, old: %s", mToolTipId, mTempRect, mHitRect);
                     }
 
-                    if (!hitRect.equals(mHitRect)) {
-                        log(TAG, WARN, "globalRect != mViewRect");
-                        updateViewRectAndPositions();
-                        mHitRect.set(hitRect);
+                    if (!mTempRect.equals(mHitRect)) {
+                        mHitRect.set(mTempRect);
+
+                        mTempRect.offsetTo(mTempLocation[0], mTempLocation[1]);
+                        mViewRect.set(mTempRect);
+                        calculatePositions();
                     }
 
-                    //
-                    //                    if (view.isDirty()) {
-                    //                        mViewWasDirty = true;
-                    //                    }
-                    //
-                    //                    if (!Rect.intersects(mScreenRect, localRect)) {
-                    //                        if (DBG) {
-                    //                            log(TAG, WARN, "[%d] invalid rect", mToolTipId);
-                    //                        }
-                    //                        return;
-                    //                    }
-
-                    //                    if (!mViewRect.equals(globalRect)) {
-                    //                        if (mGlobalLayoutPasses < 1) {
-                    //                            updateViewRectAndPositions();
-                    //                        } else {
-                    //                            if (!rectsAreSameSize(mViewRect, globalRect)) {
-                    //                                mViewRect.set(globalRect);
-                    //                                calculatePositions(false);
-                    //                            }
-                    //                        }
-                    //
-                    //                        //requestLayout();
-                    //                    }
-
-                    mGlobalLayoutPasses++;
-
-                    //  removeGlobalLayoutObserver(view);
                 } else {
                     if (DBG) {
                         log(TAG, WARN, "[%d] view is null", mToolTipId);
@@ -235,6 +185,7 @@ class TooltipView extends ViewGroup implements Tooltip {
             }
         }
     };
+
     private final View.OnAttachStateChangeListener mAttachedStateListener = new OnAttachStateChangeListener() {
         @Override
         public void onViewAttachedToWindow(final View v) {
@@ -242,7 +193,7 @@ class TooltipView extends ViewGroup implements Tooltip {
         }
 
         @Override
-        @TargetApi (17)
+        @TargetApi(17)
         public void onViewDetachedFromWindow(final View v) {
             log(TAG, INFO, "[%d] onViewDetachedFromWindow", mToolTipId);
             removeViewListeners(v);
@@ -270,7 +221,7 @@ class TooltipView extends ViewGroup implements Tooltip {
         super(context);
 
         TypedArray theme =
-            context.getTheme().obtainStyledAttributes(null, R.styleable.TooltipLayout, builder.defStyleAttr, builder.defStyleRes);
+                context.getTheme().obtainStyledAttributes(null, R.styleable.TooltipLayout, builder.defStyleAttr, builder.defStyleRes);
         this.mPadding = theme.getDimensionPixelSize(R.styleable.TooltipLayout_ttlm_padding, 30);
         this.mTextAppearance = theme.getResourceId(R.styleable.TooltipLayout_android_textAppearance, 0);
         theme.recycle();
@@ -298,20 +249,15 @@ class TooltipView extends ViewGroup implements Tooltip {
         }
 
         this.mDrawRect = new Rect();
-        this.mTempRect = new Rect();
 
         if (null != builder.view) {
             mViewRect = new Rect();
 
-            final int[] outLocation = new int[2];
             builder.view.getHitRect(mHitRect);
-            builder.view.getLocationOnScreen(outLocation);
+            builder.view.getLocationOnScreen(mTempLocation);
 
             mViewRect.set(mHitRect);
-            mViewRect.offsetTo(outLocation[0], outLocation[1]);
-
-            //            getGlobalVisibleRect(builder.view, mViewRect, null);
-            //            builder.view.getHitRect(mHitRect);
+            mViewRect.offsetTo(mTempLocation[0], mTempLocation[1]);
 
             mViewAnchor = new WeakReference<>(builder.view);
 
@@ -330,33 +276,17 @@ class TooltipView extends ViewGroup implements Tooltip {
         setVisibility(INVISIBLE);
     }
 
-    private static boolean rectsAreSameSize(@NonNull final Rect rect1, @NonNull final Rect rect2) {
+    @SuppressWarnings("unused")
+    private static boolean rectEqualsSize(@NonNull final Rect rect1, @NonNull final Rect rect2) {
         return rect1.width() == rect2.width() && rect1.height() == rect2.height();
     }
-
-    //    private static int[] getGlobalVisibleRect(@NonNull final View view, Rect outRect, @Nullable int[] location) {
-    //        final int[] tmp;
-    //
-    //        if (null == location) {
-    //            tmp = new int[2];
-    //        } else {
-    //            tmp = location;
-    //        }
-    //
-    //        view.getLocationOnScreen(tmp);
-    //
-    //        outRect.setEmpty();
-    //        view.getHitRect(outRect);
-    //        outRect.offsetTo(tmp[0], tmp[1]);
-    //        return tmp;
-    //    }
 
     @Override
     public int getTooltipId() {
         return mToolTipId;
     }
 
-    @SuppressWarnings ("unused")
+    @SuppressWarnings("unused")
     public boolean isShowing() {
         return mShowing;
     }
@@ -420,7 +350,16 @@ class TooltipView extends ViewGroup implements Tooltip {
         }
 
         if (changed) {
-            updateViewRectAndPositions();
+            if (mViewAnchor != null) {
+                View view = mViewAnchor.get();
+                if (null != view) {
+                    view.getHitRect(mTempRect);
+                    view.getLocationOnScreen(mTempLocation);
+                    mTempRect.offsetTo(mTempLocation[0], mTempLocation[1]);
+                    mViewRect.set(mTempRect);
+                }
+            }
+            calculatePositions();
         }
     }
 
@@ -499,6 +438,9 @@ class TooltipView extends ViewGroup implements Tooltip {
         }
 
         mTextView = (TextView) mView.findViewById(android.R.id.text1);
+
+        log(TAG, VERBOSE, "text: %s", this.mText);
+
         mTextView.setText(Html.fromHtml((String) this.mText));
         if (mMaxWidth > -1) {
             mTextView.setMaxWidth(mMaxWidth);
@@ -553,38 +495,38 @@ class TooltipView extends ViewGroup implements Tooltip {
             mShowAnimation = ObjectAnimator.ofFloat(this, "alpha", alpha, 0);
             mShowAnimation.setDuration(fadeDuration);
             mShowAnimation.addListener(
-                new Animator.AnimatorListener() {
-                    boolean cancelled;
+                    new Animator.AnimatorListener() {
+                        boolean cancelled;
 
-                    @Override
-                    public void onAnimationStart(final Animator animation) {
-                        cancelled = false;
-                    }
-
-                    @Override
-                    public void onAnimationEnd(final Animator animation) {
-                        log(TAG, VERBOSE, "[%d] fadeout onAnimationEnd, cancelled: %b", mToolTipId, cancelled);
-                        if (cancelled) {
-                            return;
+                        @Override
+                        public void onAnimationStart(final Animator animation) {
+                            cancelled = false;
                         }
 
-                        if (remove) {
-                            fireOnHideCompleted();
+                        @Override
+                        public void onAnimationEnd(final Animator animation) {
+                            log(TAG, VERBOSE, "[%d] fadeout onAnimationEnd, cancelled: %b", mToolTipId, cancelled);
+                            if (cancelled) {
+                                return;
+                            }
+
+                            if (remove) {
+                                fireOnHideCompleted();
+                            }
+                            mShowAnimation = null;
                         }
-                        mShowAnimation = null;
-                    }
 
-                    @Override
-                    public void onAnimationCancel(final Animator animation) {
-                        log(TAG, VERBOSE, "[%d] fadeout onAnimationCancel", mToolTipId);
-                        cancelled = true;
-                    }
+                        @Override
+                        public void onAnimationCancel(final Animator animation) {
+                            log(TAG, VERBOSE, "[%d] fadeout onAnimationCancel", mToolTipId);
+                            cancelled = true;
+                        }
 
-                    @Override
-                    public void onAnimationRepeat(final Animator animation) {
+                        @Override
+                        public void onAnimationRepeat(final Animator animation) {
 
-                    }
-                });
+                        }
+                    });
             mShowAnimation.start();
         } else {
             setVisibility(View.INVISIBLE);
@@ -641,38 +583,37 @@ class TooltipView extends ViewGroup implements Tooltip {
                 mShowAnimation.setStartDelay(this.mShowDelay);
             }
             mShowAnimation.addListener(
-                new Animator.AnimatorListener() {
-                    boolean cancelled;
+                    new Animator.AnimatorListener() {
+                        boolean cancelled;
 
-                    @Override
-                    public void onAnimationStart(final Animator animation) {
-                        log(TAG, VERBOSE, "[%d] fadein onAnimationStart", mToolTipId);
-//                        updateViewRectAndPositions();
-                        setVisibility(View.VISIBLE);
-                        cancelled = false;
-                    }
-
-                    @Override
-                    public void onAnimationEnd(final Animator animation) {
-                        log(TAG, VERBOSE, "[%d] fadein onAnimationEnd, cancelled: %b", mToolTipId, cancelled);
-
-                        if (null != mTooltipListener && !cancelled) {
-                            mTooltipListener.onShowCompleted(TooltipView.this);
-                            postActivate(mActivateDelay);
+                        @Override
+                        public void onAnimationStart(final Animator animation) {
+                            log(TAG, VERBOSE, "[%d] fadein onAnimationStart", mToolTipId);
+                            setVisibility(View.VISIBLE);
+                            cancelled = false;
                         }
-                    }
 
-                    @Override
-                    public void onAnimationCancel(final Animator animation) {
-                        log(TAG, VERBOSE, "[%d] fadein onAnimationCancel", mToolTipId);
-                        cancelled = true;
-                    }
+                        @Override
+                        public void onAnimationEnd(final Animator animation) {
+                            log(TAG, VERBOSE, "[%d] fadein onAnimationEnd, cancelled: %b", mToolTipId, cancelled);
 
-                    @Override
-                    public void onAnimationRepeat(final Animator animation) {
+                            if (null != mTooltipListener && !cancelled) {
+                                mTooltipListener.onShowCompleted(TooltipView.this);
+                                postActivate(mActivateDelay);
+                            }
+                        }
 
-                    }
-                });
+                        @Override
+                        public void onAnimationCancel(final Animator animation) {
+                            log(TAG, VERBOSE, "[%d] fadein onAnimationCancel", mToolTipId);
+                            cancelled = true;
+                        }
+
+                        @Override
+                        public void onAnimationRepeat(final Animator animation) {
+
+                        }
+                    });
             mShowAnimation.start();
         } else {
             setVisibility(View.VISIBLE);
@@ -696,25 +637,6 @@ class TooltipView extends ViewGroup implements Tooltip {
             }
         } else {
             mActivated = true;
-        }
-    }
-
-    private void updateViewRectAndPositions() {
-        log(TAG, VERBOSE, "[%d] updateViewRectAndPositions", mToolTipId);
-        if (mViewAnchor != null) {
-            View view = mViewAnchor.get();
-            if (null != view) {
-                final Rect outRect = new Rect();
-                final int[] outLocation = new int[2];
-                view.getHitRect(outRect);
-                view.getLocationOnScreen(outLocation);
-                outRect.offsetTo(outLocation[0], outLocation[1]);
-
-                // getGlobalVisibleRect(view, mViewRect, null);
-                mViewRect.set(outRect);
-
-                calculatePositions();
-            }
         }
     }
 
@@ -750,8 +672,8 @@ class TooltipView extends ViewGroup implements Tooltip {
 
         if (DBG) {
             log(
-                TAG, DEBUG, "[%s] calculatePositions. gravity: %s, gravities: %d, restrict: %b", mToolTipId, gravity,
-                gravities.size(), checkEdges
+                    TAG, DEBUG, "[%s] calculatePositions. gravity: %s, gravities: %d, restrict: %b", mToolTipId, gravity,
+                    gravities.size(), checkEdges
             );
         }
 
@@ -775,10 +697,10 @@ class TooltipView extends ViewGroup implements Tooltip {
 
         if (gravity == BOTTOM) {
             mDrawRect.set(
-                mViewRect.centerX() - width / 2,
-                mViewRect.bottom,
-                mViewRect.centerX() + width / 2,
-                mViewRect.bottom + height
+                    mViewRect.centerX() - width / 2,
+                    mViewRect.bottom,
+                    mViewRect.centerX() + width / 2,
+                    mViewRect.bottom + height
             );
 
             if (checkEdges && !mScreenRect.contains(mDrawRect)) {
@@ -797,10 +719,10 @@ class TooltipView extends ViewGroup implements Tooltip {
             }
         } else if (gravity == TOP) {
             mDrawRect.set(
-                mViewRect.centerX() - width / 2,
-                mViewRect.top - height,
-                mViewRect.centerX() + width / 2,
-                mViewRect.top
+                    mViewRect.centerX() - width / 2,
+                    mViewRect.top - height,
+                    mViewRect.centerX() + width / 2,
+                    mViewRect.top
             );
 
             if (checkEdges && !mScreenRect.contains(mDrawRect)) {
@@ -819,10 +741,10 @@ class TooltipView extends ViewGroup implements Tooltip {
             }
         } else if (gravity == RIGHT) {
             mDrawRect.set(
-                mViewRect.right,
-                mViewRect.centerY() - height / 2,
-                mViewRect.right + width,
-                mViewRect.centerY() + height / 2
+                    mViewRect.right,
+                    mViewRect.centerY() - height / 2,
+                    mViewRect.right + width,
+                    mViewRect.centerY() + height / 2
             );
 
             if (checkEdges && !mScreenRect.contains(mDrawRect)) {
@@ -841,10 +763,10 @@ class TooltipView extends ViewGroup implements Tooltip {
             }
         } else if (gravity == LEFT) {
             mDrawRect.set(
-                mViewRect.left - width,
-                mViewRect.centerY() - height / 2,
-                mViewRect.left,
-                mViewRect.centerY() + height / 2
+                    mViewRect.left - width,
+                    mViewRect.centerY() - height / 2,
+                    mViewRect.left,
+                    mViewRect.centerY() + height / 2
             );
 
             if (checkEdges && !mScreenRect.contains(mDrawRect)) {
@@ -864,10 +786,10 @@ class TooltipView extends ViewGroup implements Tooltip {
             }
         } else if (this.mGravity == CENTER) {
             mDrawRect.set(
-                mViewRect.centerX() - width / 2,
-                mViewRect.centerY() - height / 2,
-                mViewRect.centerX() + width / 2,
-                mViewRect.centerY() + height / 2
+                    mViewRect.centerX() - width / 2,
+                    mViewRect.centerY() - height / 2,
+                    mViewRect.centerX() + width / 2,
+                    mViewRect.centerY() + height / 2
             );
 
             if (checkEdges && !mScreenRect.contains(mDrawRect)) {
@@ -886,7 +808,7 @@ class TooltipView extends ViewGroup implements Tooltip {
 
         if (DBG) {
             log(TAG, VERBOSE, "[%d] mScreenRect: %s, mTopRule: %d, statusBar: %d", mToolTipId, mScreenRect, mTopRule,
-                statusbarHeight
+                    statusbarHeight
             );
             log(TAG, VERBOSE, "[%d] mDrawRect: %s", mToolTipId, mDrawRect);
             log(TAG, VERBOSE, "[%d] mViewRect: %s", mToolTipId, mViewRect);
@@ -967,9 +889,9 @@ class TooltipView extends ViewGroup implements Tooltip {
                     log(TAG, VERBOSE, "[%d] containsTouch: %b", mToolTipId, containsTouch);
                     log(TAG, VERBOSE, "[%d] mDrawRect: %s, point: %g, %g", mToolTipId, mDrawRect, event.getX(), event.getY());
                     log(
-                        TAG,
-                        VERBOSE, "[%d] real drawing rect: %s, contains: %b", mToolTipId, outRect,
-                        outRect.contains((int) event.getX(), (int) event.getY())
+                            TAG,
+                            VERBOSE, "[%d] real drawing rect: %s, contains: %b", mToolTipId, outRect,
+                            outRect.contains((int) event.getX(), (int) event.getY())
                     );
                 }
 
@@ -1044,10 +966,10 @@ class TooltipView extends ViewGroup implements Tooltip {
 
     private void onClose(boolean fromUser, boolean containsTouch, boolean immediate) {
         log(TAG, INFO, "[%d] onClose. fromUser: %b, containsTouch: %b, immediate: %b",
-            mToolTipId,
-            fromUser,
-            containsTouch,
-            immediate
+                mToolTipId,
+                fromUser,
+                containsTouch,
+                immediate
         );
 
         if (!isAttached()) {

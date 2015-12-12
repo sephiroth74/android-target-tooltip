@@ -5,7 +5,9 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.res.Resources;
 import android.graphics.Point;
+import android.support.annotation.DimenRes;
 import android.support.annotation.Nullable;
+import android.support.annotation.StringRes;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -81,7 +83,7 @@ public class TooltipManager {
         }
     }
 
-    @SuppressWarnings ("unused")
+    @SuppressWarnings("unused")
     public Tooltip show(Builder builder) {
         log(TAG, INFO, "show");
 
@@ -112,7 +114,7 @@ public class TooltipManager {
         return view;
     }
 
-    @SuppressWarnings ("unused")
+    @SuppressWarnings("unused")
     public void hide(int id) {
         log(TAG, INFO, "hide(%d)", id);
 
@@ -138,14 +140,14 @@ public class TooltipManager {
         return null;
     }
 
-    @SuppressWarnings ("unused")
+    @SuppressWarnings("unused")
     public boolean active(int id) {
         synchronized (mLock) {
             return mTooltips.containsKey(id);
         }
     }
 
-    @SuppressWarnings ("unused")
+    @SuppressWarnings("unused")
     public void remove(int id) {
         log(TAG, INFO, "remove(%d)", id);
 
@@ -161,7 +163,7 @@ public class TooltipManager {
         }
     }
 
-    @SuppressWarnings ("unused")
+    @SuppressWarnings("unused")
     public void setText(int id, final CharSequence text) {
         TooltipView layout;
         synchronized (mLock) {
@@ -194,7 +196,7 @@ public class TooltipManager {
                 log(TAG, VERBOSE, "attach to mToolTipLayout parent");
 
                 ViewGroup.LayoutParams params =
-                    new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+                        new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
                 ((ViewGroup) rootView).addView(layout, params);
             }
 
@@ -295,23 +297,18 @@ public class TooltipManager {
             return this;
         }
 
-        public Builder text(Resources res, int resid) {
-            throwIfCompleted();
-            return text(res.getString(resid));
-        }
-
-        public Builder text(int resid) {
-            throwIfCompleted();
-            if (null != view) {
-                return text(view.getResources().getString(resid));
-            }
-            return this;
+        public Builder text(Resources res, @StringRes int resId) {
+            return text(res.getString(resId));
         }
 
         public Builder text(CharSequence text) {
             throwIfCompleted();
             this.text = text;
             return this;
+        }
+
+        public Builder maxWidth(Resources res, @DimenRes int dimension) {
+            return maxWidth(res.getDimensionPixelSize(dimension));
         }
 
         public Builder maxWidth(int maxWidth) {
