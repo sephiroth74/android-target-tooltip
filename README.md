@@ -15,9 +15,9 @@ Usage
 ===
 
 	Tooltip.make(this,
-			new Tooltip.Builder(101)
-			.anchor(aView, TooltipManager.Gravity.BOTTOM)
-			.closePolicy(TooltipManager.ClosePolicy.TouchOutside, 3000)
+			new Builder(101)
+			.anchor(aView, Gravity.BOTTOM)
+			.closePolicy(ClosePolicy.TouchOutside, 3000)
 			.activateDelay(800)
 			.showDelay(300)
 			.text(R.string.hello_world)
