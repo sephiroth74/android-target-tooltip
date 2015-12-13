@@ -27,4 +27,4 @@ install:
     - ./gradlew androidDependencies
 
 script:
-    - ./gradlew library:clean library:check library:assemble
+    - ./gradlew library:check library:assemble

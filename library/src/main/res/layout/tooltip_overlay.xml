@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-
-<it.sephiroth.android.library.tooltip.TooltipOverlay xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="32dp"
-    android:layout_height="32dp"
-    android:adjustViewBounds="true"
-    android:alpha="0.7"
-    tools:showIn="@layout/tooltip_textview" />
