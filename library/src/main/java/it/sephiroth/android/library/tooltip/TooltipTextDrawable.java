@@ -207,7 +207,7 @@ class TooltipTextDrawable extends Drawable {
     }
 
     public void setAnchor(final Tooltip.Gravity gravity, int padding, @Nullable Point point) {
-        if (gravity != this.gravity || padding != this.padding || !pointEquals(this.point, point)) {
+        if (gravity != this.gravity || padding != this.padding || !Utils.equals(this.point, point)) {
             this.gravity = gravity;
             this.padding = padding;
             this.arrowWeight = (int) ((float) padding / arrowRatio);
@@ -224,10 +224,6 @@ class TooltipTextDrawable extends Drawable {
                 invalidateSelf();
             }
         }
-    }
-
-    boolean pointEquals(@Nullable Point a, @Nullable Point b) {
-        return (a == null) ? (b == null) : a.equals(b);
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)

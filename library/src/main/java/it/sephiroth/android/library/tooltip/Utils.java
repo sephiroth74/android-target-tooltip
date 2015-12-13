@@ -3,6 +3,9 @@ package it.sephiroth.android.library.tooltip;
 import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.graphics.Point;
+import android.graphics.Rect;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -48,5 +51,13 @@ class Utils {
                     break;
             }
         }
+    }
+
+    static boolean equals(@Nullable Object a, @Nullable Object b) {
+        return (a == null) ? (b == null) : a.equals(b);
+    }
+
+    static boolean rectContainsRectWithTolerance(@NonNull final Rect parentRect, @NonNull final Rect childRect, final int t) {
+        return parentRect.contains(childRect.left + t, childRect.top + t, childRect.right - t, childRect.bottom - t);
     }
 }

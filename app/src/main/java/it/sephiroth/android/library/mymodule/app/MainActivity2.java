@@ -28,6 +28,7 @@ import it.sephiroth.android.library.tooltip.Tooltip.AnimationBuilder;
 
 public class MainActivity2 extends AppCompatActivity implements OnPageChangeListener {
     private static final String TAG = MainActivity2.class.getSimpleName();
+    static int tooltip_id = 0;
     ViewPager mViewPager;
     private Adapter mAdapter;
 
@@ -161,19 +162,17 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
         }
     }
 
-    static int tooltip_id = 0;
-
     public static class Fragment1 extends Fragment implements View.OnClickListener, Tooltip.Callback {
-        Button mButton1;
-        Button mButton2;
-        Button mButton3;
-        Button mButton4;
-        Button mButton5;
         private final int ID_BUTTON1 = tooltip_id++;
         private final int ID_BUTTON2 = tooltip_id++;
         private final int ID_BUTTON3 = tooltip_id++;
         private final int ID_BUTTON4 = tooltip_id++;
         private final int ID_BUTTON5 = tooltip_id++;
+        Button mButton1;
+        Button mButton2;
+        Button mButton3;
+        Button mButton4;
+        Button mButton5;
         private Tooltip.TooltipView tooltip;
 
         @Nullable
@@ -217,7 +216,7 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
                 Tooltip.make(getContext(),
                         new Tooltip.Builder(ID_BUTTON1)
                                 .anchor(v, Tooltip.Gravity.RIGHT)
-                                .closePolicy(Tooltip.ClosePolicy.TouchAnyWhere, 0)
+                                .closePolicy(Tooltip.ClosePolicy.None, 0)
                                 .text("RIGHT. Touch outside to close this tooltip")
                                 .withArrow(true)
                                 .fitToScreen(true)

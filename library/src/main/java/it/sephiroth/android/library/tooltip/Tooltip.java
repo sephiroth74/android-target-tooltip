@@ -107,11 +107,9 @@ public class Tooltip {
 
         int getTooltipId();
 
-        void setOffsetX(int x);
-
-        void setOffsetY(int y);
-
         void offsetTo(int x, int y);
+
+        void offsetBy(int x, int y);
 
         boolean isAttached();
 
@@ -174,37 +172,7 @@ public class Tooltip {
         private boolean mShowing;
         private WeakReference<View> mViewAnchor;
         private boolean mAttached;
-        Runnable hideRunnable = () -> onClose(false, false, false);
-        private final OnAttachStateChangeListener mAttachedStateListener = new OnAttachStateChangeListener() {
-            @Override
-            public void onViewAttachedToWindow(final View v) {
-                // setVisibility(VISIBLE);
-            }
-
-            @Override
-            @TargetApi(17)
-            public void onViewDetachedFromWindow(final View v) {
-                log(TAG, INFO, "[%d] onViewDetachedFromWindow", mToolTipId);
-                removeViewListeners(v);
-
-                if (!mAttached) {
-                    log(TAG, WARN, "[%d] not attached", mToolTipId);
-                    return;
-                }
-
-                Activity activity = (Activity) getContext();
-                if (null != activity) {
-                    if (activity.isFinishing()) {
-                        log(TAG, WARN, "[%d] skipped because activity is finishing...", mToolTipId);
-                        return;
-                    }
-                    if (Build.VERSION.SDK_INT >= 17 && activity.isDestroyed()) {
-                        return;
-                    }
-                    onClose(false, false, true);
-                }
-            }
-        };
+        private Runnable hideRunnable = () -> onClose(false, false, false);
         private boolean mInitialized;
         private boolean mActivated;
         Runnable activateRunnable = () -> mActivated = true;
@@ -289,6 +257,35 @@ public class Tooltip {
                 }
             }
         };
+        private final OnAttachStateChangeListener mAttachedStateListener = new OnAttachStateChangeListener() {
+            @Override
+            public void onViewAttachedToWindow(final View v) {
+            }
+
+            @Override
+            @TargetApi(17)
+            public void onViewDetachedFromWindow(final View v) {
+                log(TAG, INFO, "[%d] onViewDetachedFromWindow", mToolTipId);
+                removeViewListeners(v);
+
+                if (!mAttached) {
+                    log(TAG, WARN, "[%d] not attached", mToolTipId);
+                    return;
+                }
+
+                Activity activity = (Activity) getContext();
+                if (null != activity) {
+                    if (activity.isFinishing()) {
+                        log(TAG, WARN, "[%d] skipped because activity is finishing...", mToolTipId);
+                        return;
+                    }
+                    if (Build.VERSION.SDK_INT >= 17 && activity.isDestroyed()) {
+                        return;
+                    }
+                    onClose(false, false, true);
+                }
+            }
+        };
         private boolean mIsCustomView;
 
         public TooltipViewImpl(Context context, final Builder builder) {
@@ -362,15 +359,6 @@ public class Tooltip {
                 this.mIsCustomView = true;
             }
             setVisibility(INVISIBLE);
-        }
-
-        @SuppressWarnings("unused")
-        private static boolean rectEqualsSize(@NonNull final Rect rect1, @NonNull final Rect rect2) {
-            return rect1.width() == rect2.width() && rect1.height() == rect2.height();
-        }
-
-        static boolean rectContainsRectWithTolerance(@NonNull final Rect parentRect, @NonNull final Rect childRect, final int t) {
-            return parentRect.contains(childRect.left + t, childRect.top + t, childRect.right - t, childRect.bottom - t);
         }
 
         @Override
@@ -661,19 +649,15 @@ public class Tooltip {
         }
 
         @Override
-        public void setOffsetX(int x) {
-            mView.setTranslationX(x - mViewRect.left + mDrawRect.left);
-        }
-
-        @Override
-        public void setOffsetY(int y) {
-            mView.setTranslationY(y - mViewRect.top + mDrawRect.top);
+        public void offsetBy(final int x, final int y) {
+            mView.setTranslationX(x + mView.getTranslationX());
+            mView.setTranslationY(y + mView.getTranslationY());
         }
 
         @Override
         public void offsetTo(final int x, final int y) {
-            mView.setTranslationX(x - mViewRect.left + mDrawRect.left);
-            mView.setTranslationY(y - mViewRect.top + mDrawRect.top);
+            mView.setTranslationX(x + mDrawRect.left);
+            mView.setTranslationY(y + mDrawRect.top);
         }
 
         @Override
@@ -834,7 +818,7 @@ public class Tooltip {
                     mDrawRect.offset(0, overlayHeight);
                 }
 
-                if (checkEdges && !rectContainsRectWithTolerance(mScreenRect, mDrawRect, mSizeTolerance)) {
+                if (checkEdges && !Utils.rectContainsRectWithTolerance(mScreenRect, mDrawRect, mSizeTolerance)) {
                     if (mDrawRect.right > mScreenRect.right) {
                         mDrawRect.offset(mScreenRect.right - mDrawRect.right, 0);
                     } else if (mDrawRect.left < mScreenRect.left) {
@@ -860,7 +844,7 @@ public class Tooltip {
                     mDrawRect.offset(0, -(overlayHeight - (mViewRect.height() / 2)));
                 }
 
-                if (checkEdges && !rectContainsRectWithTolerance(mScreenRect, mDrawRect, mSizeTolerance)) {
+                if (checkEdges && !Utils.rectContainsRectWithTolerance(mScreenRect, mDrawRect, mSizeTolerance)) {
                     if (mDrawRect.right > mScreenRect.right) {
                         mDrawRect.offset(mScreenRect.right - mDrawRect.right, 0);
                     } else if (mDrawRect.left < mScreenRect.left) {
@@ -886,7 +870,7 @@ public class Tooltip {
                     mDrawRect.offset(overlayWidth - mViewRect.width() / 2, 0);
                 }
 
-                if (checkEdges && !rectContainsRectWithTolerance(mScreenRect, mDrawRect, mSizeTolerance)) {
+                if (checkEdges && !Utils.rectContainsRectWithTolerance(mScreenRect, mDrawRect, mSizeTolerance)) {
                     if (mDrawRect.bottom > mScreenRect.bottom) {
                         mDrawRect.offset(0, mScreenRect.bottom - mDrawRect.bottom);
                     } else if (mDrawRect.top < screenTop) {
@@ -912,7 +896,7 @@ public class Tooltip {
                     mDrawRect.offset(-(overlayWidth - (mViewRect.width() / 2)), 0);
                 }
 
-                if (checkEdges && !rectContainsRectWithTolerance(mScreenRect, mDrawRect, mSizeTolerance)) {
+                if (checkEdges && !Utils.rectContainsRectWithTolerance(mScreenRect, mDrawRect, mSizeTolerance)) {
                     if (mDrawRect.bottom > mScreenRect.bottom) {
                         mDrawRect.offset(0, mScreenRect.bottom - mDrawRect.bottom);
                     } else if (mDrawRect.top < screenTop) {
@@ -934,7 +918,7 @@ public class Tooltip {
                         mViewRect.centerY() + height / 2
                 );
 
-                if (checkEdges && !rectContainsRectWithTolerance(mScreenRect, mDrawRect, mSizeTolerance)) {
+                if (checkEdges && !Utils.rectContainsRectWithTolerance(mScreenRect, mDrawRect, mSizeTolerance)) {
                     if (mDrawRect.bottom > mScreenRect.bottom) {
                         mDrawRect.offset(0, mScreenRect.bottom - mDrawRect.bottom);
                     } else if (mDrawRect.top < screenTop) {
