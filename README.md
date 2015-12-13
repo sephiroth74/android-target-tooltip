@@ -60,8 +60,15 @@ And this is the style for the overlay touch:
 	
 then pass the style in the Builder method **withStyleId(int resId)**
 
+
+Video
+===
+<iframe width="420" height="315" src="https://www.youtube.com/embed/QitX9bnsnP4" frameborder="0" allowfullscreen></iframe>
+
+
 Screenshots
 ===
 ![Screen shot](screenshots/image01.png)
+
 
 [1]: https://github.com/sephiroth74/android-target-tooltip/blob/feature/remove_manager/library/src/main/java/it/sephiroth/android/library/tooltip/Tooltip.java#L1191
