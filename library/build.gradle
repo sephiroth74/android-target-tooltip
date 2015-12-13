@@ -17,10 +17,15 @@ android {
 
     buildTypes {
         release {
+            testCoverageEnabled true
         }
 
         debug {
         }
+    }
+
+    jacoco {
+        version = '0.7.5.201505241946'
     }
 
     compileOptions {
@@ -31,6 +36,7 @@ android {
     lintOptions {
         disable 'IconMissingDensityFolder'
         disable 'UnusedResources'
+        disable 'NewApi'
         checkReleaseBuilds true
         htmlReport true
         xmlReport false
