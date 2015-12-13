@@ -16,6 +16,14 @@ android {
         consumerProguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
     }
 
+    buildTypes {
+        release {
+        }
+
+        debug {
+        }
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -29,4 +37,5 @@ dependencies {
 }
 
 
+apply from: rootProject.file('checkstyle.gradle')
 apply from: 'https://raw.githubusercontent.com/sephiroth74/gradle-mvn-push/master/gradle-mvn-push.gradle'
