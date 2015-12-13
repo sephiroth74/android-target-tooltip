@@ -10,6 +10,7 @@
         <item name="ttlm_arrowRatio">1.4</item>
         <item name="android:textAppearance">?android:attr/textAppearanceSmall</item>
         <item name="ttlm_overlayStyle">@style/ToolTipOverlayDefaultStyle</item>
+        <item name="ttlm_elevation">@dimen/ttlm_default_elevation</item>
     </style>
 
     <style name="ToolTipOverlayDefaultStyle">

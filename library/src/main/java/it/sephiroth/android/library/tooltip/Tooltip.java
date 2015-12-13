@@ -25,6 +25,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewOutlineProvider;
 import android.view.ViewParent;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
@@ -63,6 +64,82 @@ public class Tooltip {
         return view;
     }
 
+    public enum ClosePolicy {
+        /**
+         * tooltip will hide when touching it, or after the specified delay.
+         * If delay is '0' the tooltip will never hide until clicked
+         */
+        TouchInside,
+        /**
+         * tooltip will hide when touching it, or after the specified delay.
+         * If delay is '0' the tooltip will never hide until clicked.
+         * In exclusive mode all touches will be consumed by the tooltip itself
+         */
+        TouchInsideExclusive,
+
+        /**
+         * tooltip will hide when user touches anywhere the screen, or after the specified delay.
+         * If delay is '0' the tooltip will never hide until clicked
+         */
+        TouchAnyWhere,
+        /**
+         * tooltip will hide when user touches anywhere the screen, or after the specified delay.
+         * If delay is '0' the tooltip will never hide until clicked.
+         * Touch will be consumed in any case.
+         */
+        TouchAnyWhereExclusive,
+        /**
+         * tooltip is hidden only after the specified delay
+         */
+        None
+    }
+
+    public enum Gravity {
+        LEFT, RIGHT, TOP, BOTTOM, CENTER
+    }
+
+    public interface TooltipView {
+        void show();
+
+        void hide();
+
+        void remove();
+
+        int getTooltipId();
+
+        void setOffsetX(int x);
+
+        void setOffsetY(int y);
+
+        void offsetTo(int x, int y);
+
+        boolean isAttached();
+
+        boolean isShown();
+
+        void requestLayout();
+    }
+
+    public interface Callback {
+        /**
+         * Tooltip is being closed
+         *
+         * @param tooltip       the tooltip being closed
+         * @param fromUser      true if the close operation started from a user click
+         * @param containsTouch true if the original touch came from inside the tooltip
+         */
+        void onTooltipClose(final TooltipView tooltip, final boolean fromUser, final boolean containsTouch);
+
+        /**
+         * Tooltip failed to show (not enough space)
+         */
+        void onTooltipFailed(final TooltipView view);
+
+        void onTooltipShown(final TooltipView view);
+
+        void onTooltipHidden(final TooltipView view);
+    }
+
     static class TooltipViewImpl extends ViewGroup implements TooltipView {
         public static final int TOLERANCE_VALUE = 10;
         private static final String TAG = "TooltipView";
@@ -89,6 +166,7 @@ public class Tooltip {
         private final Rect mScreenRect = new Rect();
         private final Point mTmpPoint = new Point();
         private final Rect mHitRect = new Rect();
+        private final float mTextViewElevation;
         private Callback mCallback;
         private int[] mOldLocation;
         private Gravity mGravity;
@@ -96,23 +174,45 @@ public class Tooltip {
         private boolean mShowing;
         private WeakReference<View> mViewAnchor;
         private boolean mAttached;
+        Runnable hideRunnable = () -> onClose(false, false, false);
+        private final OnAttachStateChangeListener mAttachedStateListener = new OnAttachStateChangeListener() {
+            @Override
+            public void onViewAttachedToWindow(final View v) {
+                // setVisibility(VISIBLE);
+            }
+
+            @Override
+            @TargetApi(17)
+            public void onViewDetachedFromWindow(final View v) {
+                log(TAG, INFO, "[%d] onViewDetachedFromWindow", mToolTipId);
+                removeViewListeners(v);
+
+                if (!mAttached) {
+                    log(TAG, WARN, "[%d] not attached", mToolTipId);
+                    return;
+                }
+
+                Activity activity = (Activity) getContext();
+                if (null != activity) {
+                    if (activity.isFinishing()) {
+                        log(TAG, WARN, "[%d] skipped because activity is finishing...", mToolTipId);
+                        return;
+                    }
+                    if (Build.VERSION.SDK_INT >= 17 && activity.isDestroyed()) {
+                        return;
+                    }
+                    onClose(false, false, true);
+                }
+            }
+        };
         private boolean mInitialized;
         private boolean mActivated;
+        Runnable activateRunnable = () -> mActivated = true;
         private int mPadding;
         private CharSequence mText;
         private Rect mViewRect;
         private View mView;
         private TooltipOverlay mViewOverlay;
-        private TextView mTextView;
-        private int mSizeTolerance;
-        private Animator mAnimator;
-        private AnimationBuilder mFloatingAnimation;
-        private boolean mAlreadyCheck;
-
-        Runnable hideRunnable = () -> onClose(false, false, false);
-
-        Runnable activateRunnable = () -> mActivated = true;
-
         private final ViewTreeObserver.OnPreDrawListener mPreDrawListener = new ViewTreeObserver.OnPreDrawListener() {
             @Override
             public boolean onPreDraw() {
@@ -148,7 +248,11 @@ public class Tooltip {
                 return true;
             }
         };
-
+        private TextView mTextView;
+        private int mSizeTolerance;
+        private Animator mAnimator;
+        private AnimationBuilder mFloatingAnimation;
+        private boolean mAlreadyCheck;
         private final ViewTreeObserver.OnGlobalLayoutListener mGlobalLayoutListener = new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
@@ -185,47 +289,7 @@ public class Tooltip {
                 }
             }
         };
-
-        private final OnAttachStateChangeListener mAttachedStateListener = new OnAttachStateChangeListener() {
-            @Override
-            public void onViewAttachedToWindow(final View v) {
-                // setVisibility(VISIBLE);
-            }
-
-            @Override
-            @TargetApi(17)
-            public void onViewDetachedFromWindow(final View v) {
-                log(TAG, INFO, "[%d] onViewDetachedFromWindow", mToolTipId);
-                removeViewListeners(v);
-
-                if (!mAttached) {
-                    log(TAG, WARN, "[%d] not attached", mToolTipId);
-                    return;
-                }
-
-                Activity activity = (Activity) getContext();
-                if (null != activity) {
-                    if (activity.isFinishing()) {
-                        log(TAG, WARN, "[%d] skipped because activity is finishing...", mToolTipId);
-                        return;
-                    }
-                    if (Build.VERSION.SDK_INT >= 17 && activity.isDestroyed()) {
-                        return;
-                    }
-                    onClose(false, false, true);
-                }
-            }
-        };
-
-        @Override
-        public void show() {
-            if (getParent() == null) {
-                final Activity act = Utils.getActivity(getContext());
-                LayoutParams params = new LayoutParams(MATCH_PARENT, MATCH_PARENT);
-                ViewGroup rootView = (ViewGroup) (act.getWindow().getDecorView());
-                rootView.addView(this, params);
-            }
-        }
+        private boolean mIsCustomView;
 
         public TooltipViewImpl(Context context, final Builder builder) {
             super(context);
@@ -234,6 +298,7 @@ public class Tooltip {
                     context.getTheme().obtainStyledAttributes(null, R.styleable.TooltipLayout, builder.defStyleAttr, builder.defStyleRes);
             this.mPadding = theme.getDimensionPixelSize(R.styleable.TooltipLayout_ttlm_padding, 30);
             this.mTextAppearance = theme.getResourceId(R.styleable.TooltipLayout_android_textAppearance, 0);
+            this.mTextViewElevation = theme.getDimension(R.styleable.TooltipLayout_ttlm_elevation, 0);
             int overlayStyle = theme.getResourceId(R.styleable.TooltipLayout_ttlm_overlayStyle, R.style.ToolTipOverlayDefaultStyle);
             theme.recycle();
 
@@ -294,6 +359,7 @@ public class Tooltip {
                 this.mDrawable = new TooltipTextDrawable(context, builder);
             } else {
                 this.mDrawable = null;
+                this.mIsCustomView = true;
             }
             setVisibility(INVISIBLE);
         }
@@ -301,6 +367,20 @@ public class Tooltip {
         @SuppressWarnings("unused")
         private static boolean rectEqualsSize(@NonNull final Rect rect1, @NonNull final Rect rect2) {
             return rect1.width() == rect2.width() && rect1.height() == rect2.height();
+        }
+
+        static boolean rectContainsRectWithTolerance(@NonNull final Rect parentRect, @NonNull final Rect childRect, final int t) {
+            return parentRect.contains(childRect.left + t, childRect.top + t, childRect.right - t, childRect.bottom - t);
+        }
+
+        @Override
+        public void show() {
+            if (getParent() == null) {
+                final Activity act = Utils.getActivity(getContext());
+                LayoutParams params = new LayoutParams(MATCH_PARENT, MATCH_PARENT);
+                ViewGroup rootView = (ViewGroup) (act.getWindow().getDecorView());
+                rootView.addView(this, params);
+            }
         }
 
         @Override
@@ -445,6 +525,7 @@ public class Tooltip {
             }
         }
 
+        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
         private void initializeView() {
             if (!isAttached() || mInitialized) {
                 return;
@@ -476,11 +557,15 @@ public class Tooltip {
                     mTextView.setPadding(mPadding, mPadding, mPadding, mPadding);
                 }
             }
-
             this.addView(mView);
 
             if (null != mViewOverlay) {
                 this.addView(mViewOverlay);
+            }
+
+            if (!mIsCustomView && mTextViewElevation > 0 && Build.VERSION.SDK_INT >= 21) {
+                mTextView.setElevation(mTextViewElevation);
+                mTextView.setOutlineProvider(ViewOutlineProvider.BACKGROUND);
             }
         }
 
@@ -945,10 +1030,6 @@ public class Tooltip {
             mAnimator.start();
         }
 
-        static boolean rectContainsRectWithTolerance(@NonNull final Rect parentRect, @NonNull final Rect childRect, final int t) {
-            return parentRect.contains(childRect.left + t, childRect.top + t, childRect.right - t, childRect.bottom - t);
-        }
-
         void getAnchorPoint(final Gravity gravity, Point outPoint) {
 
             if (gravity == BOTTOM) {
@@ -1136,82 +1217,6 @@ public class Tooltip {
 
             hide(immediate ? 0 : mFadeDuration);
         }
-    }
-
-    public interface TooltipView {
-        void show();
-
-        void hide();
-
-        void remove();
-
-        int getTooltipId();
-
-        void setOffsetX(int x);
-
-        void setOffsetY(int y);
-
-        void offsetTo(int x, int y);
-
-        boolean isAttached();
-
-        boolean isShown();
-
-        void requestLayout();
-    }
-
-    public interface Callback {
-        /**
-         * Tooltip is being closed
-         *
-         * @param tooltip       the tooltip being closed
-         * @param fromUser      true if the close operation started from a user click
-         * @param containsTouch true if the original touch came from inside the tooltip
-         */
-        void onTooltipClose(final TooltipView tooltip, final boolean fromUser, final boolean containsTouch);
-
-        /**
-         * Tooltip failed to show (not enough space)
-         */
-        void onTooltipFailed(final TooltipView view);
-
-        void onTooltipShown(final TooltipView view);
-
-        void onTooltipHidden(final TooltipView view);
-    }
-
-    public enum ClosePolicy {
-        /**
-         * tooltip will hide when touching it, or after the specified delay.
-         * If delay is '0' the tooltip will never hide until clicked
-         */
-        TouchInside,
-        /**
-         * tooltip will hide when touching it, or after the specified delay.
-         * If delay is '0' the tooltip will never hide until clicked.
-         * In exclusive mode all touches will be consumed by the tooltip itself
-         */
-        TouchInsideExclusive,
-
-        /**
-         * tooltip will hide when user touches anywhere the screen, or after the specified delay.
-         * If delay is '0' the tooltip will never hide until clicked
-         */
-        TouchAnyWhere,
-        /**
-         * tooltip will hide when user touches anywhere the screen, or after the specified delay.
-         * If delay is '0' the tooltip will never hide until clicked.
-         * Touch will be consumed in any case.
-         */
-        TouchAnyWhereExclusive,
-        /**
-         * tooltip is hidden only after the specified delay
-         */
-        None
-    }
-
-    public enum Gravity {
-        LEFT, RIGHT, TOP, BOTTOM, CENTER
     }
 
     public static final class AnimationBuilder {

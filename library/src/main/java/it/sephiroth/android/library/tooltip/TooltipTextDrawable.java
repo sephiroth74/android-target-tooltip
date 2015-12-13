@@ -1,9 +1,11 @@
 package it.sephiroth.android.library.tooltip;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
+import android.graphics.Outline;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PixelFormat;
@@ -11,18 +13,20 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.support.annotation.Nullable;
 
 class TooltipTextDrawable extends Drawable {
     static final String TAG = "TooltipTextDrawable";
     private final RectF rectF;
     private final Path path;
-    private Point point;
     private final Point tmpPoint = new Point();
+    private final Rect outlineRect = new Rect();
     private final Paint bgPaint;
     private final Paint stPaint;
     private final float arrowRatio;
     private final float ellipseSize;
+    private Point point;
     private int padding = 0;
     private int arrowWeight = 0;
     private Tooltip.Gravity gravity;
@@ -178,8 +182,19 @@ class TooltipTextDrawable extends Drawable {
         calculatePath(bounds);
     }
 
+    public float getRadius() {
+        return ellipseSize;
+    }
+
+    @Override
+    public int getAlpha() {
+        return bgPaint.getAlpha();
+    }
+
     @Override
     public void setAlpha(final int alpha) {
+        bgPaint.setAlpha(alpha);
+        stPaint.setAlpha(alpha);
     }
 
     @Override
@@ -213,5 +228,14 @@ class TooltipTextDrawable extends Drawable {
 
     boolean pointEquals(@Nullable Point a, @Nullable Point b) {
         return (a == null) ? (b == null) : a.equals(b);
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    @Override
+    public void getOutline(Outline outline) {
+        copyBounds(outlineRect);
+        outlineRect.inset(padding, padding);
+        outline.setRoundRect(outlineRect, getRadius());
+        outline.setAlpha(getAlpha() / 255f);
     }
 }

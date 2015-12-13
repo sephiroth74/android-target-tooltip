@@ -3,6 +3,7 @@
 
 * Removed useless TooltipManager, now just use Tooltip.make(..)
 * Added `floatingAnimation` parameter for the builder. This will enable a nice floating animation on the tooltip.
+* Added `ttlm_elevation` attribute for the TextView. Enable the view elevation on android-21
 
 **Version 1.3.7**
 
