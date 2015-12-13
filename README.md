@@ -14,12 +14,10 @@ Installation
 Usage
 ===
 
-	TooltipManager manager = new TooltipManager(this);
-	manager
-		.show(
-			new TooltipManager.Builder(101)
-			.anchor(aView, TooltipManager.Gravity.BOTTOM)
-			.closePolicy(TooltipManager.ClosePolicy.TouchOutside, 3000)
+	Tooltip.make(this,
+			new Builder(101)
+			.anchor(aView, Gravity.BOTTOM)
+			.closePolicy(ClosePolicy.TouchOutside, 3000)
 			.activateDelay(800)
 			.showDelay(300)
 			.text(R.string.hello_world)
@@ -27,7 +25,7 @@ Usage
 			.withArrow(true)
 			.withOverlay(true)
 			.build()
-		);
+		).show();
 
 See the inner [Builder][1] class for the complete set of options
 
@@ -64,4 +62,4 @@ Screenshots
 ===
 ![Screen shot](screenshots/image01.png)
 
-[1]: https://github.com/sephiroth74/android-target-tooltip/blob/master/library/src/main/java/it/sephiroth/android/library/tooltip/TooltipManager.java#L169
+[1]: https://github.com/sephiroth74/android-target-tooltip/blob/feature/remove_manager/library/src/main/java/it/sephiroth/android/library/tooltip/Tooltip.java#L1191

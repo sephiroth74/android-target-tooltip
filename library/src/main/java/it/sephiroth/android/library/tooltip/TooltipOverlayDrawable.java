@@ -8,7 +8,6 @@ import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
@@ -30,32 +29,41 @@ public class TooltipOverlayDrawable extends Drawable {
     private AnimatorSet mSecondAnimatorSet;
     private ValueAnimator mFirstAnimator;
     private ValueAnimator mSecondAnimator;
-    private int mRepeatCount;
     private int mRepeatIndex;
     private boolean mStarted;
     private int mOuterAlpha;
     private int mInnerAlpha;
-    private int mColorAlpha;
-    private long mDuration;
+    private int mRepeatCount = 1;
+    private long mDuration = 400;
 
     public TooltipOverlayDrawable(Context context, int defStyleResId) {
+        mOuterPaint.setStyle(Paint.Style.FILL);
+        mInnerPaint.setStyle(Paint.Style.FILL);
 
         final TypedArray array =
-                context.obtainStyledAttributes(defStyleResId, R.styleable.TooltipOverlay);
+                context.getTheme().obtainStyledAttributes(defStyleResId, R.styleable.TooltipOverlay);
 
-        mOuterPaint.setStyle(Paint.Style.FILL);
-        mOuterPaint.setColor(array.getColor(R.styleable.TooltipOverlay_android_color, Color.BLUE));
+        for (int i = 0; i < array.getIndexCount(); i++) {
+            int index = array.getIndex(i);
 
-        mInnerPaint.setStyle(Paint.Style.FILL);
-        mInnerPaint.setColor(array.getColor(R.styleable.TooltipOverlay_android_color, Color.BLUE));
+            if (index == R.styleable.TooltipOverlay_android_color) {
+                int color = array.getColor(index, 0);
+                mOuterPaint.setColor(color);
+                mInnerPaint.setColor(color);
 
-        mRepeatCount = array.getInt(R.styleable.TooltipOverlay_ttlm_repeatCount, 1);
+            } else if (index == R.styleable.TooltipOverlay_ttlm_repeatCount) {
+                mRepeatCount = array.getInt(index, 1);
 
-        mColorAlpha = (int) (array.getFloat(R.styleable.TooltipOverlay_android_alpha, mInnerPaint.getAlpha() / 255f) * 255);
-        mInnerPaint.setAlpha(mColorAlpha);
-        mOuterPaint.setAlpha(mColorAlpha);
+            } else if (index == R.styleable.TooltipOverlay_android_alpha) {
+                int alpha = (int) (array.getFloat(index, mInnerPaint.getAlpha() / 255f) * 255);
+                mInnerPaint.setAlpha(alpha);
+                mOuterPaint.setAlpha(alpha);
 
-        mDuration = array.getInt(R.styleable.TooltipOverlay_ttlm_duration, 1000);
+            } else if (index == R.styleable.TooltipOverlay_ttlm_duration) {
+                mDuration = array.getInt(index, 400);
+            }
+        }
+
         array.recycle();
 
         mOuterAlpha = getOuterAlpha();

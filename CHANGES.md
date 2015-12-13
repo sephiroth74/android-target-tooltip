@@ -1,4 +1,7 @@
 
+**Version 1.3.8**
+* Removed useless TooltipManager, now just use Tooltip.make(..) 
+
 **Version 1.3.7**
 
 * Added overlay pulse touch.
