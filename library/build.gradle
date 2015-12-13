@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'me.tatarka.retrolambda'
 
 group GROUP
 version VERSION_NAME
@@ -12,12 +13,31 @@ android {
         targetSdkVersion ANDROID_BUILD_TARGET_SDK_VERSION as int
         versionCode 1
         versionName VERSION_NAME
+        consumerProguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
     }
+
     buildTypes {
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
+
+        debug {
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    lintOptions {
+        disable 'IconMissingDensityFolder'
+        disable 'UnusedResources'
+        checkReleaseBuilds true
+        htmlReport true
+        xmlReport false
+        textOutput 'stdout'
+        textReport true
+        abortOnError true
     }
 }
 
@@ -28,4 +48,5 @@ dependencies {
 }
 
 
+apply from: rootProject.file('checkstyle.gradle')
 apply from: 'https://raw.githubusercontent.com/sephiroth74/gradle-mvn-push/master/gradle-mvn-push.gradle'

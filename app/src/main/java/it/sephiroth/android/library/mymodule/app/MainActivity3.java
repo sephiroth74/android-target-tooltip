@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -20,15 +21,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import it.sephiroth.android.library.tooltip.Tooltip;
-import it.sephiroth.android.library.tooltip.TooltipManager;
 
-public class MainActivity3 extends AppCompatActivity
-    implements AdapterView.OnItemClickListener, TooltipManager.OnTooltipAttachedStateChange {
+public class MainActivity3 extends AppCompatActivity implements AdapterView.OnItemClickListener {
     private static final String TAG = "MainActivity3";
     RecyclerView mRecyclerView;
-    TooltipManager mTooltipManager;
     static final int TOOLTIP_ID = 101;
     static final int LIST_POSITION = 5;
+    private Tooltip.TooltipView mCurrentTooltip;
+    DisplayMetrics displayMetrics;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,31 +42,29 @@ public class MainActivity3 extends AppCompatActivity
             array.add(String.format("Item %d", i));
         }
 
+        displayMetrics = getResources().getDisplayMetrics();
+
         mRecyclerView = (RecyclerView) findViewById(R.id.recyclerView);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         mRecyclerView.setAdapter(new MyAdapter(this, R.layout.custom_list_textview, array));
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.addOnScrollListener(
-            new RecyclerView.OnScrollListener() {
-                @Override
-                public void onScrollStateChanged(
-                    final RecyclerView recyclerView, final int newState) {
-                    super.onScrollStateChanged(recyclerView, newState);
+                new RecyclerView.OnScrollListener() {
+                    @Override
+                    public void onScrollStateChanged(
+                            final RecyclerView recyclerView, final int newState) {
+                        super.onScrollStateChanged(recyclerView, newState);
 
-                    if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                        if (newState == RecyclerView.SCROLL_STATE_IDLE) {
 
+                        }
                     }
-                }
-            });
+                });
 
-        TooltipManager.DBG = true;
-        mTooltipManager = new TooltipManager(this);
-        mTooltipManager.addOnTooltipAttachedStateChange(this);
     }
 
     @Override
     protected void onDestroy() {
-        mTooltipManager.removeOnTooltipAttachedStateChange(this);
         super.onDestroy();
     }
 
@@ -93,18 +91,11 @@ public class MainActivity3 extends AppCompatActivity
         Log.d(TAG, "onItemClick: " + position);
 
         if (position == LIST_POSITION) {
-            mTooltipManager.remove(TOOLTIP_ID);
+            if (null != mCurrentTooltip) {
+                mCurrentTooltip.hide();
+                mCurrentTooltip = null;
+            }
         }
-    }
-
-    @Override
-    public void onTooltipAttached(final int id) {
-        Log.i(TAG, "onTooltipAttached: " + id);
-    }
-
-    @Override
-    public void onTooltipDetached(final int id) {
-        Log.i(TAG, "onTooltipDetached: " + id);
     }
 
     class MyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -131,20 +122,17 @@ public class MainActivity3 extends AppCompatActivity
         @Override
         public RecyclerView.ViewHolder onCreateViewHolder(final ViewGroup parent, final int viewType) {
             View view = LayoutInflater.from(MainActivity3.this).inflate(mResId, parent, false);
-            final RecyclerView.ViewHolder holder = new RecyclerView.ViewHolder(view) { };
+            final RecyclerView.ViewHolder holder = new RecyclerView.ViewHolder(view) {
+            };
             view.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(final View v) {
-                        // mTooltipManager.remove(TOOLTIP_ID);
-                        final Tooltip tooltip = mTooltipManager.get(TOOLTIP_ID);
-                        if (null != tooltip) {
-                            tooltip.hide(true);
+                    v -> {
+                        if (null != mCurrentTooltip) {
+                            mCurrentTooltip.hide();
+                            mCurrentTooltip = null;
                         } else {
                             showTooltip(holder);
                         }
-                    }
-                });
+                    });
             return holder;
         }
 
@@ -158,27 +146,43 @@ public class MainActivity3 extends AppCompatActivity
         }
 
         private void showTooltip(final RecyclerView.ViewHolder holder) {
-            mTooltipManager.remove(TOOLTIP_ID);
+            if (null != mCurrentTooltip) {
+                Log.w(TAG, "failed to show tooltip");
+                return;
+            }
 
-            mTooltipManager.show(
-                new TooltipManager.Builder(TOOLTIP_ID)
-                    .maxWidth(450)
-                    .anchor(holder.itemView.findViewById(android.R.id.text1), TooltipManager.Gravity.RIGHT)
-                    .closePolicy(TooltipManager.ClosePolicy.TouchInside, 0)
-                    .text("Brigthness, Saturation, Contrast and Warmth are now here!")
-                    .fitToScreen(false)
-                    .fadeDuration(200)
-                    .showDelay(50)
-                    .withCallback(
-                        new TooltipManager.onTooltipClosingCallback() {
-                            @Override
-                            public void onClosing(final int id, final boolean fromUser, final boolean containsTouch) {
-                                Log.w(
-                                    TAG, "onClosing: " + id + ", fromUser: " + fromUser + ", containsTouch: " + containsTouch);
-                            }
-                        })
-                    .build());
+            mCurrentTooltip = Tooltip.make(MainActivity3.this,
+                    new Tooltip.Builder(TOOLTIP_ID)
+                            .maxWidth((int) (displayMetrics.widthPixels / 2))
+                            .anchor(holder.itemView.findViewById(android.R.id.text1), Tooltip.Gravity.RIGHT)
+                            .closePolicy(Tooltip.ClosePolicy.TouchInside, 0)
+                            .text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc lacinia sem non neque commodo consectetur")
+                            .fitToScreen(false)
+                            .fadeDuration(200)
+                            .showDelay(50)
+                            .withCallback(
+                                    new Tooltip.Callback() {
+                                        @Override
+                                        public void onTooltipClose(final Tooltip.TooltipView v, final boolean fromUser, final boolean containsTouch) {
+                                            Log.w(
+                                                    TAG, "onTooltipClose: " + v + ", fromUser: " + fromUser + ", containsTouch: " + containsTouch);
+                                            mCurrentTooltip = null;
+                                        }
 
+                                        @Override
+                                        public void onTooltipFailed(Tooltip.TooltipView view) {
+                                        }
+
+                                        @Override
+                                        public void onTooltipShown(Tooltip.TooltipView view) {
+                                        }
+
+                                        @Override
+                                        public void onTooltipHidden(Tooltip.TooltipView view) {
+                                        }
+                                    })
+                            .build());
+            mCurrentTooltip.show();
         }
     }
 }

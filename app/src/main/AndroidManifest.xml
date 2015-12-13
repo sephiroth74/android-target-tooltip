@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest
-    package="it.sephiroth.android.library.mymodule.app"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="it.sephiroth.android.library.mymodule.app">
 
     <application
         android:name=".MyApplication"
@@ -14,11 +13,6 @@
         <activity
             android:name=".MainActivity2"
             android:label="@string/title_activity_main_activity2"
-            android:launchMode="singleTask"></activity>
-
-        <activity
-            android:name=".MainActivity3"
-            android:label="@string/title_activity_main_activity3"
             android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -26,6 +20,11 @@
             </intent-filter>
 
         </activity>
+
+        <activity
+            android:name=".MainActivity3"
+            android:label="@string/title_activity_main_activity3"
+            android:launchMode="singleTask"></activity>
 
     </application>
 

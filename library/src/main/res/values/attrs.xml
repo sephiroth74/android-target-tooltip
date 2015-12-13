@@ -1,16 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<!-- default style for theme -->
-	<attr name="ttlm_defaultStyle" format="reference" />
+    <!-- default style for theme -->
+    <attr name="ttlm_defaultStyle" format="reference" />
 
-	<!-- default style -->
-	<declare-styleable name="TooltipLayout">
-		<attr name="ttlm_padding" format="dimension" />
-		<attr name="ttlm_strokeColor" format="color" />
-		<attr name="ttlm_backgroundColor" format="color" />
-		<attr name="ttlm_strokeWeight" format="dimension" />
-		<attr name="ttlm_cornerRadius" format="dimension" />
-		<attr name="ttlm_arrowRatio" format="float" />
-		<attr name="android:textAppearance" />
-	</declare-styleable>
+    <!-- default style -->
+    <declare-styleable name="TooltipLayout">
+        <attr name="ttlm_padding" format="dimension" />
+        <attr name="ttlm_strokeColor" format="color" />
+        <attr name="ttlm_backgroundColor" format="color" />
+        <attr name="ttlm_strokeWeight" format="dimension" />
+        <attr name="ttlm_cornerRadius" format="dimension" />
+        <attr name="ttlm_arrowRatio" format="float" />
+        <attr name="android:textAppearance" />
+        <attr name="ttlm_overlayStyle" format="reference" />
+
+        <!-- elevation of the tooltip. Works only on non custom views -->
+        <attr name="ttlm_elevation" format="dimension" />
+    </declare-styleable>
+
+    <declare-styleable name="TooltipOverlay">
+        <attr name="android:color" />
+        <attr name="android:alpha" />
+        <attr name="ttlm_repeatCount" format="integer" />
+        <attr name="ttlm_duration" format="integer" />
+    </declare-styleable>
 </resources>
