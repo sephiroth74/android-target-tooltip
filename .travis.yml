@@ -1,32 +1,30 @@
 language: android
 
 jdk:
-  - openjdk7
-
-notifications:
-  email: true
-
-# Turn off caching to avoid any caching problems
-cache: false
-# Use the Travis Container-Based Infrastructure (see #203)
-sudo: false
+    - oraclejdk8
 
 android:
   components:
-    - build-tools-22.0.1
-    - android-22
-    - extra-google-google_play_services
-    - extra-google-m2repository
+    - tools
+    - build-tools-23.0.2
+    - android-23
     - extra-android-m2repository
+    - extra-google-m2repository
     - extra-android-support
-  licenses:
-    - android-sdk-license-bcbbd656
-    - '.*intel.+'
 
+notifications:
+    email:
+        - alessandro.crugnola@gmail.com
 
-# Let's try to build...
+cache: false
+sudo: false
+
 install:
-  - chmod +x ./gradlew; ls -l gradlew; ./gradlew wrapper -v
+    # Ensure Gradle wrapper is executable, download wrapper and show version
+    - chmod +x ./gradlew; ls -l gradlew; ./gradlew wrapper -v
+
+    # Download and show android dependencies
+    - ./gradlew androidDependencies
 
 script:
-      - ./gradlew clean assembleDebug
+    - ./gradlew library:clean library:assemble
