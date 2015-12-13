@@ -57,7 +57,7 @@ import static it.sephiroth.android.library.tooltip.Utils.log;
  * alessandro.crugnola@gmail.com
  */
 public final class Tooltip {
-    public static boolean dbg = true;
+    public static boolean dbg = false;
 
     private Tooltip () {
         // empty
@@ -176,10 +176,50 @@ public final class Tooltip {
         private boolean mShowing;
         private WeakReference<View> mViewAnchor;
         private boolean mAttached;
-        private Runnable hideRunnable = () -> onClose(false, false, false);
+        private final OnAttachStateChangeListener mAttachedStateListener = new OnAttachStateChangeListener() {
+            @Override
+            public void onViewAttachedToWindow (final View v) {
+            }
+
+            @Override
+            @TargetApi (17)
+            public void onViewDetachedFromWindow (final View v) {
+                log(TAG, INFO, "[%d] onViewDetachedFromWindow", mToolTipId);
+                removeViewListeners(v);
+
+                if (!mAttached) {
+                    log(TAG, WARN, "[%d] not attached", mToolTipId);
+                    return;
+                }
+
+                Activity activity = (Activity) getContext();
+                if (null != activity) {
+                    if (activity.isFinishing()) {
+                        log(TAG, WARN, "[%d] skipped because activity is finishing...", mToolTipId);
+                        return;
+                    }
+                    if (Build.VERSION.SDK_INT >= 17 && activity.isDestroyed()) {
+                        return;
+                    }
+                    onClose(false, false, true);
+                }
+            }
+        };
+        private Runnable hideRunnable = new Runnable() {
+            @Override
+
+            public void run () {
+                onClose(false, false, false);
+            }
+        };
         private boolean mInitialized;
         private boolean mActivated;
-        Runnable activateRunnable = () -> mActivated = true;
+        Runnable activateRunnable = new Runnable() {
+            @Override
+            public void run () {
+                mActivated = true;
+            }
+        };
         private int mPadding;
         private CharSequence mText;
         private Rect mViewRect;
@@ -262,35 +302,6 @@ public final class Tooltip {
                     }
                 }
             };
-        private final OnAttachStateChangeListener mAttachedStateListener = new OnAttachStateChangeListener() {
-            @Override
-            public void onViewAttachedToWindow (final View v) {
-            }
-
-            @Override
-            @TargetApi (17)
-            public void onViewDetachedFromWindow (final View v) {
-                log(TAG, INFO, "[%d] onViewDetachedFromWindow", mToolTipId);
-                removeViewListeners(v);
-
-                if (!mAttached) {
-                    log(TAG, WARN, "[%d] not attached", mToolTipId);
-                    return;
-                }
-
-                Activity activity = (Activity) getContext();
-                if (null != activity) {
-                    if (activity.isFinishing()) {
-                        log(TAG, WARN, "[%d] skipped because activity is finishing...", mToolTipId);
-                        return;
-                    }
-                    if (Build.VERSION.SDK_INT >= 17 && activity.isDestroyed()) {
-                        return;
-                    }
-                    onClose(false, false, true);
-                }
-            }
-        };
         private boolean mIsCustomView;
 
         public TooltipViewImpl (Context context, final Builder builder) {

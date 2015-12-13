@@ -227,6 +227,7 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
                         .maxWidth((int) (metrics.widthPixels / 2))
                         .withOverlay(true)
                         .withCallback(this)
+                        .activateDelay(500)
                         .floatingAnimation(new AnimationBuilder().setDirection(0).setDuration(400).setRadius(8).build())
                         .build()).show();
 

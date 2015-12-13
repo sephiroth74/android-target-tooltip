@@ -1,5 +1,4 @@
 apply plugin: 'com.android.application'
-apply plugin: 'me.tatarka.retrolambda'
 
 android {
     compileSdkVersion ANDROID_BUILD_SDK_VERSION as int
@@ -19,8 +18,18 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+
+    lintOptions {
+        disable 'IconMissingDensityFolder'
+        disable 'UnusedResources'
+        htmlReport true
+        xmlReport false
+        textOutput 'stdout'
+        textReport true
+        abortOnError false
     }
 }
 

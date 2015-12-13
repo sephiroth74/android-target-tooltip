@@ -23,15 +23,15 @@ import java.util.List;
 import it.sephiroth.android.library.tooltip.Tooltip;
 
 public class MainActivity3 extends AppCompatActivity implements AdapterView.OnItemClickListener {
-    private static final String TAG = "MainActivity3";
-    RecyclerView mRecyclerView;
     static final int TOOLTIP_ID = 101;
     static final int LIST_POSITION = 5;
-    private Tooltip.TooltipView mCurrentTooltip;
+    private static final String TAG = "MainActivity3";
+    RecyclerView mRecyclerView;
     DisplayMetrics displayMetrics;
+    private Tooltip.TooltipView mCurrentTooltip;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate (Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main_activity3);
@@ -49,33 +49,33 @@ public class MainActivity3 extends AppCompatActivity implements AdapterView.OnIt
         mRecyclerView.setAdapter(new MyAdapter(this, R.layout.custom_list_textview, array));
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.addOnScrollListener(
-                new RecyclerView.OnScrollListener() {
-                    @Override
-                    public void onScrollStateChanged(
-                            final RecyclerView recyclerView, final int newState) {
-                        super.onScrollStateChanged(recyclerView, newState);
+            new RecyclerView.OnScrollListener() {
+                @Override
+                public void onScrollStateChanged (
+                    final RecyclerView recyclerView, final int newState) {
+                    super.onScrollStateChanged(recyclerView, newState);
 
-                        if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                    if (newState == RecyclerView.SCROLL_STATE_IDLE) {
 
-                        }
                     }
-                });
+                }
+            });
 
     }
 
     @Override
-    protected void onDestroy() {
+    protected void onDestroy () {
         super.onDestroy();
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
+    public boolean onCreateOptionsMenu (Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected (MenuItem item) {
         int id = item.getItemId();
 
         if (id == R.id.action_demo2) {
@@ -87,7 +87,7 @@ public class MainActivity3 extends AppCompatActivity implements AdapterView.OnIt
     }
 
     @Override
-    public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
+    public void onItemClick (final AdapterView<?> parent, final View view, final int position, final long id) {
         Log.d(TAG, "onItemClick: " + position);
 
         if (position == LIST_POSITION) {
@@ -102,7 +102,7 @@ public class MainActivity3 extends AppCompatActivity implements AdapterView.OnIt
         private final int mResId;
         private final List<String> mData;
 
-        public MyAdapter(final Context context, final int resource, final List<String> objects) {
+        public MyAdapter (final Context context, final int resource, final List<String> objects) {
             super();
             setHasStableIds(true);
             mResId = resource;
@@ -110,34 +110,26 @@ public class MainActivity3 extends AppCompatActivity implements AdapterView.OnIt
         }
 
         @Override
-        public int getItemCount() {
-            return mData.size();
-        }
-
-        @Override
-        public long getItemId(final int position) {
-            return position;
-        }
-
-        @Override
-        public RecyclerView.ViewHolder onCreateViewHolder(final ViewGroup parent, final int viewType) {
+        public RecyclerView.ViewHolder onCreateViewHolder (final ViewGroup parent, final int viewType) {
             View view = LayoutInflater.from(MainActivity3.this).inflate(mResId, parent, false);
             final RecyclerView.ViewHolder holder = new RecyclerView.ViewHolder(view) {
             };
-            view.setOnClickListener(
-                    v -> {
-                        if (null != mCurrentTooltip) {
-                            mCurrentTooltip.hide();
-                            mCurrentTooltip = null;
-                        } else {
-                            showTooltip(holder);
-                        }
-                    });
+            view.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick (final View v) {
+                    if (null != mCurrentTooltip) {
+                        mCurrentTooltip.hide();
+                        mCurrentTooltip = null;
+                    } else {
+                        showTooltip(holder);
+                    }
+                }
+            });
             return holder;
         }
 
         @Override
-        public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
+        public void onBindViewHolder (final RecyclerView.ViewHolder holder, final int position) {
             ((TextView) holder.itemView.findViewById(android.R.id.text1)).setText(mData.get(position));
 
             if (position == LIST_POSITION) {
@@ -145,43 +137,55 @@ public class MainActivity3 extends AppCompatActivity implements AdapterView.OnIt
             }
         }
 
-        private void showTooltip(final RecyclerView.ViewHolder holder) {
+        @Override
+        public long getItemId (final int position) {
+            return position;
+        }
+
+        @Override
+        public int getItemCount () {
+            return mData.size();
+        }
+
+        private void showTooltip (final RecyclerView.ViewHolder holder) {
             if (null != mCurrentTooltip) {
                 Log.w(TAG, "failed to show tooltip");
                 return;
             }
 
-            mCurrentTooltip = Tooltip.make(MainActivity3.this,
-                    new Tooltip.Builder(TOOLTIP_ID)
-                            .maxWidth((int) (displayMetrics.widthPixels / 2))
-                            .anchor(holder.itemView.findViewById(android.R.id.text1), Tooltip.Gravity.RIGHT)
-                            .closePolicy(Tooltip.ClosePolicy.TouchInside, 0)
-                            .text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc lacinia sem non neque commodo consectetur")
-                            .fitToScreen(false)
-                            .fadeDuration(200)
-                            .showDelay(50)
-                            .withCallback(
-                                    new Tooltip.Callback() {
-                                        @Override
-                                        public void onTooltipClose(final Tooltip.TooltipView v, final boolean fromUser, final boolean containsTouch) {
-                                            Log.w(
-                                                    TAG, "onTooltipClose: " + v + ", fromUser: " + fromUser + ", containsTouch: " + containsTouch);
-                                            mCurrentTooltip = null;
-                                        }
+            mCurrentTooltip = Tooltip.make(
+                MainActivity3.this,
+                new Tooltip.Builder(TOOLTIP_ID)
+                    .maxWidth((int) (displayMetrics.widthPixels / 2))
+                    .anchor(holder.itemView.findViewById(android.R.id.text1), Tooltip.Gravity.RIGHT)
+                    .closePolicy(Tooltip.ClosePolicy.TouchInside, 0)
+                    .text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc lacinia sem non neque commodo consectetur")
+                    .fitToScreen(false)
+                    .fadeDuration(200)
+                    .showDelay(50)
+                    .withCallback(
+                        new Tooltip.Callback() {
+                            @Override
+                            public void onTooltipClose (
+                                final Tooltip.TooltipView v, final boolean fromUser, final boolean containsTouch) {
+                                Log.w(
+                                    TAG, "onTooltipClose: " + v + ", fromUser: " + fromUser + ", containsTouch: " + containsTouch);
+                                mCurrentTooltip = null;
+                            }
 
-                                        @Override
-                                        public void onTooltipFailed(Tooltip.TooltipView view) {
-                                        }
+                            @Override
+                            public void onTooltipFailed (Tooltip.TooltipView view) {
+                            }
 
-                                        @Override
-                                        public void onTooltipShown(Tooltip.TooltipView view) {
-                                        }
+                            @Override
+                            public void onTooltipShown (Tooltip.TooltipView view) {
+                            }
 
-                                        @Override
-                                        public void onTooltipHidden(Tooltip.TooltipView view) {
-                                        }
-                                    })
-                            .build());
+                            @Override
+                            public void onTooltipHidden (Tooltip.TooltipView view) {
+                            }
+                        })
+                    .build());
             mCurrentTooltip.show();
         }
     }
