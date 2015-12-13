@@ -63,7 +63,7 @@ then pass the style in the Builder method **withStyleId(int resId)**
 
 Video
 ===
-<iframe width="420" height="315" src="https://www.youtube.com/embed/QitX9bnsnP4" frameborder="0" allowfullscreen></iframe>
+[![IMAGE ALT TEXT HERE](http://img.youtube.com/vi/QitX9bnsnP4/0.jpg)](http://www.youtube.com/watch?v=QitX9bnsnP4)
 
 
 Screenshots
