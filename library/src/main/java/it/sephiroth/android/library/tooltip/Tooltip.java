@@ -5,6 +5,7 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
@@ -140,6 +141,7 @@ public final class Tooltip {
         void onTooltipHidden (final TooltipView view);
     }
 
+    @SuppressLint ("ViewConstructor")
     static class TooltipViewImpl extends ViewGroup implements TooltipView {
         public static final int TOLERANCE_VALUE = 10;
         private static final String TAG = "TooltipView";
