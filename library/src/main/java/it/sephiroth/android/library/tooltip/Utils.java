@@ -3,7 +3,6 @@ package it.sephiroth.android.library.tooltip;
 import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
-import android.graphics.Point;
 import android.graphics.Rect;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -11,15 +10,16 @@ import android.util.Log;
 
 import static android.util.Log.INFO;
 import static android.util.Log.VERBOSE;
-import static it.sephiroth.android.library.tooltip.Tooltip.DBG;
+import static it.sephiroth.android.library.tooltip.Tooltip.dbg;
 
 /**
- * Created by alessandro on 12/12/15.
+ * Created by alessandro crugnola on 12/12/15.
  */
-class Utils {
+final class Utils {
+    private Utils () { }
 
     @Nullable
-    static Activity getActivity(@Nullable Context cont) {
+    static Activity getActivity (@Nullable Context cont) {
         if (cont == null) {
             return null;
         } else if (cont instanceof Activity) {
@@ -30,8 +30,8 @@ class Utils {
         return null;
     }
 
-    static void log(final String tag, final int level, final String format, Object... args) {
-        if (DBG) {
+    static void log (final String tag, final int level, final String format, Object... args) {
+        if (dbg) {
             switch (level) {
                 case Log.DEBUG:
                     Log.d(tag, String.format(format, args));
@@ -53,11 +53,11 @@ class Utils {
         }
     }
 
-    static boolean equals(@Nullable Object a, @Nullable Object b) {
+    static boolean equals (@Nullable Object a, @Nullable Object b) {
         return (a == null) ? (b == null) : a.equals(b);
     }
 
-    static boolean rectContainsRectWithTolerance(@NonNull final Rect parentRect, @NonNull final Rect childRect, final int t) {
+    static boolean rectContainsRectWithTolerance (@NonNull final Rect parentRect, @NonNull final Rect childRect, final int t) {
         return parentRect.contains(childRect.left + t, childRect.top + t, childRect.right - t, childRect.bottom - t);
     }
 }

@@ -55,11 +55,14 @@ import static it.sephiroth.android.library.tooltip.Utils.log;
  * Created by Alessandro Crugnola on 12/12/15.
  * alessandro.crugnola@gmail.com
  */
-public class Tooltip {
+public final class Tooltip {
+    public static boolean dbg = true;
 
-    public static boolean DBG = true;
+    private Tooltip () {
+        // empty
+    }
 
-    public static TooltipView make(Context context, Builder builder) {
+    public static TooltipView make (Context context, Builder builder) {
         TooltipViewImpl view = new TooltipViewImpl(context, builder);
         return view;
     }
@@ -76,7 +79,6 @@ public class Tooltip {
          * In exclusive mode all touches will be consumed by the tooltip itself
          */
         TouchInsideExclusive,
-
         /**
          * tooltip will hide when user touches anywhere the screen, or after the specified delay.
          * If delay is '0' the tooltip will never hide until clicked
@@ -99,23 +101,23 @@ public class Tooltip {
     }
 
     public interface TooltipView {
-        void show();
+        void show ();
 
-        void hide();
+        void hide ();
 
-        void remove();
+        void remove ();
 
-        int getTooltipId();
+        int getTooltipId ();
 
-        void offsetTo(int x, int y);
+        void offsetTo (int x, int y);
 
-        void offsetBy(int x, int y);
+        void offsetBy (int x, int y);
 
-        boolean isAttached();
+        boolean isAttached ();
 
-        boolean isShown();
+        boolean isShown ();
 
-        void requestLayout();
+        void requestLayout ();
     }
 
     public interface Callback {
@@ -126,23 +128,23 @@ public class Tooltip {
          * @param fromUser      true if the close operation started from a user click
          * @param containsTouch true if the original touch came from inside the tooltip
          */
-        void onTooltipClose(final TooltipView tooltip, final boolean fromUser, final boolean containsTouch);
+        void onTooltipClose (final TooltipView tooltip, final boolean fromUser, final boolean containsTouch);
 
         /**
          * Tooltip failed to show (not enough space)
          */
-        void onTooltipFailed(final TooltipView view);
+        void onTooltipFailed (final TooltipView view);
 
-        void onTooltipShown(final TooltipView view);
+        void onTooltipShown (final TooltipView view);
 
-        void onTooltipHidden(final TooltipView view);
+        void onTooltipHidden (final TooltipView view);
     }
 
     static class TooltipViewImpl extends ViewGroup implements TooltipView {
         public static final int TOLERANCE_VALUE = 10;
         private static final String TAG = "TooltipView";
-        private static final List<Gravity> gravities = new ArrayList<>(Arrays.asList(LEFT, RIGHT, TOP, BOTTOM, CENTER));
-        private final List<Gravity> viewGravities = new ArrayList<>(gravities);
+        private static final List<Gravity> GRAVITY_LIST = new ArrayList<>(Arrays.asList(LEFT, RIGHT, TOP, BOTTOM, CENTER));
+        private final List<Gravity> viewGravities = new ArrayList<>(GRAVITY_LIST);
         private final long mShowDelay;
         private final int mTextAppearance;
         private final int mToolTipId;
@@ -183,7 +185,7 @@ public class Tooltip {
         private TooltipOverlay mViewOverlay;
         private final ViewTreeObserver.OnPreDrawListener mPreDrawListener = new ViewTreeObserver.OnPreDrawListener() {
             @Override
-            public boolean onPreDraw() {
+            public boolean onPreDraw () {
                 if (!mAttached) {
                     log(TAG, WARN, "[%d] onPreDraw. not attached", mToolTipId);
                     removePreDrawObserver(null);
@@ -221,50 +223,51 @@ public class Tooltip {
         private Animator mAnimator;
         private AnimationBuilder mFloatingAnimation;
         private boolean mAlreadyCheck;
-        private final ViewTreeObserver.OnGlobalLayoutListener mGlobalLayoutListener = new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                if (!mAttached) {
-                    log(TAG, WARN, "[%d] onGlobalLayout. removeListeners", mToolTipId);
-                    removeGlobalLayoutObserver(null);
-                    return;
-                }
+        private final ViewTreeObserver.OnGlobalLayoutListener mGlobalLayoutListener =
+            new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout () {
+                    if (!mAttached) {
+                        log(TAG, WARN, "[%d] onGlobalLayout. removeListeners", mToolTipId);
+                        removeGlobalLayoutObserver(null);
+                        return;
+                    }
 
-                if (null != mViewAnchor) {
-                    View view = mViewAnchor.get();
+                    if (null != mViewAnchor) {
+                        View view = mViewAnchor.get();
 
-                    if (null != view) {
-                        view.getHitRect(mTempRect);
-                        view.getLocationOnScreen(mTempLocation);
+                        if (null != view) {
+                            view.getHitRect(mTempRect);
+                            view.getLocationOnScreen(mTempLocation);
 
-                        if (DBG) {
-                            log(TAG, INFO, "[%d] onGlobalLayout(dirty: %b)", mToolTipId, view.isDirty());
-                            log(TAG, VERBOSE, "[%d] hitRect: %s, old: %s", mToolTipId, mTempRect, mHitRect);
-                        }
+                            if (dbg) {
+                                log(TAG, INFO, "[%d] onGlobalLayout(dirty: %b)", mToolTipId, view.isDirty());
+                                log(TAG, VERBOSE, "[%d] hitRect: %s, old: %s", mToolTipId, mTempRect, mHitRect);
+                            }
 
-                        if (!mTempRect.equals(mHitRect)) {
-                            mHitRect.set(mTempRect);
+                            if (!mTempRect.equals(mHitRect)) {
+                                mHitRect.set(mTempRect);
 
-                            mTempRect.offsetTo(mTempLocation[0], mTempLocation[1]);
-                            mViewRect.set(mTempRect);
-                            calculatePositions();
-                        }
-                    } else {
-                        if (DBG) {
-                            log(TAG, WARN, "[%d] view is null", mToolTipId);
+                                mTempRect.offsetTo(mTempLocation[0], mTempLocation[1]);
+                                mViewRect.set(mTempRect);
+                                calculatePositions();
+                            }
+                        } else {
+                            if (dbg) {
+                                log(TAG, WARN, "[%d] view is null", mToolTipId);
+                            }
                         }
                     }
                 }
-            }
-        };
+            };
         private final OnAttachStateChangeListener mAttachedStateListener = new OnAttachStateChangeListener() {
             @Override
-            public void onViewAttachedToWindow(final View v) {
+            public void onViewAttachedToWindow (final View v) {
             }
 
             @Override
-            @TargetApi(17)
-            public void onViewDetachedFromWindow(final View v) {
+            @TargetApi (17)
+            public void onViewDetachedFromWindow (final View v) {
                 log(TAG, INFO, "[%d] onViewDetachedFromWindow", mToolTipId);
                 removeViewListeners(v);
 
@@ -288,11 +291,12 @@ public class Tooltip {
         };
         private boolean mIsCustomView;
 
-        public TooltipViewImpl(Context context, final Builder builder) {
+        public TooltipViewImpl (Context context, final Builder builder) {
             super(context);
 
             TypedArray theme =
-                    context.getTheme().obtainStyledAttributes(null, R.styleable.TooltipLayout, builder.defStyleAttr, builder.defStyleRes);
+                context.getTheme()
+                    .obtainStyledAttributes(null, R.styleable.TooltipLayout, builder.defStyleAttr, builder.defStyleRes);
             this.mPadding = theme.getDimensionPixelSize(R.styleable.TooltipLayout_ttlm_padding, 30);
             this.mTextAppearance = theme.getResourceId(R.styleable.TooltipLayout_android_textAppearance, 0);
             this.mTextViewElevation = theme.getDimension(R.styleable.TooltipLayout_ttlm_elevation, 0);
@@ -362,7 +366,7 @@ public class Tooltip {
         }
 
         @Override
-        public void show() {
+        public void show () {
             if (getParent() == null) {
                 final Activity act = Utils.getActivity(getContext());
                 LayoutParams params = new LayoutParams(MATCH_PARENT, MATCH_PARENT);
@@ -372,16 +376,81 @@ public class Tooltip {
         }
 
         @Override
-        public int getTooltipId() {
-            return mToolTipId;
+        public void hide () {
+            hide(mFadeDuration);
         }
 
-        @SuppressWarnings("unused")
-        public boolean isShowing() {
-            return mShowing;
+        private void hide (long fadeDuration) {
+            log(TAG, INFO, "[%d] hide(%d)", mToolTipId, fadeDuration);
+
+            if (!isAttached()) {
+                return;
+            }
+            fadeOut(fadeDuration);
         }
 
-        void removeFromParent() {
+        protected void fadeOut (long fadeDuration) {
+            if (!isAttached() || !mShowing) {
+                return;
+            }
+
+            log(TAG, INFO, "[%d] fadeOut(%d)", mToolTipId, fadeDuration);
+
+            if (null != mShowAnimation) {
+                mShowAnimation.cancel();
+            }
+
+            mShowing = false;
+
+            if (fadeDuration > 0) {
+                float alpha = getAlpha();
+                mShowAnimation = ObjectAnimator.ofFloat(this, "alpha", alpha, 0);
+                mShowAnimation.setDuration(fadeDuration);
+                mShowAnimation.addListener(
+                    new Animator.AnimatorListener() {
+                        boolean cancelled;
+
+                        @Override
+                        public void onAnimationStart (final Animator animation) {
+                            cancelled = false;
+                        }
+
+                        @Override
+                        public void onAnimationEnd (final Animator animation) {
+                            log(TAG, VERBOSE, "[%d] fade-out onAnimationEnd, cancelled: %b", mToolTipId, cancelled);
+                            if (cancelled) {
+                                return;
+                            }
+
+                            // hide completed
+                            if (null != mCallback) {
+                                mCallback.onTooltipHidden(TooltipViewImpl.this);
+                            }
+
+                            remove();
+                            mShowAnimation = null;
+                        }
+
+                        @Override
+                        public void onAnimationCancel (final Animator animation) {
+                            log(TAG, VERBOSE, "[%d] fade-out onAnimationCancel", mToolTipId);
+                            cancelled = true;
+                        }
+
+                        @Override
+                        public void onAnimationRepeat (final Animator animation) {
+
+                        }
+                    }
+                );
+                mShowAnimation.start();
+            } else {
+                setVisibility(View.INVISIBLE);
+                remove();
+            }
+        }
+
+        void removeFromParent () {
             log(TAG, INFO, "[%d] removeFromParent", mToolTipId);
             ViewParent parent = getParent();
             removeCallbacks();
@@ -395,13 +464,48 @@ public class Tooltip {
             }
         }
 
-        private void removeCallbacks() {
+        private void removeCallbacks () {
             mHandler.removeCallbacks(hideRunnable);
             mHandler.removeCallbacks(activateRunnable);
         }
 
         @Override
-        protected void onAttachedToWindow() {
+        public void remove () {
+            log(TAG, INFO, "[%d] remove()", mToolTipId);
+            if (isAttached()) {
+                removeFromParent();
+            }
+        }
+
+        @Override
+        public int getTooltipId () {
+            return mToolTipId;
+        }
+
+        @Override
+        public void offsetTo (final int x, final int y) {
+            mView.setTranslationX(x + mDrawRect.left);
+            mView.setTranslationY(y + mDrawRect.top);
+        }
+
+        @Override
+        public void offsetBy (final int x, final int y) {
+            mView.setTranslationX(x + mView.getTranslationX());
+            mView.setTranslationY(y + mView.getTranslationY());
+        }
+
+        @Override
+        public boolean isAttached () {
+            return mAttached;
+        }
+
+        @SuppressWarnings ("unused")
+        public boolean isShowing () {
+            return mShowing;
+        }
+
+        @Override
+        protected void onAttachedToWindow () {
             log(TAG, INFO, "[%d] onAttachedToWindow", mToolTipId);
             super.onAttachedToWindow();
             mAttached = true;
@@ -413,7 +517,7 @@ public class Tooltip {
         }
 
         @Override
-        protected void onDetachedFromWindow() {
+        protected void onDetachedFromWindow () {
             log(TAG, INFO, "[%d] onDetachedFromWindow", mToolTipId);
             removeListeners();
             stopFloatingAnimations();
@@ -423,7 +527,7 @@ public class Tooltip {
         }
 
         @Override
-        protected void onLayout(final boolean changed, final int l, final int t, final int r, final int b) {
+        protected void onLayout (final boolean changed, final int l, final int t, final int r, final int b) {
             log(TAG, INFO, "[%d] onLayout(%b, %d, %d, %d, %d)", mToolTipId, changed, l, t, r, b);
 
             if (null != mView) {
@@ -433,10 +537,10 @@ public class Tooltip {
 
             if (null != mViewOverlay) {
                 mViewOverlay.layout(
-                        mViewOverlay.getLeft(),
-                        mViewOverlay.getTop(),
-                        mViewOverlay.getMeasuredWidth(),
-                        mViewOverlay.getMeasuredHeight());
+                    mViewOverlay.getLeft(),
+                    mViewOverlay.getTop(),
+                    mViewOverlay.getMeasuredWidth(),
+                    mViewOverlay.getMeasuredHeight());
             }
 
             if (changed) {
@@ -453,7 +557,7 @@ public class Tooltip {
             }
         }
 
-        private void removeListeners() {
+        private void removeListeners () {
             mCallback = null;
 
             if (null != mViewAnchor) {
@@ -462,21 +566,21 @@ public class Tooltip {
             }
         }
 
-        private void stopFloatingAnimations() {
+        private void stopFloatingAnimations () {
             log(TAG, DEBUG, "stopFloatingAnimations");
             if (null != mAnimator) {
                 mAnimator.cancel();
             }
         }
 
-        private void removeViewListeners(final View view) {
+        private void removeViewListeners (final View view) {
             log(TAG, INFO, "[%d] removeListeners", mToolTipId);
             removeGlobalLayoutObserver(view);
             removePreDrawObserver(view);
             removeOnAttachStateObserver(view);
         }
 
-        private void removeGlobalLayoutObserver(@Nullable View view) {
+        private void removeGlobalLayoutObserver (@Nullable View view) {
             if (null == view && null != mViewAnchor) {
                 view = mViewAnchor.get();
             }
@@ -491,7 +595,7 @@ public class Tooltip {
             }
         }
 
-        private void removePreDrawObserver(@Nullable View view) {
+        private void removePreDrawObserver (@Nullable View view) {
             if (null == view && null != mViewAnchor) {
                 view = mViewAnchor.get();
             }
@@ -502,7 +606,7 @@ public class Tooltip {
             }
         }
 
-        private void removeOnAttachStateObserver(@Nullable View view) {
+        private void removeOnAttachStateObserver (@Nullable View view) {
             if (null == view && null != mViewAnchor) {
                 view = mViewAnchor.get();
             }
@@ -513,8 +617,8 @@ public class Tooltip {
             }
         }
 
-        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-        private void initializeView() {
+        @TargetApi (Build.VERSION_CODES.LOLLIPOP)
+        private void initializeView () {
             if (!isAttached() || mInitialized) {
                 return;
             }
@@ -557,7 +661,7 @@ public class Tooltip {
             }
         }
 
-        private void showInternal() {
+        private void showInternal () {
             log(TAG, INFO, "[%d] show", mToolTipId);
             if (!isAttached()) {
                 log(TAG, ERROR, "[%d] not attached!", mToolTipId);
@@ -566,106 +670,7 @@ public class Tooltip {
             fadeIn(mFadeDuration);
         }
 
-        @Override
-        public void hide() {
-            hide(mFadeDuration);
-        }
-
-        private void hide(long fadeDuration) {
-            log(TAG, INFO, "[%d] hide(%d)", mToolTipId, fadeDuration);
-
-            if (!isAttached()) {
-                return;
-            }
-            fadeOut(fadeDuration);
-        }
-
-        protected void fadeOut(long fadeDuration) {
-            if (!isAttached() || !mShowing) {
-                return;
-            }
-
-            log(TAG, INFO, "[%d] fadeOut(%d)", mToolTipId, fadeDuration);
-
-            if (null != mShowAnimation) {
-                mShowAnimation.cancel();
-            }
-
-            mShowing = false;
-
-            if (fadeDuration > 0) {
-                float alpha = getAlpha();
-                mShowAnimation = ObjectAnimator.ofFloat(this, "alpha", alpha, 0);
-                mShowAnimation.setDuration(fadeDuration);
-                mShowAnimation.addListener(
-                        new Animator.AnimatorListener() {
-                            boolean cancelled;
-
-                            @Override
-                            public void onAnimationStart(final Animator animation) {
-                                cancelled = false;
-                            }
-
-                            @Override
-                            public void onAnimationEnd(final Animator animation) {
-                                log(TAG, VERBOSE, "[%d] fade-out onAnimationEnd, cancelled: %b", mToolTipId, cancelled);
-                                if (cancelled) {
-                                    return;
-                                }
-
-                                // hide completed
-                                if (null != mCallback) {
-                                    mCallback.onTooltipHidden(TooltipViewImpl.this);
-                                }
-
-                                remove();
-                                mShowAnimation = null;
-                            }
-
-                            @Override
-                            public void onAnimationCancel(final Animator animation) {
-                                log(TAG, VERBOSE, "[%d] fade-out onAnimationCancel", mToolTipId);
-                                cancelled = true;
-                            }
-
-                            @Override
-                            public void onAnimationRepeat(final Animator animation) {
-
-                            }
-                        });
-                mShowAnimation.start();
-            } else {
-                setVisibility(View.INVISIBLE);
-                remove();
-            }
-        }
-
-        @Override
-        public void remove() {
-            log(TAG, INFO, "[%d] remove()", mToolTipId);
-            if (isAttached()) {
-                removeFromParent();
-            }
-        }
-
-        @Override
-        public void offsetBy(final int x, final int y) {
-            mView.setTranslationX(x + mView.getTranslationX());
-            mView.setTranslationY(y + mView.getTranslationY());
-        }
-
-        @Override
-        public void offsetTo(final int x, final int y) {
-            mView.setTranslationX(x + mDrawRect.left);
-            mView.setTranslationY(y + mDrawRect.top);
-        }
-
-        @Override
-        public boolean isAttached() {
-            return mAttached;
-        }
-
-        protected void fadeIn(final long fadeDuration) {
+        protected void fadeIn (final long fadeDuration) {
             if (mShowing) {
                 return;
             }
@@ -685,40 +690,41 @@ public class Tooltip {
                     mShowAnimation.setStartDelay(this.mShowDelay);
                 }
                 mShowAnimation.addListener(
-                        new Animator.AnimatorListener() {
-                            boolean cancelled;
+                    new Animator.AnimatorListener() {
+                        boolean cancelled;
 
-                            @Override
-                            public void onAnimationStart(final Animator animation) {
-                                log(TAG, VERBOSE, "[%d] fade-in onAnimationStart", mToolTipId);
-                                setVisibility(View.VISIBLE);
-                                cancelled = false;
-                            }
+                        @Override
+                        public void onAnimationStart (final Animator animation) {
+                            log(TAG, VERBOSE, "[%d] fade-in onAnimationStart", mToolTipId);
+                            setVisibility(View.VISIBLE);
+                            cancelled = false;
+                        }
 
-                            @Override
-                            public void onAnimationEnd(final Animator animation) {
-                                log(TAG, VERBOSE, "[%d] fade-in onAnimationEnd, cancelled: %b", mToolTipId, cancelled);
+                        @Override
+                        public void onAnimationEnd (final Animator animation) {
+                            log(TAG, VERBOSE, "[%d] fade-in onAnimationEnd, cancelled: %b", mToolTipId, cancelled);
 
-                                if (!cancelled) {
-                                    if (null != mCallback) {
-                                        mCallback.onTooltipShown(TooltipViewImpl.this);
-                                    }
-
-                                    postActivate(mActivateDelay);
+                            if (!cancelled) {
+                                if (null != mCallback) {
+                                    mCallback.onTooltipShown(TooltipViewImpl.this);
                                 }
-                            }
 
-                            @Override
-                            public void onAnimationCancel(final Animator animation) {
-                                log(TAG, VERBOSE, "[%d] fade-in onAnimationCancel", mToolTipId);
-                                cancelled = true;
+                                postActivate(mActivateDelay);
                             }
+                        }
 
-                            @Override
-                            public void onAnimationRepeat(final Animator animation) {
+                        @Override
+                        public void onAnimationCancel (final Animator animation) {
+                            log(TAG, VERBOSE, "[%d] fade-in onAnimationCancel", mToolTipId);
+                            cancelled = true;
+                        }
 
-                            }
-                        });
+                        @Override
+                        public void onAnimationRepeat (final Animator animation) {
+
+                        }
+                    }
+                );
                 mShowAnimation.start();
             } else {
                 setVisibility(View.VISIBLE);
@@ -734,7 +740,7 @@ public class Tooltip {
             }
         }
 
-        void postActivate(long ms) {
+        void postActivate (long ms) {
             log(TAG, VERBOSE, "[%d] postActivate: %d", mToolTipId, ms);
             if (ms > 0) {
                 if (isAttached()) {
@@ -745,19 +751,20 @@ public class Tooltip {
             }
         }
 
-        private void calculatePositions() {
+        private void calculatePositions () {
             calculatePositions(mRestrict);
         }
 
-        private void calculatePositions(boolean restrict) {
+        private void calculatePositions (boolean restrict) {
             viewGravities.clear();
-            viewGravities.addAll(gravities);
+            viewGravities.addAll(GRAVITY_LIST);
             viewGravities.remove(mGravity);
             viewGravities.add(0, mGravity);
             calculatePositions(viewGravities, restrict);
         }
 
-        private void calculatePositions(List<Gravity> gravities, final boolean checkEdges) {
+        @SuppressWarnings ("checkstyle:cyclomaticcomplexity")
+        private void calculatePositions (List<Gravity> gravities, final boolean checkEdges) {
             if (!isAttached()) {
                 return;
             }
@@ -775,8 +782,10 @@ public class Tooltip {
 
             Gravity gravity = gravities.remove(0);
 
-            if (DBG) {
-                log(TAG, DEBUG, "[%s] calculatePositions. gravity: %s, gravities: %d, restrict: %b", mToolTipId, gravity, gravities.size(), checkEdges);
+            if (dbg) {
+                log(TAG, DEBUG,
+                    "[%s] calculatePositions. gravity: %s, GRAVITY_LIST: %d, restrict: %b", mToolTipId, gravity,
+                    gravities.size(), checkEdges);
             }
 
             int statusbarHeight = mScreenRect.top;
@@ -807,137 +816,36 @@ public class Tooltip {
             // get the destination mPoint
 
             if (gravity == BOTTOM) {
-                mDrawRect.set(
-                        mViewRect.centerX() - width / 2,
-                        mViewRect.bottom,
-                        mViewRect.centerX() + width / 2,
-                        mViewRect.bottom + height
-                );
-
-                if (mViewRect.height() / 2 < overlayHeight) {
-                    mDrawRect.offset(0, overlayHeight);
-                }
-
-                if (checkEdges && !Utils.rectContainsRectWithTolerance(mScreenRect, mDrawRect, mSizeTolerance)) {
-                    if (mDrawRect.right > mScreenRect.right) {
-                        mDrawRect.offset(mScreenRect.right - mDrawRect.right, 0);
-                    } else if (mDrawRect.left < mScreenRect.left) {
-                        mDrawRect.offset(-mDrawRect.left, 0);
-                    }
-                    if (mDrawRect.bottom > mScreenRect.bottom) {
-                        // this means there's no enough space!
-                        calculatePositions(gravities, checkEdges);
-                        return;
-                    } else if (mDrawRect.top < screenTop) {
-                        mDrawRect.offset(0, screenTop - mDrawRect.top);
-                    }
+                if (calculatePositionBottom(checkEdges, overlayHeight, screenTop, width, height)) {
+                    log(TAG, WARN, "no enough space for BOTTOM");
+                    calculatePositions(gravities, checkEdges);
+                    return;
                 }
             } else if (gravity == TOP) {
-                mDrawRect.set(
-                        mViewRect.centerX() - width / 2,
-                        mViewRect.top - height,
-                        mViewRect.centerX() + width / 2,
-                        mViewRect.top
-                );
-
-                if ((mViewRect.height() / 2) < overlayHeight) {
-                    mDrawRect.offset(0, -(overlayHeight - (mViewRect.height() / 2)));
-                }
-
-                if (checkEdges && !Utils.rectContainsRectWithTolerance(mScreenRect, mDrawRect, mSizeTolerance)) {
-                    if (mDrawRect.right > mScreenRect.right) {
-                        mDrawRect.offset(mScreenRect.right - mDrawRect.right, 0);
-                    } else if (mDrawRect.left < mScreenRect.left) {
-                        mDrawRect.offset(-mDrawRect.left, 0);
-                    }
-                    if (mDrawRect.top < screenTop) {
-                        // this means there's no enough space!
-                        calculatePositions(gravities, checkEdges);
-                        return;
-                    } else if (mDrawRect.bottom > mScreenRect.bottom) {
-                        mDrawRect.offset(0, mScreenRect.bottom - mDrawRect.bottom);
-                    }
+                if (calculatePositionTop(checkEdges, overlayHeight, screenTop, width, height)) {
+                    log(TAG, WARN, "no enough space for TOP");
+                    calculatePositions(gravities, checkEdges);
+                    return;
                 }
             } else if (gravity == RIGHT) {
-                mDrawRect.set(
-                        mViewRect.right,
-                        mViewRect.centerY() - height / 2,
-                        mViewRect.right + width,
-                        mViewRect.centerY() + height / 2
-                );
-
-                if ((mViewRect.width() / 2) < overlayWidth) {
-                    mDrawRect.offset(overlayWidth - mViewRect.width() / 2, 0);
-                }
-
-                if (checkEdges && !Utils.rectContainsRectWithTolerance(mScreenRect, mDrawRect, mSizeTolerance)) {
-                    if (mDrawRect.bottom > mScreenRect.bottom) {
-                        mDrawRect.offset(0, mScreenRect.bottom - mDrawRect.bottom);
-                    } else if (mDrawRect.top < screenTop) {
-                        mDrawRect.offset(0, screenTop - mDrawRect.top);
-                    }
-                    if (mDrawRect.right > mScreenRect.right) {
-                        // this means there's no enough space!
-                        calculatePositions(gravities, checkEdges);
-                        return;
-                    } else if (mDrawRect.left < mScreenRect.left) {
-                        mDrawRect.offset(mScreenRect.left - mDrawRect.left, 0);
-                    }
+                if (calculatePositionRight(checkEdges, overlayWidth, screenTop, width, height)) {
+                    log(TAG, WARN, "no enough space for RIGHT");
+                    calculatePositions(gravities, checkEdges);
+                    return;
                 }
             } else if (gravity == LEFT) {
-                mDrawRect.set(
-                        mViewRect.left - width,
-                        mViewRect.centerY() - height / 2,
-                        mViewRect.left,
-                        mViewRect.centerY() + height / 2
-                );
-
-                if ((mViewRect.width() / 2) < overlayWidth) {
-                    mDrawRect.offset(-(overlayWidth - (mViewRect.width() / 2)), 0);
-                }
-
-                if (checkEdges && !Utils.rectContainsRectWithTolerance(mScreenRect, mDrawRect, mSizeTolerance)) {
-                    if (mDrawRect.bottom > mScreenRect.bottom) {
-                        mDrawRect.offset(0, mScreenRect.bottom - mDrawRect.bottom);
-                    } else if (mDrawRect.top < screenTop) {
-                        mDrawRect.offset(0, screenTop - mDrawRect.top);
-                    }
-                    if (mDrawRect.left < mScreenRect.left) {
-                        // this means there's no enough space!
-                        calculatePositions(gravities, checkEdges);
-                        return;
-                    } else if (mDrawRect.right > mScreenRect.right) {
-                        mDrawRect.offset(mScreenRect.right - mDrawRect.right, 0);
-                    }
+                if (calculatePositionLeft(checkEdges, overlayWidth, screenTop, width, height)) {
+                    log(TAG, WARN, "no enough space for LEFT");
+                    calculatePositions(gravities, checkEdges);
+                    return;
                 }
             } else if (gravity == CENTER) {
-                mDrawRect.set(
-                        mViewRect.centerX() - width / 2,
-                        mViewRect.centerY() - height / 2,
-                        mViewRect.centerX() + width / 2,
-                        mViewRect.centerY() + height / 2
-                );
-
-                if (checkEdges && !Utils.rectContainsRectWithTolerance(mScreenRect, mDrawRect, mSizeTolerance)) {
-                    if (mDrawRect.bottom > mScreenRect.bottom) {
-                        mDrawRect.offset(0, mScreenRect.bottom - mDrawRect.bottom);
-                    } else if (mDrawRect.top < screenTop) {
-                        mDrawRect.offset(0, screenTop - mDrawRect.top);
-                    }
-                    if (mDrawRect.right > mScreenRect.right) {
-                        mDrawRect.offset(mScreenRect.right - mDrawRect.right, 0);
-                    } else if (mDrawRect.left < mScreenRect.left) {
-                        mDrawRect.offset(mScreenRect.left - mDrawRect.left, 0);
-                    }
-                }
+                calculatePositionCenter(checkEdges, screenTop, width, height);
             }
 
-            if (DBG) {
-                log(TAG, VERBOSE, "[%d] mScreenRect: %s, mTopRule: %d, statusBar: %d",
-                        mToolTipId,
-                        mScreenRect,
-                        mTopRule,
-                        statusbarHeight);
+            if (dbg) {
+                log(TAG, VERBOSE, "[%d] mScreenRect: %s, mTopRule: %d, statusBar: %d", mToolTipId, mScreenRect, mTopRule,
+                    statusbarHeight);
                 log(TAG, VERBOSE, "[%d] mDrawRect: %s", mToolTipId, mDrawRect);
                 log(TAG, VERBOSE, "[%d] mViewRect: %s", mToolTipId, mViewRect);
             }
@@ -953,7 +861,6 @@ public class Tooltip {
                     mViewOverlay = null;
                 }
             }
-
 
             if (null != mViewOverlay) {
                 mViewOverlay.setTranslationX(mViewRect.centerX() - mViewOverlay.getWidth() / 2);
@@ -975,8 +882,152 @@ public class Tooltip {
             }
         }
 
-        private void startFloatingAnimations() {
-            if (mTextView == mView || null == mFloatingAnimation) return;
+        private void calculatePositionCenter (final boolean checkEdges, final int screenTop, final int width, final int height) {
+            mDrawRect.set(
+                mViewRect.centerX() - width / 2,
+                mViewRect.centerY() - height / 2,
+                mViewRect.centerX() + width / 2,
+                mViewRect.centerY() + height / 2
+            );
+
+            if (checkEdges && !Utils.rectContainsRectWithTolerance(mScreenRect, mDrawRect, mSizeTolerance)) {
+                if (mDrawRect.bottom > mScreenRect.bottom) {
+                    mDrawRect.offset(0, mScreenRect.bottom - mDrawRect.bottom);
+                } else if (mDrawRect.top < screenTop) {
+                    mDrawRect.offset(0, screenTop - mDrawRect.top);
+                }
+                if (mDrawRect.right > mScreenRect.right) {
+                    mDrawRect.offset(mScreenRect.right - mDrawRect.right, 0);
+                } else if (mDrawRect.left < mScreenRect.left) {
+                    mDrawRect.offset(mScreenRect.left - mDrawRect.left, 0);
+                }
+            }
+        }
+
+        private boolean calculatePositionLeft (
+            final boolean checkEdges, final int overlayWidth, final int screenTop,
+            final int width, final int height) {
+            mDrawRect.set(
+                mViewRect.left - width,
+                mViewRect.centerY() - height / 2,
+                mViewRect.left,
+                mViewRect.centerY() + height / 2
+            );
+
+            if ((mViewRect.width() / 2) < overlayWidth) {
+                mDrawRect.offset(-(overlayWidth - (mViewRect.width() / 2)), 0);
+            }
+
+            if (checkEdges && !Utils.rectContainsRectWithTolerance(mScreenRect, mDrawRect, mSizeTolerance)) {
+                if (mDrawRect.bottom > mScreenRect.bottom) {
+                    mDrawRect.offset(0, mScreenRect.bottom - mDrawRect.bottom);
+                } else if (mDrawRect.top < screenTop) {
+                    mDrawRect.offset(0, screenTop - mDrawRect.top);
+                }
+                if (mDrawRect.left < mScreenRect.left) {
+                    // this means there's no enough space!
+                    return true;
+                } else if (mDrawRect.right > mScreenRect.right) {
+                    mDrawRect.offset(mScreenRect.right - mDrawRect.right, 0);
+                }
+            }
+            return false;
+        }
+
+        private boolean calculatePositionRight (
+            final boolean checkEdges, final int overlayWidth, final int screenTop,
+            final int width, final int height) {
+            mDrawRect.set(
+                mViewRect.right,
+                mViewRect.centerY() - height / 2,
+                mViewRect.right + width,
+                mViewRect.centerY() + height / 2
+            );
+
+            if ((mViewRect.width() / 2) < overlayWidth) {
+                mDrawRect.offset(overlayWidth - mViewRect.width() / 2, 0);
+            }
+
+            if (checkEdges && !Utils.rectContainsRectWithTolerance(mScreenRect, mDrawRect, mSizeTolerance)) {
+                if (mDrawRect.bottom > mScreenRect.bottom) {
+                    mDrawRect.offset(0, mScreenRect.bottom - mDrawRect.bottom);
+                } else if (mDrawRect.top < screenTop) {
+                    mDrawRect.offset(0, screenTop - mDrawRect.top);
+                }
+                if (mDrawRect.right > mScreenRect.right) {
+                    // this means there's no enough space!
+                    return true;
+                } else if (mDrawRect.left < mScreenRect.left) {
+                    mDrawRect.offset(mScreenRect.left - mDrawRect.left, 0);
+                }
+            }
+            return false;
+        }
+
+        private boolean calculatePositionTop (
+            final boolean checkEdges, final int overlayHeight, final int screenTop,
+            final int width, final int height) {
+            mDrawRect.set(
+                mViewRect.centerX() - width / 2,
+                mViewRect.top - height,
+                mViewRect.centerX() + width / 2,
+                mViewRect.top
+            );
+
+            if ((mViewRect.height() / 2) < overlayHeight) {
+                mDrawRect.offset(0, -(overlayHeight - (mViewRect.height() / 2)));
+            }
+
+            if (checkEdges && !Utils.rectContainsRectWithTolerance(mScreenRect, mDrawRect, mSizeTolerance)) {
+                if (mDrawRect.right > mScreenRect.right) {
+                    mDrawRect.offset(mScreenRect.right - mDrawRect.right, 0);
+                } else if (mDrawRect.left < mScreenRect.left) {
+                    mDrawRect.offset(-mDrawRect.left, 0);
+                }
+                if (mDrawRect.top < screenTop) {
+                    // this means there's no enough space!
+                    return true;
+                } else if (mDrawRect.bottom > mScreenRect.bottom) {
+                    mDrawRect.offset(0, mScreenRect.bottom - mDrawRect.bottom);
+                }
+            }
+            return false;
+        }
+
+        private boolean calculatePositionBottom (
+            final boolean checkEdges, final int overlayHeight, final int screenTop,
+            final int width, final int height) {
+            mDrawRect.set(
+                mViewRect.centerX() - width / 2,
+                mViewRect.bottom,
+                mViewRect.centerX() + width / 2,
+                mViewRect.bottom + height
+            );
+
+            if (mViewRect.height() / 2 < overlayHeight) {
+                mDrawRect.offset(0, overlayHeight);
+            }
+
+            if (checkEdges && !Utils.rectContainsRectWithTolerance(mScreenRect, mDrawRect, mSizeTolerance)) {
+                if (mDrawRect.right > mScreenRect.right) {
+                    mDrawRect.offset(mScreenRect.right - mDrawRect.right, 0);
+                } else if (mDrawRect.left < mScreenRect.left) {
+                    mDrawRect.offset(-mDrawRect.left, 0);
+                }
+                if (mDrawRect.bottom > mScreenRect.bottom) {
+                    // this means there's no enough space!
+                    return true;
+                } else if (mDrawRect.top < screenTop) {
+                    mDrawRect.offset(0, screenTop - mDrawRect.top);
+                }
+            }
+            return false;
+        }
+
+        private void startFloatingAnimations () {
+            if (mTextView == mView || null == mFloatingAnimation) {
+                return;
+            }
 
             final float endValue = mFloatingAnimation.radius;
             final long duration = mFloatingAnimation.duration;
@@ -1002,7 +1053,7 @@ public class Tooltip {
             set.playSequentially(anim1, anim2);
             set.addListener(new AnimatorListenerAdapter() {
                 @Override
-                public void onAnimationEnd(Animator animation) {
+                public void onAnimationEnd (Animator animation) {
                     super.onAnimationEnd(animation);
                     if (isAttached()) {
                         log(TAG, VERBOSE, "animation restart");
@@ -1014,7 +1065,7 @@ public class Tooltip {
             mAnimator.start();
         }
 
-        void getAnchorPoint(final Gravity gravity, Point outPoint) {
+        void getAnchorPoint (final Gravity gravity, Point outPoint) {
 
             if (gravity == BOTTOM) {
                 outPoint.x = mViewRect.centerX();
@@ -1045,16 +1096,17 @@ public class Tooltip {
             }
         }
 
-        void setText(final CharSequence text) {
+        void setText (final CharSequence text) {
             this.mText = text;
             if (null != mTextView) {
                 mTextView.setText(Html.fromHtml((String) text));
             }
         }
 
+        @SuppressWarnings ("checkstyle:cyclomaticcomplexity")
         @Override
-        public boolean onTouchEvent(@NonNull final MotionEvent event) {
-            if (!mAttached || !mShowing || !isShown()) {
+        public boolean onTouchEvent (@NonNull final MotionEvent event) {
+            if (!mAttached || !mShowing || !isShown() || mClosePolicy == ClosePolicy.None) {
                 return false;
             }
 
@@ -1062,60 +1114,56 @@ public class Tooltip {
 
             log(TAG, INFO, "[%d] onTouchEvent: %d, active: %b", mToolTipId, action, mActivated);
 
-            if (mClosePolicy != ClosePolicy.None) {
-
-                if (!mActivated) {
-                    log(TAG, WARN, "[%d] not yet activated...", mToolTipId);
-                    return true;
-                }
-
-                if (action == MotionEvent.ACTION_DOWN) {
-
-                    Rect outRect = new Rect();
-                    mView.getGlobalVisibleRect(outRect);
-                    log(TAG, VERBOSE, "[%d] text rect: %s", mToolTipId, outRect);
-
-                    boolean containsTouch = outRect.contains((int) event.getX(), (int) event.getY());
-
-                    if (null != mViewOverlay) {
-                        mViewOverlay.getGlobalVisibleRect(outRect);
-                        containsTouch |= outRect.contains((int) event.getX(), (int) event.getY());
-                        log(TAG, VERBOSE, "[%d] overlay rect: %s", mToolTipId, outRect);
-                    }
-
-                    if (DBG) {
-                        log(TAG, VERBOSE, "[%d] containsTouch: %b", mToolTipId, containsTouch);
-                        log(TAG, VERBOSE, "[%d] mDrawRect: %s, point: %g, %g", mToolTipId, mDrawRect, event.getX(), event.getY());
-                        log(
-                                TAG,
-                                VERBOSE, "[%d] real drawing rect: %s, contains: %b", mToolTipId, outRect,
-                                outRect.contains((int) event.getX(), (int) event.getY())
-                        );
-                    }
-
-                    switch (mClosePolicy) {
-                        case TouchInside:
-                        case TouchInsideExclusive:
-                            if (containsTouch) {
-                                onClose(true, true, false);
-                                return mClosePolicy == ClosePolicy.TouchInsideExclusive;
-                            }
-                            return mClosePolicy == ClosePolicy.TouchInsideExclusive;
-                        case TouchAnyWhere:
-                        case TouchAnyWhereExclusive:
-                            onClose(true, containsTouch, false);
-                            return mClosePolicy == ClosePolicy.TouchAnyWhereExclusive || containsTouch;
-                        case None:
-                            break;
-                    }
-                }
+            if (!mActivated) {
+                log(TAG, WARN, "[%d] not yet activated...", mToolTipId);
+                return true;
             }
 
+            if (action == MotionEvent.ACTION_DOWN) {
+
+                Rect outRect = new Rect();
+                mView.getGlobalVisibleRect(outRect);
+                log(TAG, VERBOSE, "[%d] text rect: %s", mToolTipId, outRect);
+
+                boolean containsTouch = outRect.contains((int) event.getX(), (int) event.getY());
+
+                if (null != mViewOverlay) {
+                    mViewOverlay.getGlobalVisibleRect(outRect);
+                    containsTouch |= outRect.contains((int) event.getX(), (int) event.getY());
+                    log(TAG, VERBOSE, "[%d] overlay rect: %s", mToolTipId, outRect);
+                }
+
+                if (dbg) {
+                    log(TAG, VERBOSE, "[%d] containsTouch: %b", mToolTipId, containsTouch);
+                    log(TAG, VERBOSE, "[%d] mDrawRect: %s, point: %g, %g", mToolTipId, mDrawRect, event.getX(), event.getY());
+                    log(
+                        TAG,
+                        VERBOSE, "[%d] real drawing rect: %s, contains: %b", mToolTipId, outRect,
+                        outRect.contains((int) event.getX(), (int) event.getY())
+                    );
+                }
+
+                switch (mClosePolicy) {
+                    case TouchInside:
+                    case TouchInsideExclusive:
+                        if (containsTouch) {
+                            onClose(true, true, false);
+                        }
+                        return mClosePolicy == ClosePolicy.TouchInsideExclusive;
+                    case TouchAnyWhere:
+                    case TouchAnyWhereExclusive:
+                        onClose(true, containsTouch, false);
+                        return mClosePolicy == ClosePolicy.TouchAnyWhereExclusive || containsTouch;
+                    case None:
+                    default:
+                        break;
+                }
+            }
             return false;
         }
 
         @Override
-        protected void onDraw(final Canvas canvas) {
+        protected void onDraw (final Canvas canvas) {
             if (!mAttached) {
                 return;
             }
@@ -1123,7 +1171,7 @@ public class Tooltip {
         }
 
         @Override
-        protected void onMeasure(final int widthMeasureSpec, final int heightMeasureSpec) {
+        protected void onMeasure (final int widthMeasureSpec, final int heightMeasureSpec) {
             super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
             int myWidth = 0;
@@ -1183,12 +1231,12 @@ public class Tooltip {
             setMeasuredDimension(myWidth, myHeight);
         }
 
-        private void onClose(boolean fromUser, boolean containsTouch, boolean immediate) {
+        private void onClose (boolean fromUser, boolean containsTouch, boolean immediate) {
             log(TAG, INFO, "[%d] onClose. fromUser: %b, containsTouch: %b, immediate: %b",
-                    mToolTipId,
-                    fromUser,
-                    containsTouch,
-                    immediate
+                mToolTipId,
+                fromUser,
+                containsTouch,
+                immediate
             );
 
             if (!isAttached()) {
@@ -1209,41 +1257,41 @@ public class Tooltip {
         long duration;
         boolean completed;
 
-        public AnimationBuilder() {
+        public AnimationBuilder () {
             radius = 8;
             direction = 0;
             duration = 400;
         }
 
-        public AnimationBuilder setRadius(int value) {
+        public AnimationBuilder setRadius (int value) {
             throwIfCompleted();
             this.radius = value;
             return this;
+        }
+
+        private void throwIfCompleted () {
+            if (completed) {
+                throw new IllegalStateException("Builder cannot be modified");
+            }
         }
 
         /**
          * @param value 0 for auto, 1 horizontal, 2 vertical
          * @return
          */
-        public AnimationBuilder setDirection(int value) {
+        public AnimationBuilder setDirection (int value) {
             throwIfCompleted();
             this.direction = value;
             return this;
         }
 
-        public AnimationBuilder setDuration(long value) {
+        public AnimationBuilder setDuration (long value) {
             throwIfCompleted();
             this.duration = value;
             return this;
         }
 
-        private void throwIfCompleted() {
-            if (completed) {
-                throw new IllegalStateException("Builder cannot be modified");
-            }
-        }
-
-        public AnimationBuilder build() {
+        public AnimationBuilder build () {
             throwIfCompleted();
             completed = true;
             return this;
@@ -1274,11 +1322,16 @@ public class Tooltip {
         boolean overlay = true;
         AnimationBuilder floatingAnimation;
 
-        public Builder(int id) {
+        public Builder (int id) {
             this.id = id;
         }
 
-        private void throwIfCompleted() {
+        public Builder withCustomView (int resId) {
+            throwIfCompleted();
+            return withCustomView(resId, true);
+        }
+
+        private void throwIfCompleted () {
             if (completed) {
                 throw new IllegalStateException("Builder cannot be modified");
             }
@@ -1289,67 +1342,62 @@ public class Tooltip {
          * must include a TextView which id is `@android:id/text1`.<br />
          * Moreover, when using a custom view, the anchor arrow will not be shown
          *
-         * @param resId              the custom layout view.
-         * @param replace_background if true the custom view's background won't be replaced
+         * @param resId             the custom layout view.
+         * @param replaceBackground if true the custom view's background won't be replaced
          * @return the builder for chaining.
          */
-        public Builder withCustomView(int resId, boolean replace_background) {
+        public Builder withCustomView (int resId, boolean replaceBackground) {
             this.textResId = resId;
-            this.isCustomView = replace_background;
+            this.isCustomView = replaceBackground;
             return this;
         }
 
-        public Builder withCustomView(int resId) {
-            throwIfCompleted();
-            return withCustomView(resId, true);
-        }
-
-        public Builder withStyleId(int styleId) {
+        public Builder withStyleId (int styleId) {
             throwIfCompleted();
             this.defStyleAttr = 0;
             this.defStyleRes = styleId;
             return this;
         }
 
-        public Builder fitToScreen(boolean value) {
+        public Builder fitToScreen (boolean value) {
             throwIfCompleted();
             restrictToScreenEdges = value;
             return this;
         }
 
-        public Builder fadeDuration(long ms) {
+        public Builder fadeDuration (long ms) {
             throwIfCompleted();
             fadeDuration = ms;
             return this;
         }
 
-        public Builder withCallback(Callback callback) {
+        public Builder withCallback (Callback callback) {
             throwIfCompleted();
             this.closeCallback = callback;
             return this;
         }
 
-        public Builder text(Resources res, @StringRes int resId) {
+        public Builder text (Resources res, @StringRes int resId) {
             return text(res.getString(resId));
         }
 
-        public Builder text(CharSequence text) {
+        public Builder text (CharSequence text) {
             throwIfCompleted();
             this.text = text;
             return this;
         }
 
-        public Builder maxWidth(Resources res, @DimenRes int dimension) {
+        public Builder maxWidth (Resources res, @DimenRes int dimension) {
             return maxWidth(res.getDimensionPixelSize(dimension));
         }
 
-        public Builder maxWidth(int maxWidth) {
+        public Builder maxWidth (int maxWidth) {
             throwIfCompleted();
             this.maxWidth = maxWidth;
             return this;
         }
 
-        public Builder floatingAnimation(AnimationBuilder builder) {
+        public Builder floatingAnimation (AnimationBuilder builder) {
             throwIfCompleted();
             this.floatingAnimation = builder;
             return this;
@@ -1360,13 +1408,13 @@ public class Tooltip {
          *
          * @param value false to disable the overlay view. True by default
          */
-        public Builder withOverlay(boolean value) {
+        public Builder withOverlay (boolean value) {
             throwIfCompleted();
             this.overlay = value;
             return this;
         }
 
-        public Builder anchor(View view, Gravity gravity) {
+        public Builder anchor (View view, Gravity gravity) {
             throwIfCompleted();
             this.point = null;
             this.view = view;
@@ -1374,7 +1422,7 @@ public class Tooltip {
             return this;
         }
 
-        public Builder anchor(final Point point, final Gravity gravity) {
+        public Builder anchor (final Point point, final Gravity gravity) {
             throwIfCompleted();
             this.view = null;
             this.point = new Point(point);
@@ -1386,7 +1434,7 @@ public class Tooltip {
          * @deprecated use {#withArrow} instead
          */
         @Deprecated
-        public Builder toggleArrow(boolean show) {
+        public Builder toggleArrow (boolean show) {
             return withArrow(show);
         }
 
@@ -1396,42 +1444,42 @@ public class Tooltip {
          * @param show true to show the arrow, false to hide it
          * @return the builder for chaining.
          */
-        public Builder withArrow(boolean show) {
+        public Builder withArrow (boolean show) {
             throwIfCompleted();
             this.hideArrow = !show;
             return this;
         }
 
-        public Builder actionBarSize(final int actionBarSize) {
+        public Builder actionBarSize (Resources resources, int resId) {
+            return actionBarSize(resources.getDimensionPixelSize(resId));
+        }
+
+        public Builder actionBarSize (final int actionBarSize) {
             throwIfCompleted();
             this.actionbarSize = actionBarSize;
             return this;
         }
 
-        public Builder actionBarSize(Resources resources, int resId) {
-            return actionBarSize(resources.getDimensionPixelSize(resId));
-        }
-
-        public Builder closePolicy(ClosePolicy policy, long milliseconds) {
+        public Builder closePolicy (ClosePolicy policy, long milliseconds) {
             throwIfCompleted();
             this.closePolicy = policy;
             this.showDuration = milliseconds;
             return this;
         }
 
-        public Builder activateDelay(long ms) {
+        public Builder activateDelay (long ms) {
             throwIfCompleted();
             this.activateDelay = ms;
             return this;
         }
 
-        public Builder showDelay(long ms) {
+        public Builder showDelay (long ms) {
             throwIfCompleted();
             this.showDelay = ms;
             return this;
         }
 
-        public Builder build() {
+        public Builder build () {
             throwIfCompleted();
             if (floatingAnimation != null) {
                 if (!floatingAnimation.completed) {
