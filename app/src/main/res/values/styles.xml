@@ -3,7 +3,7 @@
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
-        <item name="colorAccent" tools:ignore="NewApi">#0072ff</item>
+        <item name="colorAccent" tools:ignore="NewApi">#0092ff</item>
         <item name="colorPrimary" tools:ignore="NewApi">#ffcc00</item>
         <item name="colorPrimaryDark" tools:ignore="NewApi">#ff6600</item>
     </style>

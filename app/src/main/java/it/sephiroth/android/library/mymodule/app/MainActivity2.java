@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import it.sephiroth.android.library.tooltip.Tooltip;
+import it.sephiroth.android.library.tooltip.Tooltip.AnimationBuilder;
 
 public class MainActivity2 extends AppCompatActivity implements OnPageChangeListener {
     private static final String TAG = MainActivity2.class.getSimpleName();
@@ -220,9 +221,10 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
                                 .text("RIGHT. Touch outside to close this tooltip")
                                 .withArrow(true)
                                 .fitToScreen(true)
-                                .maxWidth((int) (metrics.widthPixels / 1.8))
+                                .maxWidth((int) (metrics.widthPixels / 2))
                                 .withOverlay(true)
                                 .withCallback(this)
+                                .floatingAnimation(new AnimationBuilder().setDirection(0).setDuration(400).setRadius(8).build())
                                 .build()).show();
 
             } else if (id == mButton2.getId()) {
@@ -247,6 +249,7 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
                                 .withArrow(true)
                                 .maxWidth((int) (metrics.widthPixels / 2.5))
                                 .withCallback(this)
+                                .floatingAnimation(new AnimationBuilder().setDirection(2).setDuration(1000).setRadius(20).build())
                                 .build()).show();
 
             } else if (id == mButton4.getId()) {

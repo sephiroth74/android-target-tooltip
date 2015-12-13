@@ -1,6 +1,8 @@
 
 **Version 1.3.8**
-* Removed useless TooltipManager, now just use Tooltip.make(..) 
+
+* Removed useless TooltipManager, now just use Tooltip.make(..)
+* Added `floatingAnimation` parameter for the builder. This will enable a nice floating animation on the tooltip.
 
 **Version 1.3.7**
 

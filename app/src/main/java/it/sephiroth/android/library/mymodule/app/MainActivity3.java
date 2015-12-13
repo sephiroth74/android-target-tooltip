@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -27,6 +28,7 @@ public class MainActivity3 extends AppCompatActivity implements AdapterView.OnIt
     static final int TOOLTIP_ID = 101;
     static final int LIST_POSITION = 5;
     private Tooltip.TooltipView mCurrentTooltip;
+    DisplayMetrics displayMetrics;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +41,8 @@ public class MainActivity3 extends AppCompatActivity implements AdapterView.OnIt
         for (int i = 0; i < 100; i++) {
             array.add(String.format("Item %d", i));
         }
+
+        displayMetrics = getResources().getDisplayMetrics();
 
         mRecyclerView = (RecyclerView) findViewById(R.id.recyclerView);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
@@ -121,15 +125,12 @@ public class MainActivity3 extends AppCompatActivity implements AdapterView.OnIt
             final RecyclerView.ViewHolder holder = new RecyclerView.ViewHolder(view) {
             };
             view.setOnClickListener(
-                    new View.OnClickListener() {
-                        @Override
-                        public void onClick(final View v) {
-                            if (null != mCurrentTooltip) {
-                                mCurrentTooltip.hide();
-                                mCurrentTooltip = null;
-                            } else {
-                                showTooltip(holder);
-                            }
+                    v -> {
+                        if (null != mCurrentTooltip) {
+                            mCurrentTooltip.hide();
+                            mCurrentTooltip = null;
+                        } else {
+                            showTooltip(holder);
                         }
                     });
             return holder;
@@ -145,14 +146,17 @@ public class MainActivity3 extends AppCompatActivity implements AdapterView.OnIt
         }
 
         private void showTooltip(final RecyclerView.ViewHolder holder) {
-            if (null != mCurrentTooltip) return;
+            if (null != mCurrentTooltip) {
+                Log.w(TAG, "failed to show tooltip");
+                return;
+            }
 
             mCurrentTooltip = Tooltip.make(MainActivity3.this,
                     new Tooltip.Builder(TOOLTIP_ID)
-                            .maxWidth(450)
+                            .maxWidth((int) (displayMetrics.widthPixels / 2))
                             .anchor(holder.itemView.findViewById(android.R.id.text1), Tooltip.Gravity.RIGHT)
                             .closePolicy(Tooltip.ClosePolicy.TouchInside, 0)
-                            .text("Brigthness, Saturation, Contrast and Warmth are now here!")
+                            .text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc lacinia sem non neque commodo consectetur")
                             .fitToScreen(false)
                             .fadeDuration(200)
                             .showDelay(50)
@@ -162,21 +166,19 @@ public class MainActivity3 extends AppCompatActivity implements AdapterView.OnIt
                                         public void onTooltipClose(final Tooltip.TooltipView v, final boolean fromUser, final boolean containsTouch) {
                                             Log.w(
                                                     TAG, "onTooltipClose: " + v + ", fromUser: " + fromUser + ", containsTouch: " + containsTouch);
+                                            mCurrentTooltip = null;
                                         }
 
                                         @Override
                                         public void onTooltipFailed(Tooltip.TooltipView view) {
-
                                         }
 
                                         @Override
                                         public void onTooltipShown(Tooltip.TooltipView view) {
-
                                         }
 
                                         @Override
                                         public void onTooltipHidden(Tooltip.TooltipView view) {
-
                                         }
                                     })
                             .build());

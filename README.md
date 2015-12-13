@@ -1,9 +1,10 @@
 Android Tooltip
 ======================
 
-Create Toast like tooltips, but targets can be specified, plus custom properties and features
+Create Toast like tooltips, physical targets can be specified, or even points on screen. 
+Many additional features and customizations. Just look at the samples Activities.
 
-Master: ![travis-ci](https://travis-ci.org/sephiroth74/android-target-tooltip.svg?branch=master)
+Master: ![travis-ci](https://travis-ci.org/sephiroth74/android-target-tooltip.svg)
 
 Installation
 ===
@@ -24,6 +25,7 @@ Usage
 			.maxWidth(500)
 			.withArrow(true)
 			.withOverlay(true)
+			floatingAnimation(AnimationBuilder)
 			.build()
 		).show();
 

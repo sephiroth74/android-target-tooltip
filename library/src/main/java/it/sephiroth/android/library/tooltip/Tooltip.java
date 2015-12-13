@@ -1,7 +1,10 @@
 package it.sephiroth.android.library.tooltip;
 
 import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
@@ -25,6 +28,7 @@ import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.TextView;
 
 import java.lang.ref.WeakReference;
@@ -37,6 +41,7 @@ import static android.util.Log.ERROR;
 import static android.util.Log.INFO;
 import static android.util.Log.VERBOSE;
 import static android.util.Log.WARN;
+import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 import static it.sephiroth.android.library.tooltip.Tooltip.Gravity.BOTTOM;
 import static it.sephiroth.android.library.tooltip.Tooltip.Gravity.CENTER;
@@ -100,21 +105,13 @@ public class Tooltip {
         private TooltipOverlay mViewOverlay;
         private TextView mTextView;
         private int mSizeTolerance;
+        private Animator mAnimator;
+        private AnimationBuilder mFloatingAnimation;
+        private boolean mAlreadyCheck;
 
-        Runnable hideRunnable = new Runnable() {
-            @Override
-            public void run() {
-                onClose(false, false, false);
-            }
-        };
+        Runnable hideRunnable = () -> onClose(false, false, false);
 
-        Runnable activateRunnable = new Runnable() {
-            @Override
-            public void run() {
-                log(TAG, VERBOSE, "[%d] activated..", mToolTipId);
-                mActivated = true;
-            }
-        };
+        Runnable activateRunnable = () -> mActivated = true;
 
         private final ViewTreeObserver.OnPreDrawListener mPreDrawListener = new ViewTreeObserver.OnPreDrawListener() {
             @Override
@@ -130,22 +127,10 @@ public class Tooltip {
                     if (null != view) {
                         view.getLocationOnScreen(mTempLocation);
 
-                        //                    if (DBG) {
-                        //                        log(TAG, INFO, "[%d] onPreDraw %s <--> %s (dirty: %b)",
-                        //                                mToolTipId,
-                        //                                mTempRect,
-                        //                                mHitRect,
-                        //                                view.isDirty()
-                        //                        );
-                        //                    }
-
                         if (mOldLocation == null) {
                             mOldLocation = new int[]{mTempLocation[0], mTempLocation[1]};
                         }
 
-                        //                    log(TAG, VERBOSE, "location: %dx%d << %dx%d", mTempLocation[0], mTempLocation[1], mOldLocation[0],
-                        //                            mOldLocation[1]
-                        //                    );
                         if (mOldLocation[0] != mTempLocation[0] || mOldLocation[1] != mTempLocation[1]) {
                             mView.setTranslationX(mTempLocation[0] - mOldLocation[0] + mView.getTranslationX());
                             mView.setTranslationY(mTempLocation[1] - mOldLocation[1] + mView.getTranslationY());
@@ -236,10 +221,7 @@ public class Tooltip {
         public void show() {
             if (getParent() == null) {
                 final Activity act = Utils.getActivity(getContext());
-
-                LayoutParams params =
-                        new LayoutParams(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);
-
+                LayoutParams params = new LayoutParams(MATCH_PARENT, MATCH_PARENT);
                 ViewGroup rootView = (ViewGroup) (act.getWindow().getDecorView());
                 rootView.addView(this, params);
             }
@@ -269,7 +251,11 @@ public class Tooltip {
             this.mRestrict = builder.restrictToScreenEdges;
             this.mFadeDuration = builder.fadeDuration;
             this.mCallback = builder.closeCallback;
+            this.mFloatingAnimation = builder.floatingAnimation;
             this.mSizeTolerance = (int) (context.getResources().getDisplayMetrics().density * TOLERANCE_VALUE);
+
+            setClipChildren(false);
+            setClipToPadding(false);
 
             if (null != builder.point) {
                 this.mPoint = new Point(builder.point);
@@ -351,17 +337,9 @@ public class Tooltip {
             log(TAG, INFO, "[%d] onAttachedToWindow", mToolTipId);
             super.onAttachedToWindow();
             mAttached = true;
-
-            //        final Activity act = TooltipManager.getActivity(getContext());
-            //        if (act != null) {
-            //            Window window = act.getWindow();
-            //            window.getDecorView().getWindowVisibleDisplayFrame(mScreenRect);
-            //        } else {
             WindowManager wm = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
             android.view.Display display = wm.getDefaultDisplay();
             display.getRectSize(mScreenRect);
-            //        }
-
             initializeView();
             showInternal();
         }
@@ -370,6 +348,7 @@ public class Tooltip {
         protected void onDetachedFromWindow() {
             log(TAG, INFO, "[%d] onDetachedFromWindow", mToolTipId);
             removeListeners();
+            stopFloatingAnimations();
             mAttached = false;
             mViewAnchor = null;
             super.onDetachedFromWindow();
@@ -412,6 +391,13 @@ public class Tooltip {
             if (null != mViewAnchor) {
                 View view = mViewAnchor.get();
                 removeViewListeners(view);
+            }
+        }
+
+        private void stopFloatingAnimations() {
+            log(TAG, DEBUG, "stopFloatingAnimations");
+            if (null != mAnimator) {
+                mAnimator.cancel();
             }
         }
 
@@ -471,17 +457,7 @@ public class Tooltip {
             mView = LayoutInflater.from(getContext()).inflate(mTextResId, this, false);
             mView.setLayoutParams(params);
 
-            if (null != mDrawable) {
-                mView.setBackgroundDrawable(mDrawable);
-                if (mHideArrow) {
-                    mView.setPadding(mPadding / 2, mPadding / 2, mPadding / 2, mPadding / 2);
-                } else {
-                    mView.setPadding(mPadding, mPadding, mPadding, mPadding);
-                }
-            }
-
             mTextView = (TextView) mView.findViewById(android.R.id.text1);
-
             mTextView.setText(Html.fromHtml((String) this.mText));
             if (mMaxWidth > -1) {
                 mTextView.setMaxWidth(mMaxWidth);
@@ -490,6 +466,15 @@ public class Tooltip {
 
             if (0 != mTextAppearance) {
                 mTextView.setTextAppearance(getContext(), mTextAppearance);
+            }
+
+            if (null != mDrawable) {
+                mTextView.setBackgroundDrawable(mDrawable);
+                if (mHideArrow) {
+                    mTextView.setPadding(mPadding / 2, mPadding / 2, mPadding / 2, mPadding / 2);
+                } else {
+                    mTextView.setPadding(mPadding, mPadding, mPadding, mPadding);
+                }
             }
 
             this.addView(mView);
@@ -722,10 +707,7 @@ public class Tooltip {
             Gravity gravity = gravities.remove(0);
 
             if (DBG) {
-                log(
-                        TAG, DEBUG, "[%s] calculatePositions. gravity: %s, gravities: %d, restrict: %b", mToolTipId, gravity,
-                        gravities.size(), checkEdges
-                );
+                log(TAG, DEBUG, "[%s] calculatePositions. gravity: %s, gravities: %d, restrict: %b", mToolTipId, gravity, gravities.size(), checkEdges);
             }
 
             int statusbarHeight = mScreenRect.top;
@@ -917,6 +899,50 @@ public class Tooltip {
                 getAnchorPoint(gravity, mTmpPoint);
                 mDrawable.setAnchor(gravity, mHideArrow ? 0 : mPadding / 2, mHideArrow ? null : mTmpPoint);
             }
+
+            if (!mAlreadyCheck) {
+                mAlreadyCheck = true;
+                startFloatingAnimations();
+            }
+        }
+
+        private void startFloatingAnimations() {
+            if (mTextView == mView || null == mFloatingAnimation) return;
+
+            final float endValue = mFloatingAnimation.radius;
+            final long duration = mFloatingAnimation.duration;
+
+            final int direction;
+
+            if (mFloatingAnimation.direction == 0) {
+                direction = mGravity == TOP || mGravity == BOTTOM ? 2 : 1;
+            } else {
+                direction = mFloatingAnimation.direction;
+            }
+
+            final String property = direction == 2 ? "translationY" : "translationX";
+            ValueAnimator anim1 = ObjectAnimator.ofFloat(mTextView, property, -endValue, endValue);
+            anim1.setDuration(duration);
+            anim1.setInterpolator(new AccelerateDecelerateInterpolator());
+
+            ValueAnimator anim2 = ObjectAnimator.ofFloat(mTextView, property, endValue, -endValue);
+            anim2.setDuration(duration);
+            anim2.setInterpolator(new AccelerateDecelerateInterpolator());
+
+            AnimatorSet set = new AnimatorSet();
+            set.playSequentially(anim1, anim2);
+            set.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    super.onAnimationEnd(animation);
+                    if (isAttached()) {
+                        log(TAG, VERBOSE, "animation restart");
+                        animation.start();
+                    }
+                }
+            });
+            mAnimator = set;
+            mAnimator.start();
         }
 
         static boolean rectContainsRectWithTolerance(@NonNull final Rect parentRect, @NonNull final Rect childRect, final int t) {
@@ -1188,6 +1214,53 @@ public class Tooltip {
         LEFT, RIGHT, TOP, BOTTOM, CENTER
     }
 
+    public static final class AnimationBuilder {
+        int radius;
+        int direction;
+        long duration;
+        boolean completed;
+
+        public AnimationBuilder() {
+            radius = 8;
+            direction = 0;
+            duration = 400;
+        }
+
+        public AnimationBuilder setRadius(int value) {
+            throwIfCompleted();
+            this.radius = value;
+            return this;
+        }
+
+        /**
+         * @param value 0 for auto, 1 horizontal, 2 vertical
+         * @return
+         */
+        public AnimationBuilder setDirection(int value) {
+            throwIfCompleted();
+            this.direction = value;
+            return this;
+        }
+
+        public AnimationBuilder setDuration(long value) {
+            throwIfCompleted();
+            this.duration = value;
+            return this;
+        }
+
+        private void throwIfCompleted() {
+            if (completed) {
+                throw new IllegalStateException("Builder cannot be modified");
+            }
+        }
+
+        public AnimationBuilder build() {
+            throwIfCompleted();
+            completed = true;
+            return this;
+        }
+    }
+
     public static final class Builder {
         int id;
         CharSequence text;
@@ -1210,6 +1283,7 @@ public class Tooltip {
         Callback closeCallback;
         boolean completed;
         boolean overlay = true;
+        AnimationBuilder floatingAnimation;
 
         public Builder(int id) {
             this.id = id;
@@ -1283,6 +1357,12 @@ public class Tooltip {
         public Builder maxWidth(int maxWidth) {
             throwIfCompleted();
             this.maxWidth = maxWidth;
+            return this;
+        }
+
+        public Builder floatingAnimation(AnimationBuilder builder) {
+            throwIfCompleted();
+            this.floatingAnimation = builder;
             return this;
         }
 
@@ -1364,6 +1444,11 @@ public class Tooltip {
 
         public Builder build() {
             throwIfCompleted();
+            if (floatingAnimation != null) {
+                if (!floatingAnimation.completed) {
+                    throw new IllegalStateException("Builder not closed");
+                }
+            }
             completed = true;
             overlay = overlay && gravity != CENTER;
             return this;

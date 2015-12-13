@@ -1,7 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@android:id/text1"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:autoLink="all"
-    android:textAppearance="?android:attr/textAppearanceSmallInverse" />
+    android:layout_margin="0dp"
+    android:padding="0dp">
+
+    <TextView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@android:id/text1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:autoLink="all"
+        android:clipToPadding="false"
+        android:textAppearance="?android:attr/textAppearanceSmallInverse" />
+</FrameLayout>
