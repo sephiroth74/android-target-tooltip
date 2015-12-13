@@ -46,6 +46,7 @@ Tooltip style can be customized in your style object:
         <attr name="ttlm_arrowRatio" format="float" />
         <attr name="android:textAppearance" />
         <attr name="ttlm_overlayStyle" format="reference" />
+        <attr name="ttlm_elevation" format="dimension" />
     </declare-styleable>
 
 
