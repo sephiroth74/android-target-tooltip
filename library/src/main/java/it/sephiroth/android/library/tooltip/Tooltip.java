@@ -64,8 +64,7 @@ public final class Tooltip {
     }
 
     public static TooltipView make (Context context, Builder builder) {
-        TooltipViewImpl view = new TooltipViewImpl(context, builder);
-        return view;
+        return new TooltipViewImpl(context, builder);
     }
 
     public enum ClosePolicy {
@@ -101,6 +100,7 @@ public final class Tooltip {
         LEFT, RIGHT, TOP, BOTTOM, CENTER
     }
 
+    @SuppressWarnings ("unused")
     public interface TooltipView {
         void show ();
 
@@ -234,7 +234,7 @@ public final class Tooltip {
                     return true;
                 }
 
-                if (null != mViewAnchor && mAttached) {
+                if (null != mViewAnchor) {
                     View view = mViewAnchor.get();
                     if (null != view) {
                         view.getLocationOnScreen(mTempLocation);
@@ -383,8 +383,11 @@ public final class Tooltip {
             if (getParent() == null) {
                 final Activity act = Utils.getActivity(getContext());
                 LayoutParams params = new LayoutParams(MATCH_PARENT, MATCH_PARENT);
-                ViewGroup rootView = (ViewGroup) (act.getWindow().getDecorView());
-                rootView.addView(this, params);
+                if (act != null) {
+                    ViewGroup rootView;
+                    rootView = (ViewGroup) (act.getWindow().getDecorView());
+                    rootView.addView(this, params);
+                }
             }
         }
 
@@ -593,6 +596,7 @@ public final class Tooltip {
             removeOnAttachStateObserver(view);
         }
 
+        @SuppressWarnings ("deprecation")
         private void removeGlobalLayoutObserver (@Nullable View view) {
             if (null == view && null != mViewAnchor) {
                 view = mViewAnchor.get();
@@ -630,7 +634,7 @@ public final class Tooltip {
             }
         }
 
-        @TargetApi (Build.VERSION_CODES.LOLLIPOP)
+        @SuppressWarnings ("deprecation")
         private void initializeView () {
             if (!isAttached() || mInitialized) {
                 return;
@@ -669,8 +673,7 @@ public final class Tooltip {
             }
 
             if (!mIsCustomView && mTextViewElevation > 0 && Build.VERSION.SDK_INT >= 21) {
-                mTextView.setElevation(mTextViewElevation);
-                mTextView.setOutlineProvider(ViewOutlineProvider.BACKGROUND);
+                setupElevation();
             }
         }
 
@@ -681,6 +684,12 @@ public final class Tooltip {
                 return;
             }
             fadeIn(mFadeDuration);
+        }
+
+        @SuppressLint ("NewApi")
+        private void setupElevation () {
+            mTextView.setElevation(mTextViewElevation);
+            mTextView.setOutlineProvider(ViewOutlineProvider.BACKGROUND);
         }
 
         protected void fadeIn (final long fadeDuration) {
@@ -1221,24 +1230,10 @@ public final class Tooltip {
 
                 final int childWidthMeasureSpec;
                 final int childHeightMeasureSpec;
-                //                final View view = null != mViewAnchor ? mViewAnchor.get() : null;
-                LayoutParams params = mViewOverlay.getLayoutParams();
-                //                childWidthMeasureSpec = MeasureSpec.makeMeasureSpec(params.width, MeasureSpec.EXACTLY);
-                //                childHeightMeasureSpec = MeasureSpec.makeMeasureSpec(params.height, MeasureSpec.EXACTLY);
-
                 childWidthMeasureSpec = MeasureSpec.makeMeasureSpec(widthSize, MeasureSpec.AT_MOST);
                 childHeightMeasureSpec = MeasureSpec.makeMeasureSpec(heightSize, MeasureSpec.AT_MOST);
                 mViewOverlay.measure(childWidthMeasureSpec, childHeightMeasureSpec);
 
-                //                if (null != view) {
-                //                    widthSize = view.getMeasuredWidth();
-                //                    heightSize = view.getMeasuredHeight();
-                //                    childWidthMeasureSpec = MeasureSpec.makeMeasureSpec(widthSize, MeasureSpec.EXACTLY);
-                //                    childHeightMeasureSpec = MeasureSpec.makeMeasureSpec(heightSize, MeasureSpec.EXACTLY);
-                //                } else {
-                //                }
-
-                //                mViewOverlay.measure(childWidthMeasureSpec, childHeightMeasureSpec);
             }
 
             setMeasuredDimension(myWidth, myHeight);
@@ -1290,7 +1285,6 @@ public final class Tooltip {
 
         /**
          * @param value 0 for auto, 1 horizontal, 2 vertical
-         * @return
          */
         public AnimationBuilder setDirection (int value) {
             throwIfCompleted();
@@ -1339,6 +1333,7 @@ public final class Tooltip {
             this.id = id;
         }
 
+        @SuppressWarnings ("unused")
         public Builder withCustomView (int resId) {
             throwIfCompleted();
             return withCustomView(resId, true);
@@ -1365,6 +1360,7 @@ public final class Tooltip {
             return this;
         }
 
+        @SuppressWarnings ("unused")
         public Builder withStyleId (int styleId) {
             throwIfCompleted();
             this.defStyleAttr = 0;
@@ -1400,6 +1396,7 @@ public final class Tooltip {
             return this;
         }
 
+        @SuppressWarnings ("unused")
         public Builder maxWidth (Resources res, @DimenRes int dimension) {
             return maxWidth(res.getDimensionPixelSize(dimension));
         }
@@ -1435,6 +1432,7 @@ public final class Tooltip {
             return this;
         }
 
+        @SuppressWarnings ("unused")
         public Builder anchor (final Point point, final Gravity gravity) {
             throwIfCompleted();
             this.view = null;
