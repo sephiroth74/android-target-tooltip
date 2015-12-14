@@ -30,9 +30,7 @@ import it.sephiroth.android.library.tooltip.Tooltip.AnimationBuilder;
 
 public class MainActivity2 extends AppCompatActivity implements OnPageChangeListener {
     private static final String TAG = MainActivity2.class.getSimpleName();
-    static int tooltip_id = 0;
     ViewPager mViewPager;
-    private Adapter mAdapter;
 
     @Override
     protected void onCreate (Bundle savedInstanceState) {
@@ -42,7 +40,8 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
 
         mViewPager = (ViewPager) findViewById(R.id.viewpager);
         mViewPager.addOnPageChangeListener(this);
-        mAdapter = setupViewPager(mViewPager);
+        setupViewPager(mViewPager);
+        Tooltip.dbg = true;
 
     }
 
@@ -248,7 +247,7 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
                         .withOverlay(true)
                         .withCallback(this)
                         .activateDelay(500)
-                        .floatingAnimation(new AnimationBuilder().setDirection(0).setDuration(400).setRadius(8).build())
+                        .floatingAnimation(AnimationBuilder.DEFAULT)
                         .build()
                 ).show();
 
@@ -259,7 +258,7 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
                     new Tooltip.Builder()
                         .anchor(mButton2, Tooltip.Gravity.BOTTOM)
                         .fitToScreen(true)
-                        .closePolicy(mClosePolicy, 5000)
+                        .closePolicy(mClosePolicy, 10000)
                         .text("BOTTOM. Touch outside to dismiss the tooltip")
                         .withArrow(true)
                         .maxWidth(metrics.widthPixels / 2)
@@ -272,12 +271,12 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
                     getContext(),
                     new Tooltip.Builder()
                         .anchor(mButton3, Tooltip.Gravity.TOP)
-                        .closePolicy(mClosePolicy, 5000)
+                        .closePolicy(mClosePolicy, 10000)
                         .text("TOP. Touch Inside the tooltip to dismiss..")
                         .withArrow(true)
                         .maxWidth((int) (metrics.widthPixels / 2.5))
                         .withCallback(this)
-                        .floatingAnimation(new AnimationBuilder().setDirection(2).setDuration(1000).setRadius(20).build())
+                        .floatingAnimation(AnimationBuilder.DEFAULT)
                         .build()
                 ).show();
 

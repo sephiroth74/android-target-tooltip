@@ -60,6 +60,7 @@ And this is the style for the overlay touch:
         <attr name="android:alpha" />
         <attr name="ttlm_repeatCount" format="integer" />
         <attr name="ttlm_duration" format="integer" />
+        <attr name="android:layout_margin" />
     </declare-styleable>
 	
 then pass the style in the Builder method **withStyleId(int resId)**

@@ -22,9 +22,9 @@ public class TooltipOverlayDrawable extends Drawable {
     @SuppressWarnings ("unused")
     public static final String TAG = TooltipOverlay.class.getSimpleName();
     public static final float ALPHA_MAX = 255f;
-    public static final double FADEOUT_START_DELAY = 0.7;
-    public static final double FADEIN_DURATION = 0.2;
-    public static final double SECOND_ANIM_START_DELAY = 0.35;
+    public static final double FADEOUT_START_DELAY = 0.55;
+    public static final double FADEIN_DURATION = 0.3;
+    public static final double SECOND_ANIM_START_DELAY = 0.25;
     private Paint mOuterPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Paint mInnerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private float mOuterRadius;

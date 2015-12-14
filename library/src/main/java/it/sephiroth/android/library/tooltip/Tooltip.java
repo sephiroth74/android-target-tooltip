@@ -21,7 +21,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.text.Html;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -265,7 +264,6 @@ public final class Tooltip {
                 removeViewListeners(v);
 
                 if (!mAttached) {
-                    log(TAG, WARN, "[%d] not attached", mToolTipId);
                     return;
                 }
 
@@ -306,7 +304,6 @@ public final class Tooltip {
             @Override
             public boolean onPreDraw () {
                 if (!mAttached) {
-                    log(TAG, WARN, "[%d] onPreDraw. not attached", mToolTipId);
                     removePreDrawObserver(null);
                     return true;
                 }
@@ -347,7 +344,6 @@ public final class Tooltip {
                 @Override
                 public void onGlobalLayout () {
                     if (!mAttached) {
-                        log(TAG, WARN, "[%d] onGlobalLayout. removeListeners", mToolTipId);
                         removeGlobalLayoutObserver(null);
                         return;
                     }
@@ -510,7 +506,6 @@ public final class Tooltip {
 
                         @Override
                         public void onAnimationEnd (final Animator animation) {
-                            log(TAG, VERBOSE, "[%d] fade-out onAnimationEnd, cancelled: %b", mToolTipId, cancelled);
                             if (cancelled) {
                                 return;
                             }
@@ -526,7 +521,6 @@ public final class Tooltip {
 
                         @Override
                         public void onAnimationCancel (final Animator animation) {
-                            log(TAG, VERBOSE, "[%d] fade-out onAnimationCancel", mToolTipId);
                             cancelled = true;
                         }
 
@@ -621,8 +615,6 @@ public final class Tooltip {
 
         @Override
         protected void onVisibilityChanged (final View changedView, final int visibility) {
-            log(TAG, INFO, "[%d] onVisibilityChanged: %d", mToolTipId, visibility);
-
             super.onVisibilityChanged(changedView, visibility);
 
             if (null != mAnimator) {
@@ -636,11 +628,8 @@ public final class Tooltip {
 
         @Override
         protected void onLayout (final boolean changed, final int l, final int t, final int r, final int b) {
-            log(TAG, INFO, "[%d] onLayout(%b, %d, %d, %d, %d)", mToolTipId, changed, l, t, r, b);
-
             if (null != mView) {
                 mView.layout(mView.getLeft(), mView.getTop(), mView.getMeasuredWidth(), mView.getMeasuredHeight());
-                Log.d(TAG, "view.width: " + mView.getMeasuredWidth());
             }
 
             if (null != mViewOverlay) {
@@ -676,7 +665,6 @@ public final class Tooltip {
         }
 
         private void stopFloatingAnimations () {
-            log(TAG, DEBUG, "stopFloatingAnimations");
             if (null != mAnimator) {
                 mAnimator.cancel();
                 mAnimator = null;
@@ -811,14 +799,12 @@ public final class Tooltip {
 
                         @Override
                         public void onAnimationStart (final Animator animation) {
-                            log(TAG, VERBOSE, "[%d] fade-in onAnimationStart", mToolTipId);
                             setVisibility(View.VISIBLE);
                             cancelled = false;
                         }
 
                         @Override
                         public void onAnimationEnd (final Animator animation) {
-                            log(TAG, VERBOSE, "[%d] fade-in onAnimationEnd, cancelled: %b", mToolTipId, cancelled);
 
                             if (!cancelled) {
                                 if (null != mCallback) {
@@ -831,7 +817,6 @@ public final class Tooltip {
 
                         @Override
                         public void onAnimationCancel (final Animator animation) {
-                            log(TAG, VERBOSE, "[%d] fade-in onAnimationCancel", mToolTipId);
                             cancelled = true;
                         }
 
@@ -911,14 +896,13 @@ public final class Tooltip {
             final int overlayHeight;
 
             if (null != mViewOverlay && gravity != CENTER) {
-                overlayWidth = mViewOverlay.getWidth() / 2;
-                overlayHeight = mViewOverlay.getHeight() / 2;
+                int margin = mViewOverlay.getLayoutMargins();
+                overlayWidth = (mViewOverlay.getWidth() / 2) + margin;
+                overlayHeight = (mViewOverlay.getHeight() / 2) + margin;
             } else {
                 overlayWidth = 0;
                 overlayHeight = 0;
             }
-
-            log(TAG, VERBOSE, "overlaySize: %d, %d", overlayWidth, overlayHeight);
 
             if (mViewRect == null) {
                 mViewRect = new Rect();
@@ -974,7 +958,6 @@ public final class Tooltip {
                 mGravity = gravity;
 
                 if (gravity == CENTER && null != mViewOverlay) {
-                    log(TAG, VERBOSE, "remove overlay");
                     removeView(mViewOverlay);
                     mViewOverlay = null;
                 }
@@ -1123,7 +1106,7 @@ public final class Tooltip {
             );
 
             if (mViewRect.height() / 2 < overlayHeight) {
-                mDrawRect.offset(0, overlayHeight);
+                mDrawRect.offset(0, overlayHeight - mViewRect.height() / 2);
             }
 
             if (checkEdges && !Utils.rectContainsRectWithTolerance(mScreenRect, mDrawRect, mSizeTolerance)) {

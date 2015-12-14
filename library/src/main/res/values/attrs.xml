@@ -23,5 +23,6 @@
         <attr name="android:alpha" />
         <attr name="ttlm_repeatCount" format="integer" />
         <attr name="ttlm_duration" format="integer" />
+        <attr name="android:layout_margin" />
     </declare-styleable>
 </resources>

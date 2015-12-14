@@ -16,8 +16,9 @@
     <style name="ToolTipOverlayDefaultStyle">
         <item name="android:color">?attr/colorAccent</item>
         <item name="ttlm_repeatCount">99</item>
-        <item name="ttlm_duration">600</item>
-        <item name="android:alpha">0.5</item>
+        <item name="ttlm_duration">800</item>
+        <item name="android:alpha">0.6</item>
+        <item name="android:layout_margin">4dp</item>
     </style>
 
 </resources>
