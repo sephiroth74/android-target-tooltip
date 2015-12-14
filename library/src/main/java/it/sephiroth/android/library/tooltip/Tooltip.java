@@ -59,11 +59,11 @@ import static it.sephiroth.android.library.tooltip.Utils.log;
 public final class Tooltip {
     public static boolean dbg = false;
 
-    private Tooltip () {
+    private Tooltip() {
         // empty
     }
 
-    public static TooltipView make (Context context, Builder builder) {
+    public static TooltipView make(Context context, Builder builder) {
         return new TooltipViewImpl(context, builder);
     }
 
@@ -102,23 +102,23 @@ public final class Tooltip {
 
     @SuppressWarnings ("unused")
     public interface TooltipView {
-        void show ();
+        void show();
 
-        void hide ();
+        void hide();
 
-        void remove ();
+        void remove();
 
-        int getTooltipId ();
+        int getTooltipId();
 
-        void offsetTo (int x, int y);
+        void offsetTo(int x, int y);
 
-        void offsetBy (int x, int y);
+        void offsetBy(int x, int y);
 
-        boolean isAttached ();
+        boolean isAttached();
 
-        boolean isShown ();
+        boolean isShown();
 
-        void requestLayout ();
+        void requestLayout();
     }
 
     public interface Callback {
@@ -129,16 +129,16 @@ public final class Tooltip {
          * @param fromUser      true if the close operation started from a user click
          * @param containsTouch true if the original touch came from inside the tooltip
          */
-        void onTooltipClose (final TooltipView tooltip, final boolean fromUser, final boolean containsTouch);
+        void onTooltipClose(final TooltipView tooltip, final boolean fromUser, final boolean containsTouch);
 
         /**
          * Tooltip failed to show (not enough space)
          */
-        void onTooltipFailed (final TooltipView view);
+        void onTooltipFailed(final TooltipView view);
 
-        void onTooltipShown (final TooltipView view);
+        void onTooltipShown(final TooltipView view);
 
-        void onTooltipHidden (final TooltipView view);
+        void onTooltipHidden(final TooltipView view);
     }
 
     @SuppressLint ("ViewConstructor")
@@ -178,12 +178,12 @@ public final class Tooltip {
         private boolean mAttached;
         private final OnAttachStateChangeListener mAttachedStateListener = new OnAttachStateChangeListener() {
             @Override
-            public void onViewAttachedToWindow (final View v) {
+            public void onViewAttachedToWindow(final View v) {
             }
 
             @Override
             @TargetApi (17)
-            public void onViewDetachedFromWindow (final View v) {
+            public void onViewDetachedFromWindow(final View v) {
                 log(TAG, INFO, "[%d] onViewDetachedFromWindow", mToolTipId);
                 removeViewListeners(v);
 
@@ -208,7 +208,7 @@ public final class Tooltip {
         private Runnable hideRunnable = new Runnable() {
             @Override
 
-            public void run () {
+            public void run() {
                 onClose(false, false, false);
             }
         };
@@ -216,7 +216,7 @@ public final class Tooltip {
         private boolean mActivated;
         Runnable activateRunnable = new Runnable() {
             @Override
-            public void run () {
+            public void run() {
                 mActivated = true;
             }
         };
@@ -227,7 +227,7 @@ public final class Tooltip {
         private TooltipOverlay mViewOverlay;
         private final ViewTreeObserver.OnPreDrawListener mPreDrawListener = new ViewTreeObserver.OnPreDrawListener() {
             @Override
-            public boolean onPreDraw () {
+            public boolean onPreDraw() {
                 if (!mAttached) {
                     log(TAG, WARN, "[%d] onPreDraw. not attached", mToolTipId);
                     removePreDrawObserver(null);
@@ -268,7 +268,7 @@ public final class Tooltip {
         private final ViewTreeObserver.OnGlobalLayoutListener mGlobalLayoutListener =
             new ViewTreeObserver.OnGlobalLayoutListener() {
                 @Override
-                public void onGlobalLayout () {
+                public void onGlobalLayout() {
                     if (!mAttached) {
                         log(TAG, WARN, "[%d] onGlobalLayout. removeListeners", mToolTipId);
                         removeGlobalLayoutObserver(null);
@@ -304,7 +304,7 @@ public final class Tooltip {
             };
         private boolean mIsCustomView;
 
-        public TooltipViewImpl (Context context, final Builder builder) {
+        public TooltipViewImpl(Context context, final Builder builder) {
             super(context);
 
             TypedArray theme =
@@ -379,7 +379,7 @@ public final class Tooltip {
         }
 
         @Override
-        public void show () {
+        public void show() {
             if (getParent() == null) {
                 final Activity act = Utils.getActivity(getContext());
                 LayoutParams params = new LayoutParams(MATCH_PARENT, MATCH_PARENT);
@@ -392,11 +392,11 @@ public final class Tooltip {
         }
 
         @Override
-        public void hide () {
+        public void hide() {
             hide(mFadeDuration);
         }
 
-        private void hide (long fadeDuration) {
+        private void hide(long fadeDuration) {
             log(TAG, INFO, "[%d] hide(%d)", mToolTipId, fadeDuration);
 
             if (!isAttached()) {
@@ -405,7 +405,7 @@ public final class Tooltip {
             fadeOut(fadeDuration);
         }
 
-        protected void fadeOut (long fadeDuration) {
+        protected void fadeOut(long fadeDuration) {
             if (!isAttached() || !mShowing) {
                 return;
             }
@@ -427,12 +427,12 @@ public final class Tooltip {
                         boolean cancelled;
 
                         @Override
-                        public void onAnimationStart (final Animator animation) {
+                        public void onAnimationStart(final Animator animation) {
                             cancelled = false;
                         }
 
                         @Override
-                        public void onAnimationEnd (final Animator animation) {
+                        public void onAnimationEnd(final Animator animation) {
                             log(TAG, VERBOSE, "[%d] fade-out onAnimationEnd, cancelled: %b", mToolTipId, cancelled);
                             if (cancelled) {
                                 return;
@@ -448,13 +448,13 @@ public final class Tooltip {
                         }
 
                         @Override
-                        public void onAnimationCancel (final Animator animation) {
+                        public void onAnimationCancel(final Animator animation) {
                             log(TAG, VERBOSE, "[%d] fade-out onAnimationCancel", mToolTipId);
                             cancelled = true;
                         }
 
                         @Override
-                        public void onAnimationRepeat (final Animator animation) {
+                        public void onAnimationRepeat(final Animator animation) {
 
                         }
                     }
@@ -466,7 +466,7 @@ public final class Tooltip {
             }
         }
 
-        void removeFromParent () {
+        void removeFromParent() {
             log(TAG, INFO, "[%d] removeFromParent", mToolTipId);
             ViewParent parent = getParent();
             removeCallbacks();
@@ -480,13 +480,13 @@ public final class Tooltip {
             }
         }
 
-        private void removeCallbacks () {
+        private void removeCallbacks() {
             mHandler.removeCallbacks(hideRunnable);
             mHandler.removeCallbacks(activateRunnable);
         }
 
         @Override
-        public void remove () {
+        public void remove() {
             log(TAG, INFO, "[%d] remove()", mToolTipId);
             if (isAttached()) {
                 removeFromParent();
@@ -494,34 +494,34 @@ public final class Tooltip {
         }
 
         @Override
-        public int getTooltipId () {
+        public int getTooltipId() {
             return mToolTipId;
         }
 
         @Override
-        public void offsetTo (final int x, final int y) {
+        public void offsetTo(final int x, final int y) {
             mView.setTranslationX(x + mDrawRect.left);
             mView.setTranslationY(y + mDrawRect.top);
         }
 
         @Override
-        public void offsetBy (final int x, final int y) {
+        public void offsetBy(final int x, final int y) {
             mView.setTranslationX(x + mView.getTranslationX());
             mView.setTranslationY(y + mView.getTranslationY());
         }
 
         @Override
-        public boolean isAttached () {
+        public boolean isAttached() {
             return mAttached;
         }
 
         @SuppressWarnings ("unused")
-        public boolean isShowing () {
+        public boolean isShowing() {
             return mShowing;
         }
 
         @Override
-        protected void onAttachedToWindow () {
+        protected void onAttachedToWindow() {
             log(TAG, INFO, "[%d] onAttachedToWindow", mToolTipId);
             super.onAttachedToWindow();
             mAttached = true;
@@ -533,7 +533,7 @@ public final class Tooltip {
         }
 
         @Override
-        protected void onDetachedFromWindow () {
+        protected void onDetachedFromWindow() {
             log(TAG, INFO, "[%d] onDetachedFromWindow", mToolTipId);
             removeListeners();
             stopFloatingAnimations();
@@ -543,7 +543,7 @@ public final class Tooltip {
         }
 
         @Override
-        protected void onLayout (final boolean changed, final int l, final int t, final int r, final int b) {
+        protected void onLayout(final boolean changed, final int l, final int t, final int r, final int b) {
             log(TAG, INFO, "[%d] onLayout(%b, %d, %d, %d, %d)", mToolTipId, changed, l, t, r, b);
 
             if (null != mView) {
@@ -573,7 +573,7 @@ public final class Tooltip {
             }
         }
 
-        private void removeListeners () {
+        private void removeListeners() {
             mCallback = null;
 
             if (null != mViewAnchor) {
@@ -582,14 +582,14 @@ public final class Tooltip {
             }
         }
 
-        private void stopFloatingAnimations () {
+        private void stopFloatingAnimations() {
             log(TAG, DEBUG, "stopFloatingAnimations");
             if (null != mAnimator) {
                 mAnimator.cancel();
             }
         }
 
-        private void removeViewListeners (final View view) {
+        private void removeViewListeners(final View view) {
             log(TAG, INFO, "[%d] removeListeners", mToolTipId);
             removeGlobalLayoutObserver(view);
             removePreDrawObserver(view);
@@ -597,7 +597,7 @@ public final class Tooltip {
         }
 
         @SuppressWarnings ("deprecation")
-        private void removeGlobalLayoutObserver (@Nullable View view) {
+        private void removeGlobalLayoutObserver(@Nullable View view) {
             if (null == view && null != mViewAnchor) {
                 view = mViewAnchor.get();
             }
@@ -612,7 +612,7 @@ public final class Tooltip {
             }
         }
 
-        private void removePreDrawObserver (@Nullable View view) {
+        private void removePreDrawObserver(@Nullable View view) {
             if (null == view && null != mViewAnchor) {
                 view = mViewAnchor.get();
             }
@@ -623,7 +623,7 @@ public final class Tooltip {
             }
         }
 
-        private void removeOnAttachStateObserver (@Nullable View view) {
+        private void removeOnAttachStateObserver(@Nullable View view) {
             if (null == view && null != mViewAnchor) {
                 view = mViewAnchor.get();
             }
@@ -635,7 +635,7 @@ public final class Tooltip {
         }
 
         @SuppressWarnings ("deprecation")
-        private void initializeView () {
+        private void initializeView() {
             if (!isAttached() || mInitialized) {
                 return;
             }
@@ -677,7 +677,7 @@ public final class Tooltip {
             }
         }
 
-        private void showInternal () {
+        private void showInternal() {
             log(TAG, INFO, "[%d] show", mToolTipId);
             if (!isAttached()) {
                 log(TAG, ERROR, "[%d] not attached!", mToolTipId);
@@ -687,12 +687,12 @@ public final class Tooltip {
         }
 
         @SuppressLint ("NewApi")
-        private void setupElevation () {
+        private void setupElevation() {
             mTextView.setElevation(mTextViewElevation);
             mTextView.setOutlineProvider(ViewOutlineProvider.BACKGROUND);
         }
 
-        protected void fadeIn (final long fadeDuration) {
+        protected void fadeIn(final long fadeDuration) {
             if (mShowing) {
                 return;
             }
@@ -716,14 +716,14 @@ public final class Tooltip {
                         boolean cancelled;
 
                         @Override
-                        public void onAnimationStart (final Animator animation) {
+                        public void onAnimationStart(final Animator animation) {
                             log(TAG, VERBOSE, "[%d] fade-in onAnimationStart", mToolTipId);
                             setVisibility(View.VISIBLE);
                             cancelled = false;
                         }
 
                         @Override
-                        public void onAnimationEnd (final Animator animation) {
+                        public void onAnimationEnd(final Animator animation) {
                             log(TAG, VERBOSE, "[%d] fade-in onAnimationEnd, cancelled: %b", mToolTipId, cancelled);
 
                             if (!cancelled) {
@@ -736,13 +736,13 @@ public final class Tooltip {
                         }
 
                         @Override
-                        public void onAnimationCancel (final Animator animation) {
+                        public void onAnimationCancel(final Animator animation) {
                             log(TAG, VERBOSE, "[%d] fade-in onAnimationCancel", mToolTipId);
                             cancelled = true;
                         }
 
                         @Override
-                        public void onAnimationRepeat (final Animator animation) {
+                        public void onAnimationRepeat(final Animator animation) {
 
                         }
                     }
@@ -762,7 +762,7 @@ public final class Tooltip {
             }
         }
 
-        void postActivate (long ms) {
+        void postActivate(long ms) {
             log(TAG, VERBOSE, "[%d] postActivate: %d", mToolTipId, ms);
             if (ms > 0) {
                 if (isAttached()) {
@@ -773,11 +773,11 @@ public final class Tooltip {
             }
         }
 
-        private void calculatePositions () {
+        private void calculatePositions() {
             calculatePositions(mRestrict);
         }
 
-        private void calculatePositions (boolean restrict) {
+        private void calculatePositions(boolean restrict) {
             viewGravities.clear();
             viewGravities.addAll(GRAVITY_LIST);
             viewGravities.remove(mGravity);
@@ -786,7 +786,7 @@ public final class Tooltip {
         }
 
         @SuppressWarnings ("checkstyle:cyclomaticcomplexity")
-        private void calculatePositions (List<Gravity> gravities, final boolean checkEdges) {
+        private void calculatePositions(List<Gravity> gravities, final boolean checkEdges) {
             if (!isAttached()) {
                 return;
             }
@@ -904,7 +904,7 @@ public final class Tooltip {
             }
         }
 
-        private void calculatePositionCenter (final boolean checkEdges, final int screenTop, final int width, final int height) {
+        private void calculatePositionCenter(final boolean checkEdges, final int screenTop, final int width, final int height) {
             mDrawRect.set(
                 mViewRect.centerX() - width / 2,
                 mViewRect.centerY() - height / 2,
@@ -926,7 +926,7 @@ public final class Tooltip {
             }
         }
 
-        private boolean calculatePositionLeft (
+        private boolean calculatePositionLeft(
             final boolean checkEdges, final int overlayWidth, final int screenTop,
             final int width, final int height) {
             mDrawRect.set(
@@ -956,7 +956,7 @@ public final class Tooltip {
             return false;
         }
 
-        private boolean calculatePositionRight (
+        private boolean calculatePositionRight(
             final boolean checkEdges, final int overlayWidth, final int screenTop,
             final int width, final int height) {
             mDrawRect.set(
@@ -986,7 +986,7 @@ public final class Tooltip {
             return false;
         }
 
-        private boolean calculatePositionTop (
+        private boolean calculatePositionTop(
             final boolean checkEdges, final int overlayHeight, final int screenTop,
             final int width, final int height) {
             mDrawRect.set(
@@ -1016,7 +1016,7 @@ public final class Tooltip {
             return false;
         }
 
-        private boolean calculatePositionBottom (
+        private boolean calculatePositionBottom(
             final boolean checkEdges, final int overlayHeight, final int screenTop,
             final int width, final int height) {
             mDrawRect.set(
@@ -1046,7 +1046,7 @@ public final class Tooltip {
             return false;
         }
 
-        private void startFloatingAnimations () {
+        private void startFloatingAnimations() {
             if (mTextView == mView || null == mFloatingAnimation) {
                 return;
             }
@@ -1075,7 +1075,7 @@ public final class Tooltip {
             set.playSequentially(anim1, anim2);
             set.addListener(new AnimatorListenerAdapter() {
                 @Override
-                public void onAnimationEnd (Animator animation) {
+                public void onAnimationEnd(Animator animation) {
                     super.onAnimationEnd(animation);
                     if (isAttached()) {
                         log(TAG, VERBOSE, "animation restart");
@@ -1087,7 +1087,7 @@ public final class Tooltip {
             mAnimator.start();
         }
 
-        void getAnchorPoint (final Gravity gravity, Point outPoint) {
+        void getAnchorPoint(final Gravity gravity, Point outPoint) {
 
             if (gravity == BOTTOM) {
                 outPoint.x = mViewRect.centerX();
@@ -1118,7 +1118,7 @@ public final class Tooltip {
             }
         }
 
-        void setText (final CharSequence text) {
+        void setText(final CharSequence text) {
             this.mText = text;
             if (null != mTextView) {
                 mTextView.setText(Html.fromHtml((String) text));
@@ -1127,7 +1127,7 @@ public final class Tooltip {
 
         @SuppressWarnings ("checkstyle:cyclomaticcomplexity")
         @Override
-        public boolean onTouchEvent (@NonNull final MotionEvent event) {
+        public boolean onTouchEvent(@NonNull final MotionEvent event) {
             if (!mAttached || !mShowing || !isShown() || mClosePolicy == ClosePolicy.None) {
                 return false;
             }
@@ -1175,7 +1175,7 @@ public final class Tooltip {
                     case TouchAnyWhere:
                     case TouchAnyWhereExclusive:
                         onClose(true, containsTouch, false);
-                        return mClosePolicy == ClosePolicy.TouchAnyWhereExclusive || containsTouch;
+                        return mClosePolicy == ClosePolicy.TouchAnyWhereExclusive;
                     case None:
                     default:
                         break;
@@ -1185,7 +1185,7 @@ public final class Tooltip {
         }
 
         @Override
-        protected void onDraw (final Canvas canvas) {
+        protected void onDraw(final Canvas canvas) {
             if (!mAttached) {
                 return;
             }
@@ -1193,7 +1193,7 @@ public final class Tooltip {
         }
 
         @Override
-        protected void onMeasure (final int widthMeasureSpec, final int heightMeasureSpec) {
+        protected void onMeasure(final int widthMeasureSpec, final int heightMeasureSpec) {
             super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
             int myWidth = 0;
@@ -1239,7 +1239,7 @@ public final class Tooltip {
             setMeasuredDimension(myWidth, myHeight);
         }
 
-        private void onClose (boolean fromUser, boolean containsTouch, boolean immediate) {
+        private void onClose(boolean fromUser, boolean containsTouch, boolean immediate) {
             log(TAG, INFO, "[%d] onClose. fromUser: %b, containsTouch: %b, immediate: %b",
                 mToolTipId,
                 fromUser,
@@ -1265,19 +1265,25 @@ public final class Tooltip {
         long duration;
         boolean completed;
 
-        public AnimationBuilder () {
+        @SuppressWarnings ("unused")
+        public static final AnimationBuilder DEFAULT = new AnimationBuilder().build();
+
+        @SuppressWarnings ("unused")
+        public static final AnimationBuilder SLOW = new AnimationBuilder().setDuration(600).setRadius(4).build();
+
+        public AnimationBuilder() {
             radius = 8;
             direction = 0;
             duration = 400;
         }
 
-        public AnimationBuilder setRadius (int value) {
+        public AnimationBuilder setRadius(int value) {
             throwIfCompleted();
             this.radius = value;
             return this;
         }
 
-        private void throwIfCompleted () {
+        private void throwIfCompleted() {
             if (completed) {
                 throw new IllegalStateException("Builder cannot be modified");
             }
@@ -1286,19 +1292,19 @@ public final class Tooltip {
         /**
          * @param value 0 for auto, 1 horizontal, 2 vertical
          */
-        public AnimationBuilder setDirection (int value) {
+        public AnimationBuilder setDirection(int value) {
             throwIfCompleted();
             this.direction = value;
             return this;
         }
 
-        public AnimationBuilder setDuration (long value) {
+        public AnimationBuilder setDuration(long value) {
             throwIfCompleted();
             this.duration = value;
             return this;
         }
 
-        public AnimationBuilder build () {
+        public AnimationBuilder build() {
             throwIfCompleted();
             completed = true;
             return this;
@@ -1329,17 +1335,17 @@ public final class Tooltip {
         boolean overlay = true;
         AnimationBuilder floatingAnimation;
 
-        public Builder (int id) {
+        public Builder(int id) {
             this.id = id;
         }
 
         @SuppressWarnings ("unused")
-        public Builder withCustomView (int resId) {
+        public Builder withCustomView(int resId) {
             throwIfCompleted();
             return withCustomView(resId, true);
         }
 
-        private void throwIfCompleted () {
+        private void throwIfCompleted() {
             if (completed) {
                 throw new IllegalStateException("Builder cannot be modified");
             }
@@ -1354,60 +1360,60 @@ public final class Tooltip {
          * @param replaceBackground if true the custom view's background won't be replaced
          * @return the builder for chaining.
          */
-        public Builder withCustomView (int resId, boolean replaceBackground) {
+        public Builder withCustomView(int resId, boolean replaceBackground) {
             this.textResId = resId;
             this.isCustomView = replaceBackground;
             return this;
         }
 
         @SuppressWarnings ("unused")
-        public Builder withStyleId (int styleId) {
+        public Builder withStyleId(int styleId) {
             throwIfCompleted();
             this.defStyleAttr = 0;
             this.defStyleRes = styleId;
             return this;
         }
 
-        public Builder fitToScreen (boolean value) {
+        public Builder fitToScreen(boolean value) {
             throwIfCompleted();
             restrictToScreenEdges = value;
             return this;
         }
 
-        public Builder fadeDuration (long ms) {
+        public Builder fadeDuration(long ms) {
             throwIfCompleted();
             fadeDuration = ms;
             return this;
         }
 
-        public Builder withCallback (Callback callback) {
+        public Builder withCallback(Callback callback) {
             throwIfCompleted();
             this.closeCallback = callback;
             return this;
         }
 
-        public Builder text (Resources res, @StringRes int resId) {
+        public Builder text(Resources res, @StringRes int resId) {
             return text(res.getString(resId));
         }
 
-        public Builder text (CharSequence text) {
+        public Builder text(CharSequence text) {
             throwIfCompleted();
             this.text = text;
             return this;
         }
 
         @SuppressWarnings ("unused")
-        public Builder maxWidth (Resources res, @DimenRes int dimension) {
+        public Builder maxWidth(Resources res, @DimenRes int dimension) {
             return maxWidth(res.getDimensionPixelSize(dimension));
         }
 
-        public Builder maxWidth (int maxWidth) {
+        public Builder maxWidth(int maxWidth) {
             throwIfCompleted();
             this.maxWidth = maxWidth;
             return this;
         }
 
-        public Builder floatingAnimation (AnimationBuilder builder) {
+        public Builder floatingAnimation(AnimationBuilder builder) {
             throwIfCompleted();
             this.floatingAnimation = builder;
             return this;
@@ -1418,13 +1424,13 @@ public final class Tooltip {
          *
          * @param value false to disable the overlay view. True by default
          */
-        public Builder withOverlay (boolean value) {
+        public Builder withOverlay(boolean value) {
             throwIfCompleted();
             this.overlay = value;
             return this;
         }
 
-        public Builder anchor (View view, Gravity gravity) {
+        public Builder anchor(View view, Gravity gravity) {
             throwIfCompleted();
             this.point = null;
             this.view = view;
@@ -1433,7 +1439,7 @@ public final class Tooltip {
         }
 
         @SuppressWarnings ("unused")
-        public Builder anchor (final Point point, final Gravity gravity) {
+        public Builder anchor(final Point point, final Gravity gravity) {
             throwIfCompleted();
             this.view = null;
             this.point = new Point(point);
@@ -1445,7 +1451,7 @@ public final class Tooltip {
          * @deprecated use {#withArrow} instead
          */
         @Deprecated
-        public Builder toggleArrow (boolean show) {
+        public Builder toggleArrow(boolean show) {
             return withArrow(show);
         }
 
@@ -1455,42 +1461,42 @@ public final class Tooltip {
          * @param show true to show the arrow, false to hide it
          * @return the builder for chaining.
          */
-        public Builder withArrow (boolean show) {
+        public Builder withArrow(boolean show) {
             throwIfCompleted();
             this.hideArrow = !show;
             return this;
         }
 
-        public Builder actionBarSize (Resources resources, int resId) {
+        public Builder actionBarSize(Resources resources, int resId) {
             return actionBarSize(resources.getDimensionPixelSize(resId));
         }
 
-        public Builder actionBarSize (final int actionBarSize) {
+        public Builder actionBarSize(final int actionBarSize) {
             throwIfCompleted();
             this.actionbarSize = actionBarSize;
             return this;
         }
 
-        public Builder closePolicy (ClosePolicy policy, long milliseconds) {
+        public Builder closePolicy(ClosePolicy policy, long milliseconds) {
             throwIfCompleted();
             this.closePolicy = policy;
             this.showDuration = milliseconds;
             return this;
         }
 
-        public Builder activateDelay (long ms) {
+        public Builder activateDelay(long ms) {
             throwIfCompleted();
             this.activateDelay = ms;
             return this;
         }
 
-        public Builder showDelay (long ms) {
+        public Builder showDelay(long ms) {
             throwIfCompleted();
             this.showDelay = ms;
             return this;
         }
 
-        public Builder build () {
+        public Builder build() {
             throwIfCompleted();
             if (floatingAnimation != null) {
                 if (!floatingAnimation.completed) {
