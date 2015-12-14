@@ -50,3 +50,5 @@ dependencies {
 
 apply from: rootProject.file('checkstyle.gradle')
 apply from: 'https://raw.githubusercontent.com/sephiroth74/gradle-mvn-push/master/gradle-mvn-push.gradle'
+
+uploadArchives.dependsOn 'check'
