@@ -4,7 +4,8 @@ Android Tooltip
 Create Toast like tooltips, physical targets can be specified, or even points on screen. 
 Many additional features and customizations. Just look at the samples Activities.
 
-Master: ![travis-ci](https://travis-ci.org/sephiroth74/android-target-tooltip.svg)
+![travis-ci](https://travis-ci.org/sephiroth74/android-target-tooltip.svg)
+[ ![Download](https://api.bintray.com/packages/bintray/jcenter/it.sephiroth.android.library.targettooltip%3Atarget-tooltip-library/images/download.svg) ](https://bintray.com/bintray/jcenter/it.sephiroth.android.library.targettooltip%3Atarget-tooltip-library/_latestVersion)
 
 Installation
 ===
