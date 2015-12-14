@@ -1,4 +1,9 @@
 
+**Version 1.3.9**
+* Changed the close policy creation. Now there's a builder for it. See the changes to the Builder `closePolicy` method.
+* Added static methods `remove` and `removeAll` in the main Tooltip class.
+* Added `android:layout_margins` as property of the `TooltipOverlay` style.
+
 **Version 1.3.8**
 
 * Removed useless TooltipManager, now just use Tooltip.make(..)

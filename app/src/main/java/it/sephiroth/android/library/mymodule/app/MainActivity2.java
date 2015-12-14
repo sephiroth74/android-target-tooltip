@@ -10,6 +10,7 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.SwitchCompat;
 import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -19,6 +20,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CompoundButton;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,9 +30,7 @@ import it.sephiroth.android.library.tooltip.Tooltip.AnimationBuilder;
 
 public class MainActivity2 extends AppCompatActivity implements OnPageChangeListener {
     private static final String TAG = MainActivity2.class.getSimpleName();
-    static int tooltip_id = 0;
     ViewPager mViewPager;
-    private Adapter mAdapter;
 
     @Override
     protected void onCreate (Bundle savedInstanceState) {
@@ -40,7 +40,8 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
 
         mViewPager = (ViewPager) findViewById(R.id.viewpager);
         mViewPager.addOnPageChangeListener(this);
-        mAdapter = setupViewPager(mViewPager);
+        setupViewPager(mViewPager);
+        Tooltip.dbg = true;
 
     }
 
@@ -77,14 +78,15 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
             this,
             new Tooltip.Builder(101)
                 .anchor(tab, Tooltip.Gravity.BOTTOM)
-                .closePolicy(Tooltip.ClosePolicy.TouchAnyWhere, 3000)
+                .closePolicy(Tooltip.ClosePolicy.TOUCH_ANYWHERE_NO_CONSUME, 3000)
                 .text("Tooltip on a TabLayout child...")
                 .fadeDuration(200)
                 .fitToScreen(false)
                 .maxWidth(400)
                 .showDelay(400)
                 .toggleArrow(true)
-                .build()).show();
+                .build()
+        ).show();
     }
 
     @Override
@@ -163,18 +165,19 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
         }
     }
 
-    public static class Fragment1 extends Fragment implements View.OnClickListener, Tooltip.Callback {
-        private final int ID_BUTTON1 = tooltip_id++;
-        private final int ID_BUTTON2 = tooltip_id++;
-        private final int ID_BUTTON3 = tooltip_id++;
-        private final int ID_BUTTON4 = tooltip_id++;
-        private final int ID_BUTTON5 = tooltip_id++;
+    public static class Fragment1 extends Fragment implements View.OnClickListener, Tooltip.Callback, CompoundButton
+        .OnCheckedChangeListener {
         Button mButton1;
         Button mButton2;
         Button mButton3;
         Button mButton4;
         Button mButton5;
+        SwitchCompat mSwitch1;
+        SwitchCompat mSwitch2;
+        SwitchCompat mSwitch3;
+        SwitchCompat mSwitch4;
         private Tooltip.TooltipView tooltip;
+        private Tooltip.ClosePolicy mClosePolicy = Tooltip.ClosePolicy.TOUCH_ANYWHERE_CONSUME;
 
         @Nullable
         @Override
@@ -197,6 +200,22 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
             mButton3.setOnClickListener(this);
             mButton4.setOnClickListener(this);
             mButton5.setOnClickListener(this);
+
+            mSwitch1 = (SwitchCompat) view.findViewById(R.id.switch1);
+            mSwitch2 = (SwitchCompat) view.findViewById(R.id.switch2);
+            mSwitch3 = (SwitchCompat) view.findViewById(R.id.switch3);
+            mSwitch4 = (SwitchCompat) view.findViewById(R.id.switch4);
+
+            final int policy = mClosePolicy.getPolicy();
+            mSwitch1.setChecked(Tooltip.ClosePolicy.touchInside(policy));
+            mSwitch2.setChecked(Tooltip.ClosePolicy.consumeInside(policy));
+            mSwitch3.setChecked(Tooltip.ClosePolicy.touchOutside(policy));
+            mSwitch4.setChecked(Tooltip.ClosePolicy.consumeOutside(policy));
+
+            mSwitch1.setOnCheckedChangeListener(this);
+            mSwitch2.setOnCheckedChangeListener(this);
+            mSwitch3.setOnCheckedChangeListener(this);
+            mSwitch4.setOnCheckedChangeListener(this);
         }
 
         @Override
@@ -216,9 +235,9 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
 
                 Tooltip.make(
                     getContext(),
-                    new Tooltip.Builder(ID_BUTTON1)
+                    new Tooltip.Builder()
                         .anchor(v, Tooltip.Gravity.RIGHT)
-                        .closePolicy(Tooltip.ClosePolicy.TouchAnyWhere, 0)
+                        .closePolicy(mClosePolicy, 5000)
                         .text(
                             "RIGHT. Touch outside to close this tooltip. RIGHT. Touch outside to close this tooltip. RIGHT. Touch"
                                 + " outside to close this tooltip.")
@@ -228,48 +247,52 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
                         .withOverlay(true)
                         .withCallback(this)
                         .activateDelay(500)
-                        .floatingAnimation(new AnimationBuilder().setDirection(0).setDuration(400).setRadius(8).build())
-                        .build()).show();
+                        .floatingAnimation(AnimationBuilder.DEFAULT)
+                        .build()
+                ).show();
 
             } else if (id == mButton2.getId()) {
 
                 Tooltip.make(
                     getContext(),
-                    new Tooltip.Builder(ID_BUTTON2)
+                    new Tooltip.Builder()
                         .anchor(mButton2, Tooltip.Gravity.BOTTOM)
                         .fitToScreen(true)
-                        .closePolicy(Tooltip.ClosePolicy.TouchAnyWhereExclusive, 0)
+                        .closePolicy(mClosePolicy, 10000)
                         .text("BOTTOM. Touch outside to dismiss the tooltip")
                         .withArrow(true)
                         .maxWidth(metrics.widthPixels / 2)
                         .withCallback(this)
-                        .build()).show();
+                        .build()
+                ).show();
 
             } else if (id == mButton3.getId()) {
                 Tooltip.make(
                     getContext(),
-                    new Tooltip.Builder(ID_BUTTON3)
+                    new Tooltip.Builder()
                         .anchor(mButton3, Tooltip.Gravity.TOP)
-                        .closePolicy(Tooltip.ClosePolicy.TouchInside, 0)
+                        .closePolicy(mClosePolicy, 10000)
                         .text("TOP. Touch Inside the tooltip to dismiss..")
                         .withArrow(true)
                         .maxWidth((int) (metrics.widthPixels / 2.5))
                         .withCallback(this)
-                        .floatingAnimation(new AnimationBuilder().setDirection(2).setDuration(1000).setRadius(20).build())
-                        .build()).show();
+                        .floatingAnimation(AnimationBuilder.DEFAULT)
+                        .build()
+                ).show();
 
             } else if (id == mButton4.getId()) {
                 Tooltip.make(
                     getContext(),
-                    new Tooltip.Builder(ID_BUTTON4)
+                    new Tooltip.Builder()
                         .anchor(v, Tooltip.Gravity.TOP)
-                        .closePolicy(Tooltip.ClosePolicy.TouchInsideExclusive, 0)
+                        .closePolicy(mClosePolicy, 5000)
                         .text("TOP. Touch Inside exclusive.")
                         .withArrow(true)
                         .withOverlay(false)
                         .maxWidth(metrics.widthPixels / 3)
                         .withCallback(this)
-                        .build()).show();
+                        .build()
+                ).show();
 
             } else if (id == mButton5.getId()) {
 
@@ -277,16 +300,17 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
 
                     tooltip = Tooltip.make(
                         getActivity(),
-                        new Tooltip.Builder(ID_BUTTON5)
+                        new Tooltip.Builder()
                             .anchor(v, Tooltip.Gravity.LEFT)
-                            .closePolicy(Tooltip.ClosePolicy.None, 3000)
+                            .closePolicy(mClosePolicy, 5000)
                             .text("LEFT. Touch None, so the tooltip won't disappear with a touch, but with a delay")
                             .withArrow(false)
                             .withOverlay(false)
                             .maxWidth(metrics.widthPixels / 3)
                             .showDelay(300)
                             .withCallback(this)
-                            .build());
+                            .build()
+                    );
                     tooltip.show();
                 } else {
                     tooltip.hide();
@@ -317,6 +341,25 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
         @Override
         public void onTooltipHidden (Tooltip.TooltipView view) {
             Log.d(TAG, "onTooltipHidden: " + view.getTooltipId());
+        }
+
+        @Override
+        public void onCheckedChanged (final CompoundButton buttonView, final boolean isChecked) {
+            Log.i(TAG, "onCheckedChanged: " + buttonView.getId() + ", checked: " + isChecked);
+
+            Log.v(TAG, "[pre] closePolicy: " + mClosePolicy.getPolicy());
+
+            mClosePolicy
+                .insidePolicy(mSwitch1.isChecked(), mSwitch2.isChecked())
+                .outsidePolicy(mSwitch3.isChecked(), mSwitch4.isChecked());
+
+            Log.v(TAG, "[post] closePolicy: " + mClosePolicy.getPolicy());
+            Log.v(TAG, "touch inside: " + Tooltip.ClosePolicy.touchInside(mClosePolicy.getPolicy()));
+            Log.v(TAG, "touch outside: " + Tooltip.ClosePolicy.touchOutside(mClosePolicy.getPolicy()));
+            Log.v(TAG, "consume inside: " + Tooltip.ClosePolicy.consumeInside(mClosePolicy.getPolicy()));
+            Log.v(TAG, "consume outside: " + Tooltip.ClosePolicy.consumeOutside(mClosePolicy.getPolicy()));
+
+            Tooltip.removeAll(getActivity());
         }
     }
 }

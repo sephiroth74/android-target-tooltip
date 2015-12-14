@@ -18,6 +18,7 @@
         <item name="ttlm_repeatCount">99</item>
         <item name="ttlm_duration">600</item>
         <item name="android:alpha">0.5</item>
+        <item name="android:layout_margin">8dp</item>
     </style>
 
 </resources>

@@ -158,7 +158,7 @@ public class MainActivity3 extends AppCompatActivity implements AdapterView.OnIt
                 new Tooltip.Builder(TOOLTIP_ID)
                     .maxWidth((int) (displayMetrics.widthPixels / 2))
                     .anchor(holder.itemView.findViewById(android.R.id.text1), Tooltip.Gravity.RIGHT)
-                    .closePolicy(Tooltip.ClosePolicy.TouchInside, 0)
+                    .closePolicy(Tooltip.ClosePolicy.TOUCH_INSIDE_NO_CONSUME, 0)
                     .text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc lacinia sem non neque commodo consectetur")
                     .fitToScreen(false)
                     .fadeDuration(200)
