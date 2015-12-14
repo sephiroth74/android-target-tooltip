@@ -19,14 +19,16 @@ Usage
 	Tooltip.make(this,
 			new Builder(101)
 			.anchor(aView, Gravity.BOTTOM)
-			.closePolicy(ClosePolicy.TouchOutside, 3000)
+			.closePolicy(new ClosePolicy()
+			    .insidePolicy(true, false)
+			    .outsidePolicy(true, false), 3000)
 			.activateDelay(800)
 			.showDelay(300)
 			.text(R.string.hello_world)
 			.maxWidth(500)
 			.withArrow(true)
 			.withOverlay(true)
-			floatingAnimation(AnimationBuilder)
+			floatingAnimation(AnimationBuilder.DEFAULT)
 			.build()
 		).show();
 

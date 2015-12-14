@@ -63,37 +63,114 @@ public final class Tooltip {
         // empty
     }
 
+    @SuppressWarnings ("unused")
     public static TooltipView make (Context context, Builder builder) {
         return new TooltipViewImpl(context, builder);
     }
 
-    public enum ClosePolicy {
-        /**
-         * tooltip will hide when touching it, or after the specified delay.
-         * If delay is '0' the tooltip will never hide until clicked
-         */
-        TouchInside,
-        /**
-         * tooltip will hide when touching it, or after the specified delay.
-         * If delay is '0' the tooltip will never hide until clicked.
-         * In exclusive mode all touches will be consumed by the tooltip itself
-         */
-        TouchInsideExclusive,
-        /**
-         * tooltip will hide when user touches anywhere the screen, or after the specified delay.
-         * If delay is '0' the tooltip will never hide until clicked
-         */
-        TouchAnyWhere,
-        /**
-         * tooltip will hide when user touches anywhere the screen, or after the specified delay.
-         * If delay is '0' the tooltip will never hide until clicked.
-         * Touch will be consumed in any case.
-         */
-        TouchAnyWhereExclusive,
-        /**
-         * tooltip is hidden only after the specified delay
-         */
-        None
+    @SuppressWarnings ("unused")
+    public static boolean remove (Context context, final int tooltipId) {
+        final Activity act = Utils.getActivity(context);
+        if (act != null) {
+            ViewGroup rootView;
+            rootView = (ViewGroup) (act.getWindow().getDecorView());
+            for (int i = 0; i < rootView.getChildCount(); i++) {
+                final View child = rootView.getChildAt(i);
+                if (child instanceof TooltipView) {
+                    if (((TooltipView) child).getTooltipId() == tooltipId) {
+                        log("Tooltip", VERBOSE, "removing: %d", ((TooltipView) child).getTooltipId());
+                        ((TooltipView) child).remove();
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    @SuppressWarnings ("unused")
+    public static boolean removeAll (Context context) {
+        final Activity act = Utils.getActivity(context);
+        if (act != null) {
+            ViewGroup rootView;
+            rootView = (ViewGroup) (act.getWindow().getDecorView());
+            for (int i = rootView.getChildCount() - 1; i >= 0; i--) {
+                final View child = rootView.getChildAt(i);
+                if (child instanceof TooltipView) {
+                    log("Tooltip", VERBOSE, "removing: %d", ((TooltipView) child).getTooltipId());
+                    ((TooltipView) child).remove();
+                }
+            }
+        }
+        return false;
+    }
+
+    @SuppressWarnings ("unused")
+    public static class ClosePolicy {
+        static final int NONE = 0;
+        static final int TOUCH_INSIDE = 1 << 1;
+        static final int TOUCH_OUTSIDE = 1 << 2;
+        static final int CONSUME_INSIDE = 1 << 3;
+        static final int CONSUME_OUTSIDE = 1 << 4;
+        private int policy;
+        public static final ClosePolicy TOUCH_NONE = new ClosePolicy(NONE);
+        public static final ClosePolicy TOUCH_INSIDE_CONSUME = new ClosePolicy(TOUCH_INSIDE | CONSUME_INSIDE);
+        public static final ClosePolicy TOUCH_INSIDE_NO_CONSUME = new ClosePolicy(TOUCH_INSIDE);
+        public static final ClosePolicy TOUCH_OUTSIDE_CONSUME = new ClosePolicy(TOUCH_OUTSIDE | CONSUME_OUTSIDE);
+        public static final ClosePolicy TOUCH_OUTSIDE_NO_CONSUME = new ClosePolicy(TOUCH_OUTSIDE);
+        public static final ClosePolicy TOUCH_ANYWHERE_NO_CONSUME = new ClosePolicy(TOUCH_INSIDE | TOUCH_OUTSIDE);
+        public static final ClosePolicy TOUCH_ANYWHERE_CONSUME =
+            new ClosePolicy(TOUCH_INSIDE | TOUCH_OUTSIDE | CONSUME_INSIDE | CONSUME_OUTSIDE);
+
+        public ClosePolicy () {
+            policy = NONE;
+        }
+
+        ClosePolicy (final int policy) {
+            this.policy = policy;
+        }
+
+        public ClosePolicy insidePolicy (boolean close, boolean consume) {
+            policy = close ? policy | TOUCH_INSIDE : policy & ~TOUCH_INSIDE;
+            policy = consume ? policy | CONSUME_INSIDE : policy & ~CONSUME_INSIDE;
+            return this;
+        }
+
+        public ClosePolicy outsidePolicy (boolean close, boolean consume) {
+            policy = close ? policy | TOUCH_OUTSIDE : policy & ~TOUCH_OUTSIDE;
+            policy = consume ? policy | CONSUME_OUTSIDE : policy & ~CONSUME_OUTSIDE;
+            return this;
+        }
+
+        public ClosePolicy clear () {
+            policy = NONE;
+            return this;
+        }
+
+        public int build () {
+            return policy;
+        }
+
+        public int getPolicy () {
+            return policy;
+        }
+
+        public static boolean touchInside (final int value) {
+            return (value & TOUCH_INSIDE) == TOUCH_INSIDE;
+        }
+
+        public static boolean touchOutside (final int value) {
+            return (value & TOUCH_OUTSIDE) == TOUCH_OUTSIDE;
+        }
+
+        public static boolean consumeInside (final int value) {
+            return (value & CONSUME_INSIDE) == CONSUME_INSIDE;
+        }
+
+        public static boolean consumeOutside (final int value) {
+            return (value & CONSUME_OUTSIDE) == CONSUME_OUTSIDE;
+        }
+
     }
 
     public enum Gravity {
@@ -152,7 +229,7 @@ public final class Tooltip {
         private final int mToolTipId;
         private final Rect mDrawRect;
         private final long mShowDuration;
-        private final ClosePolicy mClosePolicy;
+        private final int mClosePolicy;
         private final Point mPoint;
         private final int mTextResId;
         private final int mTopRule;
@@ -543,6 +620,21 @@ public final class Tooltip {
         }
 
         @Override
+        protected void onVisibilityChanged (final View changedView, final int visibility) {
+            log(TAG, INFO, "[%d] onVisibilityChanged: %d", mToolTipId, visibility);
+
+            super.onVisibilityChanged(changedView, visibility);
+
+            if (null != mAnimator) {
+                if (visibility == VISIBLE) {
+                    mAnimator.start();
+                } else {
+                    mAnimator.cancel();
+                }
+            }
+        }
+
+        @Override
         protected void onLayout (final boolean changed, final int l, final int t, final int r, final int b) {
             log(TAG, INFO, "[%d] onLayout(%b, %d, %d, %d, %d)", mToolTipId, changed, l, t, r, b);
 
@@ -587,6 +679,7 @@ public final class Tooltip {
             log(TAG, DEBUG, "stopFloatingAnimations");
             if (null != mAnimator) {
                 mAnimator.cancel();
+                mAnimator = null;
             }
         }
 
@@ -1066,7 +1159,7 @@ public final class Tooltip {
             }
 
             final String property = direction == 2 ? "translationY" : "translationX";
-            ValueAnimator anim1 = ObjectAnimator.ofFloat(mTextView, property, -endValue, endValue);
+            final ValueAnimator anim1 = ObjectAnimator.ofFloat(mTextView, property, -endValue, endValue);
             anim1.setDuration(duration);
             anim1.setInterpolator(new AccelerateDecelerateInterpolator());
 
@@ -1131,7 +1224,7 @@ public final class Tooltip {
         @SuppressWarnings ("checkstyle:cyclomaticcomplexity")
         @Override
         public boolean onTouchEvent (@NonNull final MotionEvent event) {
-            if (!mAttached || !mShowing || !isShown() || mClosePolicy == ClosePolicy.None) {
+            if (!mAttached || !mShowing || !isShown() || mClosePolicy == ClosePolicy.NONE) {
                 return false;
             }
 
@@ -1168,21 +1261,28 @@ public final class Tooltip {
                     );
                 }
 
-                switch (mClosePolicy) {
-                    case TouchInside:
-                    case TouchInsideExclusive:
-                        if (containsTouch) {
-                            onClose(true, true, false);
-                        }
-                        return mClosePolicy == ClosePolicy.TouchInsideExclusive;
-                    case TouchAnyWhere:
-                    case TouchAnyWhereExclusive:
-                        onClose(true, containsTouch, false);
-                        return mClosePolicy == ClosePolicy.TouchAnyWhereExclusive;
-                    case None:
-                    default:
-                        break;
+                if (dbg) {
+                    log(TAG, DEBUG, "containsTouch: %b", containsTouch);
+
+                    log(TAG, DEBUG, "touchOutside: %b", ClosePolicy.touchOutside(mClosePolicy));
+                    log(TAG, DEBUG, "consumeOutside: %b", ClosePolicy.consumeOutside(mClosePolicy));
+
+                    log(TAG, DEBUG, "touchInside: %b", ClosePolicy.touchInside(mClosePolicy));
+                    log(TAG, DEBUG, "consumeInside: %b", ClosePolicy.consumeInside(mClosePolicy));
                 }
+
+                if (containsTouch) {
+                    if (ClosePolicy.touchInside(mClosePolicy)) {
+                        onClose(true, true, false);
+                    }
+                    return ClosePolicy.consumeInside(mClosePolicy);
+                }
+
+                if (ClosePolicy.touchOutside(mClosePolicy)) {
+                    onClose(true, false, false);
+                }
+                return ClosePolicy.consumeOutside(mClosePolicy);
+
             }
             return false;
         }
@@ -1313,13 +1413,14 @@ public final class Tooltip {
     }
 
     public static final class Builder {
+        private static int sNextId = 0;
         int id;
         CharSequence text;
         View view;
         Gravity gravity;
         int actionbarSize = 0;
         int textResId = R.layout.tooltip_textview;
-        ClosePolicy closePolicy;
+        int closePolicy = ClosePolicy.NONE;
         long showDuration;
         Point point;
         long showDelay = 0;
@@ -1338,6 +1439,11 @@ public final class Tooltip {
 
         public Builder (int id) {
             this.id = id;
+        }
+
+        @SuppressWarnings ("unused")
+        public Builder () {
+            this.id = sNextId++;
         }
 
         @SuppressWarnings ("unused")
@@ -1480,7 +1586,7 @@ public final class Tooltip {
 
         public Builder closePolicy (ClosePolicy policy, long milliseconds) {
             throwIfCompleted();
-            this.closePolicy = policy;
+            this.closePolicy = policy.build();
             this.showDuration = milliseconds;
             return this;
         }
