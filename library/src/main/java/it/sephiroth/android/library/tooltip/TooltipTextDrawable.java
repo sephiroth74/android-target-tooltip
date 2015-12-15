@@ -251,6 +251,9 @@ class TooltipTextDrawable extends Drawable {
         copyBounds(outlineRect);
         outlineRect.inset(padding, padding);
         outline.setRoundRect(outlineRect, getRadius());
-        outline.setAlpha(getAlpha() / ALPHA_MAX);
+        if (getAlpha() < 255) {
+            outline.setAlpha(0);
+        }
+        //outline.setAlpha(getAlpha() / ALPHA_MAX);
     }
 }
