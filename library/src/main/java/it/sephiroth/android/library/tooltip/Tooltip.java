@@ -9,6 +9,7 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
@@ -190,9 +191,21 @@ public final class Tooltip {
 
         void offsetBy (int x, int y);
 
+        void offsetXBy (float x);
+
+        void offsetXTo (float x);
+
         boolean isAttached ();
 
         boolean isShown ();
+
+        void setText (final CharSequence text);
+
+        void setText (@StringRes int resId);
+
+        void setTextColor (final int color);
+
+        void setTextColor (final ColorStateList color);
 
         void requestLayout ();
     }
@@ -579,6 +592,37 @@ public final class Tooltip {
         public void offsetBy (final int x, final int y) {
             mView.setTranslationX(x + mView.getTranslationX());
             mView.setTranslationY(y + mView.getTranslationY());
+        }
+
+        @Override
+        public void offsetXBy (final float x) {
+            mView.setTranslationX(x + mView.getTranslationX());
+        }
+
+        @Override
+        public void offsetXTo (final float x) {
+            mView.setTranslationX(x + mDrawRect.left);
+        }
+
+        @Override
+        public void setText (@StringRes final int resId) {
+            if (null != mView) {
+                setText(getResources().getString(resId));
+            }
+        }
+
+        @Override
+        public void setTextColor (final int color) {
+            if (null != mTextView) {
+                mTextView.setTextColor(color);
+            }
+        }
+
+        @Override
+        public void setTextColor (final ColorStateList color) {
+            if (null != mTextView) {
+                mTextView.setTextColor(color);
+            }
         }
 
         @Override
@@ -1197,7 +1241,8 @@ public final class Tooltip {
             }
         }
 
-        void setText (final CharSequence text) {
+        @Override
+        public void setText (final CharSequence text) {
             this.mText = text;
             if (null != mTextView) {
                 mTextView.setText(Html.fromHtml((String) text));
