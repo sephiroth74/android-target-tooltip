@@ -38,7 +38,7 @@ class TooltipTextDrawable extends Drawable {
         TypedArray theme =
             context.getTheme().obtainStyledAttributes(null, R.styleable.TooltipLayout, builder.defStyleAttr, builder.defStyleRes);
         this.ellipseSize = theme.getDimensionPixelSize(R.styleable.TooltipLayout_ttlm_cornerRadius, 4);
-        final int strokeWidth = theme.getDimensionPixelSize(R.styleable.TooltipLayout_ttlm_strokeWeight, 30);
+        final int strokeWidth = theme.getDimensionPixelSize(R.styleable.TooltipLayout_ttlm_strokeWeight, 2);
         final int backgroundColor = theme.getColor(R.styleable.TooltipLayout_ttlm_backgroundColor, 0);
         final int strokeColor = theme.getColor(R.styleable.TooltipLayout_ttlm_strokeColor, 0);
         this.arrowRatio = theme.getFloat(R.styleable.TooltipLayout_ttlm_arrowRatio, ARROW_RATIO_DEFAULT);
