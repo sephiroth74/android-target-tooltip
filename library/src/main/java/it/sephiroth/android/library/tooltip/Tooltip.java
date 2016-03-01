@@ -15,6 +15,7 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Handler;
 import android.support.annotation.DimenRes;
@@ -22,6 +23,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.text.Html;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -348,6 +350,7 @@ public final class Tooltip {
             }
         };
         private TextView mTextView;
+        private Typeface mTypeface;
         private int mSizeTolerance;
         private Animator mAnimator;
         private AnimationBuilder mFloatingAnimation;
@@ -400,6 +403,9 @@ public final class Tooltip {
             this.mTextAppearance = theme.getResourceId(R.styleable.TooltipLayout_android_textAppearance, 0);
             this.mTextViewElevation = theme.getDimension(R.styleable.TooltipLayout_ttlm_elevation, 0);
             int overlayStyle = theme.getResourceId(R.styleable.TooltipLayout_ttlm_overlayStyle, R.style.ToolTipOverlayDefaultStyle);
+
+            String font = theme.getString(R.styleable.TooltipLayout_ttlm_font);
+
             theme.recycle();
 
             this.mToolTipId = builder.id;
@@ -418,6 +424,12 @@ public final class Tooltip {
             this.mCallback = builder.closeCallback;
             this.mFloatingAnimation = builder.floatingAnimation;
             this.mSizeTolerance = (int) (context.getResources().getDisplayMetrics().density * TOLERANCE_VALUE);
+
+            if (builder.typeface != null) {
+                mTypeface = builder.typeface;
+            } else if (!TextUtils.isEmpty(font)) {
+                mTypeface = Typefaces.get(context, font);
+            }
 
             setClipChildren(false);
             setClipToPadding(false);
@@ -782,6 +794,10 @@ public final class Tooltip {
 
             if (0 != mTextAppearance) {
                 mTextView.setTextAppearance(getContext(), mTextAppearance);
+            }
+
+            if (mTypeface != null) {
+                mTextView.setTypeface(mTypeface);
             }
 
             if (null != mDrawable) {
@@ -1464,6 +1480,7 @@ public final class Tooltip {
         boolean completed;
         boolean overlay = true;
         AnimationBuilder floatingAnimation;
+        Typeface typeface;
 
         public Builder (int id) {
             this.id = id;
@@ -1534,6 +1551,12 @@ public final class Tooltip {
         public Builder text (CharSequence text) {
             throwIfCompleted();
             this.text = text;
+            return this;
+        }
+
+        public Builder typeface(Typeface typeface) {
+            throwIfCompleted();
+            this.typeface = typeface;
             return this;
         }
 
