@@ -6,23 +6,24 @@ import android.util.Log;
 
 import java.util.Hashtable;
 
-public class Typefaces {
+public final class Typefaces {
     private static final String TAG = "Typefaces";
+    private static final Hashtable<String, Typeface> FONT_CACHE = new Hashtable<>();
 
-    private static final Hashtable<String, Typeface> cache = new Hashtable<>();
+    private Typefaces() { }
 
-    public static Typeface get(Context c, String assetPath) {
-        synchronized (cache) {
-            if (!cache.containsKey(assetPath)) {
+    public static Typeface get (Context c, String assetPath) {
+        synchronized (FONT_CACHE) {
+            if (!FONT_CACHE.containsKey(assetPath)) {
                 try {
                     Typeface t = Typeface.createFromAsset(c.getAssets(), assetPath);
-                    cache.put(assetPath, t);
+                    FONT_CACHE.put(assetPath, t);
                 } catch (Exception e) {
                     Log.e(TAG, "Could not get typeface '" + assetPath + "' because " + e.getMessage());
                     return null;
                 }
             }
-            return cache.get(assetPath);
+            return FONT_CACHE.get(assetPath);
         }
     }
 }
