@@ -28,6 +28,7 @@ Usage
 			.maxWidth(500)
 			.withArrow(true)
 			.withOverlay(true)
+			.typeface(mYourCustomFont)
 			floatingAnimation(AnimationBuilder.DEFAULT)
 			.build()
 		).show();
@@ -50,6 +51,7 @@ Tooltip style can be customized in your style object:
         <attr name="android:textAppearance" />
         <attr name="ttlm_overlayStyle" format="reference" />
         <attr name="ttlm_elevation" format="dimension" />
+        <attr name="ttlm_font" format="string" />
     </declare-styleable>
 
 
