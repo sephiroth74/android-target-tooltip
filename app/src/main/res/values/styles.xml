@@ -24,6 +24,8 @@
         <item name="ttlm_duration">400</item>
     </style>
 
-    <style name="ToolTipLayoutDefaultStyle.TextColor1" parent="ToolTipLayoutDefaultStyle"></style>
+    <style name="ToolTipLayoutDefaultStyle.CustomFont" parent="ToolTipLayoutDefaultStyle">
+        <item name="ttlm_font">fonts/at.ttc</item>
+    </style>
 
 </resources>
