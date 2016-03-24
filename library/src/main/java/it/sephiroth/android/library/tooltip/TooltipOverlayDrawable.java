@@ -40,7 +40,7 @@ public class TooltipOverlayDrawable extends Drawable {
     private int mRepeatCount = 1;
     private long mDuration = 400;
 
-    public TooltipOverlayDrawable (Context context, int defStyleResId) {
+    public TooltipOverlayDrawable(Context context, int defStyleResId) {
         mOuterPaint.setStyle(Paint.Style.FILL);
         mInnerPaint.setStyle(Paint.Style.FILL);
 
@@ -110,13 +110,13 @@ public class TooltipOverlayDrawable extends Drawable {
             boolean cancelled;
 
             @Override
-            public void onAnimationCancel (Animator animation) {
+            public void onAnimationCancel(Animator animation) {
                 super.onAnimationCancel(animation);
                 cancelled = true;
             }
 
             @Override
-            public void onAnimationEnd (Animator animation) {
+            public void onAnimationEnd(Animator animation) {
                 if (!cancelled && isVisible() && ++mRepeatIndex < mRepeatCount) {
                     mFirstAnimatorSet.start();
                 }
@@ -127,13 +127,13 @@ public class TooltipOverlayDrawable extends Drawable {
             boolean cancelled;
 
             @Override
-            public void onAnimationCancel (Animator animation) {
+            public void onAnimationCancel(Animator animation) {
                 super.onAnimationCancel(animation);
                 cancelled = true;
             }
 
             @Override
-            public void onAnimationEnd (Animator animation) {
+            public void onAnimationEnd(Animator animation) {
                 if (!cancelled && isVisible() && mRepeatIndex < mRepeatCount) {
                     mSecondAnimatorSet.setStartDelay(0);
                     mSecondAnimatorSet.start();
@@ -143,28 +143,28 @@ public class TooltipOverlayDrawable extends Drawable {
 
     }
 
-    public int getOuterAlpha () {
+    public int getOuterAlpha() {
         return mOuterPaint.getAlpha();
     }
 
     @SuppressWarnings ("unused")
-    public void setOuterAlpha (final int value) {
+    public void setOuterAlpha(final int value) {
         mOuterPaint.setAlpha(value);
         invalidateSelf();
     }
 
-    public int getInnerAlpha () {
+    public int getInnerAlpha() {
         return mInnerPaint.getAlpha();
     }
 
     @SuppressWarnings ("unused")
-    public void setInnerAlpha (final int value) {
+    public void setInnerAlpha(final int value) {
         mInnerPaint.setAlpha(value);
         invalidateSelf();
     }
 
     @Override
-    public void draw (Canvas canvas) {
+    public void draw(Canvas canvas) {
         Rect bounds = getBounds();
         int centerX = bounds.width() / 2;
         int centerY = bounds.height() / 2;
@@ -174,17 +174,17 @@ public class TooltipOverlayDrawable extends Drawable {
     }
 
     @Override
-    public void setAlpha (int i) {
+    public void setAlpha(int i) {
 
     }
 
     @Override
-    public void setColorFilter (ColorFilter colorFilter) {
+    public void setColorFilter(ColorFilter colorFilter) {
 
     }
 
     @Override
-    public boolean setVisible (boolean visible, boolean restart) {
+    public boolean setVisible(boolean visible, boolean restart) {
         boolean changed = isVisible() != visible;
 
         if (visible) {
@@ -199,12 +199,12 @@ public class TooltipOverlayDrawable extends Drawable {
     }
 
     @Override
-    public int getOpacity () {
+    public int getOpacity() {
         return PixelFormat.TRANSLUCENT;
     }
 
     @Override
-    protected void onBoundsChange (Rect bounds) {
+    protected void onBoundsChange(Rect bounds) {
         super.onBoundsChange(bounds);
         mOuterRadius = Math.min(bounds.width(), bounds.height()) / 2;
         mFirstAnimator.setFloatValues(0, mOuterRadius);
@@ -212,16 +212,16 @@ public class TooltipOverlayDrawable extends Drawable {
     }
 
     @Override
-    public int getIntrinsicWidth () {
+    public int getIntrinsicWidth() {
         return 96;
     }
 
     @Override
-    public int getIntrinsicHeight () {
+    public int getIntrinsicHeight() {
         return 96;
     }
 
-    public void play () {
+    public void play() {
         mRepeatIndex = 0;
         mStarted = true;
         mFirstAnimatorSet.start();
@@ -229,12 +229,12 @@ public class TooltipOverlayDrawable extends Drawable {
         mSecondAnimatorSet.start();
     }
 
-    public void replay () {
+    public void replay() {
         stop();
         play();
     }
 
-    public void stop () {
+    public void stop() {
         mFirstAnimatorSet.cancel();
         mSecondAnimatorSet.cancel();
 
@@ -246,23 +246,23 @@ public class TooltipOverlayDrawable extends Drawable {
     }
 
     @SuppressWarnings ("unused")
-    public float getInnerRadius () {
+    public float getInnerRadius() {
         return mInnerRadius;
     }
 
     @SuppressWarnings ("unused")
-    public void setInnerRadius (final float rippleRadius) {
+    public void setInnerRadius(final float rippleRadius) {
         mInnerRadius = rippleRadius;
         invalidateSelf();
     }
 
     @SuppressWarnings ("unused")
-    public float getOuterRadius () {
+    public float getOuterRadius() {
         return mOuterRadius;
     }
 
     @SuppressWarnings ("unused")
-    public void setOuterRadius (final float value) {
+    public void setOuterRadius(final float value) {
         mOuterRadius = value;
         invalidateSelf();
     }

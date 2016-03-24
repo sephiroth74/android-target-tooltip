@@ -16,10 +16,10 @@ import static it.sephiroth.android.library.tooltip.Tooltip.dbg;
  * Created by alessandro crugnola on 12/12/15.
  */
 final class Utils {
-    private Utils () { }
+    private Utils() { }
 
     @Nullable
-    static Activity getActivity (@Nullable Context cont) {
+    static Activity getActivity(@Nullable Context cont) {
         if (cont == null) {
             return null;
         } else if (cont instanceof Activity) {
@@ -30,7 +30,7 @@ final class Utils {
         return null;
     }
 
-    static void log (final String tag, final int level, final String format, Object... args) {
+    static void log(final String tag, final int level, final String format, Object... args) {
         if (dbg) {
             switch (level) {
                 case Log.DEBUG:
@@ -53,11 +53,11 @@ final class Utils {
         }
     }
 
-    static boolean equals (@Nullable Object a, @Nullable Object b) {
+    static boolean equals(@Nullable Object a, @Nullable Object b) {
         return (a == null) ? (b == null) : a.equals(b);
     }
 
-    static boolean rectContainsRectWithTolerance (@NonNull final Rect parentRect, @NonNull final Rect childRect, final int t) {
+    static boolean rectContainsRectWithTolerance(@NonNull final Rect parentRect, @NonNull final Rect childRect, final int t) {
         return parentRect.contains(childRect.left + t, childRect.top + t, childRect.right - t, childRect.bottom - t);
     }
 }
