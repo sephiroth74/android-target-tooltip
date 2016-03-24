@@ -1,7 +1,6 @@
 package it.sephiroth.android.library.mymodule.app;
 
 import android.content.Intent;
-import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
@@ -246,7 +245,6 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
                         .fitToScreen(true)
                         .maxWidth(metrics.widthPixels / 2)
                         .withCallback(this)
-                        .activateDelay(500)
                         .floatingAnimation(AnimationBuilder.DEFAULT)
                         .build()
                 ).show();

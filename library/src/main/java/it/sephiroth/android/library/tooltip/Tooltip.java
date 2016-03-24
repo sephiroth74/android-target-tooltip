@@ -249,7 +249,6 @@ public final class Tooltip {
         private final int mTopRule;
         private final int mMaxWidth;
         private final boolean mHideArrow;
-        private final long mActivateDelay;
         private final boolean mRestrict;
         private final long mFadeDuration;
         private final TooltipTextDrawable mDrawable;
@@ -304,12 +303,6 @@ public final class Tooltip {
         };
         private boolean mInitialized;
         private boolean mActivated;
-        Runnable activateRunnable = new Runnable() {
-            @Override
-            public void run() {
-                mActivated = true;
-            }
-        };
         private int mPadding;
         private CharSequence mText;
         private Rect mViewRect;
@@ -419,7 +412,6 @@ public final class Tooltip {
             this.mShowDuration = builder.showDuration;
             this.mShowDelay = builder.showDelay;
             this.mHideArrow = builder.hideArrow;
-            this.mActivateDelay = builder.activateDelay;
             this.mRestrict = builder.restrictToScreenEdges;
             this.mFadeDuration = builder.fadeDuration;
             this.mCallback = builder.closeCallback;
@@ -579,7 +571,6 @@ public final class Tooltip {
 
         private void removeCallbacks() {
             mHandler.removeCallbacks(hideRunnable);
-            mHandler.removeCallbacks(activateRunnable);
         }
 
         @Override
@@ -671,7 +662,7 @@ public final class Tooltip {
         }
 
         @Override
-        protected void onVisibilityChanged(final View changedView, final int visibility) {
+        protected void onVisibilityChanged(@NonNull final View changedView, final int visibility) {
             super.onVisibilityChanged(changedView, visibility);
 
             if (null != mAnimator) {
@@ -871,8 +862,7 @@ public final class Tooltip {
                                 if (null != mCallback) {
                                     mCallback.onTooltipShown(TooltipViewImpl.this);
                                 }
-
-                                postActivate(mActivateDelay);
+                                postActivate();
                             }
                         }
 
@@ -890,9 +880,8 @@ public final class Tooltip {
                 mShowAnimation.start();
             } else {
                 setVisibility(View.VISIBLE);
-                //            mTooltipListener.onShowCompleted(TooltipView.this);
                 if (!mActivated) {
-                    postActivate(mActivateDelay);
+                    postActivate();
                 }
             }
 
@@ -902,15 +891,9 @@ public final class Tooltip {
             }
         }
 
-        void postActivate(long ms) {
-            log(TAG, VERBOSE, "[%d] postActivate: %d", mToolTipId, ms);
-            if (ms > 0) {
-                if (isAttached()) {
-                    mHandler.postDelayed(activateRunnable, ms);
-                }
-            } else {
-                mActivated = true;
-            }
+        void postActivate() {
+            log(TAG, VERBOSE, "[%d] postActivate", mToolTipId);
+            mActivated = true;
         }
 
         private void calculatePositions() {
@@ -1441,6 +1424,7 @@ public final class Tooltip {
         /**
          * @param value 0 for auto, 1 horizontal, 2 vertical
          */
+        @SuppressWarnings ("unused")
         public AnimationBuilder setDirection(int value) {
             throwIfCompleted();
             this.direction = value;
@@ -1476,7 +1460,6 @@ public final class Tooltip {
         int maxWidth = -1;
         int defStyleRes = R.style.ToolTipLayoutDefaultStyle;
         int defStyleAttr = R.attr.ttlm_defaultStyle;
-        long activateDelay = 0;
         boolean isCustomView;
         boolean restrictToScreenEdges = true;
         long fadeDuration = 200;
@@ -1558,6 +1541,7 @@ public final class Tooltip {
             return this;
         }
 
+        @SuppressWarnings ("unused")
         public Builder typeface(Typeface typeface) {
             throwIfCompleted();
             this.typeface = typeface;
@@ -1643,12 +1627,6 @@ public final class Tooltip {
             throwIfCompleted();
             this.closePolicy = policy.build();
             this.showDuration = milliseconds;
-            return this;
-        }
-
-        public Builder activateDelay(long ms) {
-            throwIfCompleted();
-            this.activateDelay = ms;
             return this;
         }
 

@@ -31,7 +31,7 @@ public class MainActivity3 extends AppCompatActivity implements AdapterView.OnIt
     private Tooltip.TooltipView mCurrentTooltip;
 
     @Override
-    protected void onCreate (Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main_activity3);
@@ -51,7 +51,7 @@ public class MainActivity3 extends AppCompatActivity implements AdapterView.OnIt
         mRecyclerView.addOnScrollListener(
             new RecyclerView.OnScrollListener() {
                 @Override
-                public void onScrollStateChanged (
+                public void onScrollStateChanged(
                     final RecyclerView recyclerView, final int newState) {
                     super.onScrollStateChanged(recyclerView, newState);
 
@@ -64,18 +64,18 @@ public class MainActivity3 extends AppCompatActivity implements AdapterView.OnIt
     }
 
     @Override
-    protected void onDestroy () {
+    protected void onDestroy() {
         super.onDestroy();
     }
 
     @Override
-    public boolean onCreateOptionsMenu (Menu menu) {
+    public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
 
     @Override
-    public boolean onOptionsItemSelected (MenuItem item) {
+    public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
         if (id == R.id.action_demo2) {
@@ -87,7 +87,7 @@ public class MainActivity3 extends AppCompatActivity implements AdapterView.OnIt
     }
 
     @Override
-    public void onItemClick (final AdapterView<?> parent, final View view, final int position, final long id) {
+    public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
         Log.d(TAG, "onItemClick: " + position);
 
         if (position == LIST_POSITION) {
@@ -102,7 +102,7 @@ public class MainActivity3 extends AppCompatActivity implements AdapterView.OnIt
         private final int mResId;
         private final List<String> mData;
 
-        public MyAdapter (final Context context, final int resource, final List<String> objects) {
+        public MyAdapter(final Context context, final int resource, final List<String> objects) {
             super();
             setHasStableIds(true);
             mResId = resource;
@@ -110,13 +110,13 @@ public class MainActivity3 extends AppCompatActivity implements AdapterView.OnIt
         }
 
         @Override
-        public RecyclerView.ViewHolder onCreateViewHolder (final ViewGroup parent, final int viewType) {
+        public RecyclerView.ViewHolder onCreateViewHolder(final ViewGroup parent, final int viewType) {
             View view = LayoutInflater.from(MainActivity3.this).inflate(mResId, parent, false);
             final RecyclerView.ViewHolder holder = new RecyclerView.ViewHolder(view) {
             };
             view.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onClick (final View v) {
+                public void onClick(final View v) {
                     if (null != mCurrentTooltip) {
                         mCurrentTooltip.hide();
                         mCurrentTooltip = null;
@@ -129,7 +129,7 @@ public class MainActivity3 extends AppCompatActivity implements AdapterView.OnIt
         }
 
         @Override
-        public void onBindViewHolder (final RecyclerView.ViewHolder holder, final int position) {
+        public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
             ((TextView) holder.itemView.findViewById(android.R.id.text1)).setText(mData.get(position));
 
             if (position == LIST_POSITION) {
@@ -138,16 +138,16 @@ public class MainActivity3 extends AppCompatActivity implements AdapterView.OnIt
         }
 
         @Override
-        public long getItemId (final int position) {
+        public long getItemId(final int position) {
             return position;
         }
 
         @Override
-        public int getItemCount () {
+        public int getItemCount() {
             return mData.size();
         }
 
-        private void showTooltip (final RecyclerView.ViewHolder holder) {
+        private void showTooltip(final RecyclerView.ViewHolder holder) {
             if (null != mCurrentTooltip) {
                 Log.w(TAG, "failed to show tooltip");
                 return;
@@ -166,7 +166,7 @@ public class MainActivity3 extends AppCompatActivity implements AdapterView.OnIt
                     .withCallback(
                         new Tooltip.Callback() {
                             @Override
-                            public void onTooltipClose (
+                            public void onTooltipClose(
                                 final Tooltip.TooltipView v, final boolean fromUser, final boolean containsTouch) {
                                 Log.w(
                                     TAG, "onTooltipClose: " + v + ", fromUser: " + fromUser + ", containsTouch: " + containsTouch);
@@ -174,18 +174,19 @@ public class MainActivity3 extends AppCompatActivity implements AdapterView.OnIt
                             }
 
                             @Override
-                            public void onTooltipFailed (Tooltip.TooltipView view) {
+                            public void onTooltipFailed(Tooltip.TooltipView view) {
                             }
 
                             @Override
-                            public void onTooltipShown (Tooltip.TooltipView view) {
+                            public void onTooltipShown(Tooltip.TooltipView view) {
                             }
 
                             @Override
-                            public void onTooltipHidden (Tooltip.TooltipView view) {
+                            public void onTooltipHidden(Tooltip.TooltipView view) {
                             }
                         })
-                    .build());
+                    .build()
+            );
             mCurrentTooltip.show();
         }
     }
