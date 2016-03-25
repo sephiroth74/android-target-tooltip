@@ -240,6 +240,7 @@ public final class Tooltip {
         private final List<Gravity> viewGravities = new ArrayList<>(GRAVITY_LIST);
         private final long mShowDelay;
         private final int mTextAppearance;
+        private final int mTextGravity;
         private final int mToolTipId;
         private final Rect mDrawRect;
         private final long mShowDuration;
@@ -392,6 +393,7 @@ public final class Tooltip {
                     }
                 }
             };
+
         private boolean mIsCustomView;
 
         public TooltipViewImpl(Context context, final Builder builder) {
@@ -402,6 +404,8 @@ public final class Tooltip {
                     .obtainStyledAttributes(null, R.styleable.TooltipLayout, builder.defStyleAttr, builder.defStyleRes);
             this.mPadding = theme.getDimensionPixelSize(R.styleable.TooltipLayout_ttlm_padding, 30);
             this.mTextAppearance = theme.getResourceId(R.styleable.TooltipLayout_android_textAppearance, 0);
+            this.mTextGravity = theme
+                .getInt(R.styleable.TooltipLayout_android_gravity, android.view.Gravity.TOP | android.view.Gravity.LEFT);
             this.mTextViewElevation = theme.getDimension(R.styleable.TooltipLayout_ttlm_elevation, 0);
             int overlayStyle = theme.getResourceId(R.styleable.TooltipLayout_ttlm_overlayStyle, R.style.ToolTipOverlayDefaultStyle);
 
@@ -796,6 +800,8 @@ public final class Tooltip {
             if (0 != mTextAppearance) {
                 mTextView.setTextAppearance(getContext(), mTextAppearance);
             }
+
+            mTextView.setGravity(mTextGravity);
 
             if (mTypeface != null) {
                 mTextView.setTypeface(mTypeface);

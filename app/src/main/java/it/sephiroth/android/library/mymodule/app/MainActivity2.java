@@ -262,6 +262,7 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
                         .withArrow(true)
                         .maxWidth(metrics.widthPixels / 2)
                         .withCallback(this)
+                        .withStyleId(R.style.ToolTipLayoutDefaultStyle_Custom1)
                         .build()
                 ).show();
 
