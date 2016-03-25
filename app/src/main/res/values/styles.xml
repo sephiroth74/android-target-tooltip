@@ -8,6 +8,11 @@
         <item name="colorPrimaryDark" tools:ignore="NewApi">#ff6600</item>
     </style>
 
+    <style name="ToolTipLayoutDefaultStyle.Custom1">
+        <item name="android:textAppearance">?android:attr/textAppearanceSmallInverse</item>
+        <item name="android:gravity">center</item>
+    </style>
+
     <style name="ToolTipLayoutCustomStyle">
         <item name="ttlm_padding">25dip</item>
         <item name="ttlm_strokeColor">#ffe5a000</item>

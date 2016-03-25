@@ -1,7 +1,6 @@
 package it.sephiroth.android.library.mymodule.app;
 
 import android.content.Intent;
-import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
@@ -244,9 +243,9 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
                                 + " outside to close this tooltip.")
                         .withStyleId(R.style.ToolTipLayoutDefaultStyle_CustomFont)
                         .fitToScreen(true)
+                        .activateDelay(2000)
                         .maxWidth(metrics.widthPixels / 2)
                         .withCallback(this)
-                        .activateDelay(500)
                         .floatingAnimation(AnimationBuilder.DEFAULT)
                         .build()
                 ).show();
@@ -263,6 +262,7 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
                         .withArrow(true)
                         .maxWidth(metrics.widthPixels / 2)
                         .withCallback(this)
+                        .withStyleId(R.style.ToolTipLayoutDefaultStyle_Custom1)
                         .build()
                 ).show();
 

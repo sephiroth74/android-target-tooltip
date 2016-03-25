@@ -33,7 +33,7 @@ class TooltipTextDrawable extends Drawable {
     private int arrowWeight = 0;
     private Tooltip.Gravity gravity;
 
-    public TooltipTextDrawable (final Context context, final Tooltip.Builder builder) {
+    public TooltipTextDrawable(final Context context, final Tooltip.Builder builder) {
 
         TypedArray theme =
             context.getTheme().obtainStyledAttributes(null, R.styleable.TooltipLayout, builder.defStyleAttr, builder.defStyleRes);
@@ -67,7 +67,7 @@ class TooltipTextDrawable extends Drawable {
     }
 
     @Override
-    public void draw (final Canvas canvas) {
+    public void draw(final Canvas canvas) {
         if (null != bgPaint) {
             canvas.drawPath(path, bgPaint);
         }
@@ -77,7 +77,7 @@ class TooltipTextDrawable extends Drawable {
         }
     }
 
-    public void setAnchor (final Tooltip.Gravity gravity, int padding, @Nullable Point point) {
+    public void setAnchor(final Tooltip.Gravity gravity, int padding, @Nullable Point point) {
         if (gravity != this.gravity || padding != this.padding || !Utils.equals(this.point, point)) {
             this.gravity = gravity;
             this.padding = padding;
@@ -97,7 +97,7 @@ class TooltipTextDrawable extends Drawable {
         }
     }
 
-    void calculatePath (Rect outBounds) {
+    void calculatePath(Rect outBounds) {
         int left = outBounds.left + padding;
         int top = outBounds.top + padding;
         int right = outBounds.right - padding;
@@ -116,7 +116,7 @@ class TooltipTextDrawable extends Drawable {
         }
     }
 
-    private void calculatePathWithGravity (
+    private void calculatePathWithGravity(
         final Rect outBounds, final int left, final int top, final int right, final int bottom, final float maxY, final float maxX,
         final float minY, final float minX) {
         boolean drawPoint =
@@ -169,7 +169,7 @@ class TooltipTextDrawable extends Drawable {
         path.quadTo(left, top, left + ellipseSize, top);
     }
 
-    private static boolean isDrawPoint (
+    private static boolean isDrawPoint(
         final int left, final int top, final int right, final int bottom, final float maxY, final float maxX, final float minY,
         final float minX, final Point tmpPoint, final Point point, final Tooltip.Gravity gravity,
         final int arrowWeight) {
@@ -200,7 +200,7 @@ class TooltipTextDrawable extends Drawable {
         return drawPoint;
     }
 
-    private static void clampPoint (
+    private static void clampPoint(
         final int left, final int top, final int right, final int bottom, final Point tmpPoint) {
         if (tmpPoint.y < top) {
             tmpPoint.y = top;
@@ -216,38 +216,38 @@ class TooltipTextDrawable extends Drawable {
     }
 
     @Override
-    protected void onBoundsChange (final Rect bounds) {
+    protected void onBoundsChange(final Rect bounds) {
         super.onBoundsChange(bounds);
         calculatePath(bounds);
     }
 
-    public float getRadius () {
+    public float getRadius() {
         return ellipseSize;
     }
 
     @Override
-    public int getAlpha () {
+    public int getAlpha() {
         return bgPaint.getAlpha();
     }
 
     @Override
-    public void setAlpha (final int alpha) {
+    public void setAlpha(final int alpha) {
         bgPaint.setAlpha(alpha);
         stPaint.setAlpha(alpha);
     }
 
     @Override
-    public void setColorFilter (final ColorFilter cf) {
+    public void setColorFilter(final ColorFilter cf) {
     }
 
     @Override
-    public int getOpacity () {
+    public int getOpacity() {
         return PixelFormat.TRANSLUCENT;
     }
 
     @TargetApi (Build.VERSION_CODES.LOLLIPOP)
     @Override
-    public void getOutline (Outline outline) {
+    public void getOutline(Outline outline) {
         copyBounds(outlineRect);
         outlineRect.inset(padding, padding);
         outline.setRoundRect(outlineRect, getRadius());

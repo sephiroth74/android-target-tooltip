@@ -1,4 +1,8 @@
 
+**Version 1.3.14**
+* Added support for text gravity. Just use "android:gravity" inside your custom style.
+* Restored activation delay
+
 **Version 1.3.12**
 * Added custom font support
 

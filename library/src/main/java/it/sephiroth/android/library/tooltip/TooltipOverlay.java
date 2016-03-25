@@ -8,20 +8,20 @@ import android.widget.ImageView;
 public class TooltipOverlay extends ImageView {
     private int mMargins;
 
-    public TooltipOverlay (Context context) {
+    public TooltipOverlay(Context context) {
         this(context, null);
     }
 
-    public TooltipOverlay (Context context, AttributeSet attrs) {
+    public TooltipOverlay(Context context, AttributeSet attrs) {
         this(context, attrs, R.style.ToolTipOverlayDefaultStyle);
     }
 
-    public TooltipOverlay (Context context, AttributeSet attrs, int defStyleAttr) {
+    public TooltipOverlay(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init(context, R.style.ToolTipLayoutDefaultStyle);
     }
 
-    private void init (final Context context, final int defStyleResId) {
+    private void init(final Context context, final int defStyleResId) {
         TooltipOverlayDrawable drawable = new TooltipOverlayDrawable(context, defStyleResId);
         setImageDrawable(drawable);
 
@@ -32,12 +32,12 @@ public class TooltipOverlay extends ImageView {
 
     }
 
-    public TooltipOverlay (Context context, AttributeSet attrs, int defStyleAttr, int defStyleResId) {
+    public TooltipOverlay(Context context, AttributeSet attrs, int defStyleAttr, int defStyleResId) {
         super(context, attrs, defStyleAttr);
         init(context, defStyleResId);
     }
 
-    public int getLayoutMargins () {
+    public int getLayoutMargins() {
         return mMargins;
     }
 }

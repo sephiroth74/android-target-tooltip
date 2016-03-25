@@ -12,7 +12,7 @@ public final class Typefaces {
 
     private Typefaces() { }
 
-    public static Typeface get (Context c, String assetPath) {
+    public static Typeface get(Context c, String assetPath) {
         synchronized (FONT_CACHE) {
             if (!FONT_CACHE.containsKey(assetPath)) {
                 try {

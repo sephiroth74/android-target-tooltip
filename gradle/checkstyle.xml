@@ -107,11 +107,7 @@
 			<property name="countEmpty" value="false" />
 		</module>
 		<module name="MethodName" />
-		<module name="MethodParamPad">
-			<property name="tokens" value="METHOD_DEF"/>
-			<property name="option" value="space"/>
-			<property name="allowLineBreaks" value="true"/>
-		</module>
+		<module name="MethodParamPad" />
 		<module name="MissingSwitchDefault" />
 		<module name="ModifierOrder" />
 		<module name="NeedBraces">
