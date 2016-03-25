@@ -243,6 +243,7 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
                                 + " outside to close this tooltip.")
                         .withStyleId(R.style.ToolTipLayoutDefaultStyle_CustomFont)
                         .fitToScreen(true)
+                        .activateDelay(2000)
                         .maxWidth(metrics.widthPixels / 2)
                         .withCallback(this)
                         .floatingAnimation(AnimationBuilder.DEFAULT)
