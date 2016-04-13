@@ -9,6 +9,7 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.res.ColorStateList;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
@@ -284,7 +285,9 @@ public final class Tooltip {
                     return;
                 }
 
-                Activity activity = (Activity) getContext();
+                // in some devices casting ContextThemeWrapper/ContextWrapper to Activity throws
+                // ClassCastException. Scan for the activity instead.
+                Activity activity = scanForActivity(getContext());
                 if (null != activity) {
                     if (activity.isFinishing()) {
                         log(TAG, WARN, "[%d] skipped because activity is finishing...", mToolTipId);
@@ -297,6 +300,19 @@ public final class Tooltip {
                 }
             }
         };
+
+        @Nullable
+        private static Activity scanForActivity(Context cont) {
+            if (cont == null)
+                return null;
+            else if (cont instanceof Activity)
+                return (Activity)cont;
+            else if (cont instanceof ContextWrapper)
+                return scanForActivity(((ContextWrapper)cont).getBaseContext());
+
+            return null;
+        }
+
         private Runnable hideRunnable = new Runnable() {
             @Override
 
