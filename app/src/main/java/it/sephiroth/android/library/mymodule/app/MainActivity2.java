@@ -176,6 +176,7 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
         SwitchCompat mSwitch2;
         SwitchCompat mSwitch3;
         SwitchCompat mSwitch4;
+        SwitchCompat mSwitchModal;
         private Tooltip.TooltipView tooltip;
         private Tooltip.ClosePolicy mClosePolicy = Tooltip.ClosePolicy.TOUCH_ANYWHERE_CONSUME;
 
@@ -205,6 +206,7 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
             mSwitch2 = (SwitchCompat) view.findViewById(R.id.switch2);
             mSwitch3 = (SwitchCompat) view.findViewById(R.id.switch3);
             mSwitch4 = (SwitchCompat) view.findViewById(R.id.switch4);
+            mSwitchModal = (SwitchCompat) view.findViewById(R.id.switchModal);
 
             final int policy = mClosePolicy.getPolicy();
             mSwitch1.setChecked(Tooltip.ClosePolicy.touchInside(policy));
@@ -216,6 +218,7 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
             mSwitch2.setOnCheckedChangeListener(this);
             mSwitch3.setOnCheckedChangeListener(this);
             mSwitch4.setOnCheckedChangeListener(this);
+            mSwitchModal.setOnCheckedChangeListener(this);
         }
 
         @Override
@@ -247,6 +250,7 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
                         .maxWidth(metrics.widthPixels / 2)
                         .withCallback(this)
                         .floatingAnimation(AnimationBuilder.DEFAULT)
+                        .modal(mSwitchModal.isChecked())
                         .build()
                 ).show();
 
@@ -263,6 +267,7 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
                         .maxWidth(metrics.widthPixels / 2)
                         .withCallback(this)
                         .withStyleId(R.style.ToolTipLayoutDefaultStyle_Custom1)
+                        .modal(mSwitchModal.isChecked())
                         .build()
                 ).show();
 
@@ -277,6 +282,7 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
                         .maxWidth((int) (metrics.widthPixels / 2.5))
                         .withCallback(this)
                         .floatingAnimation(AnimationBuilder.DEFAULT)
+                        .modal(mSwitchModal.isChecked())
                         .build()
                 ).show();
 
@@ -291,6 +297,7 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
                         .withOverlay(false)
                         .maxWidth(metrics.widthPixels / 3)
                         .withCallback(this)
+                        .modal(mSwitchModal.isChecked())
                         .build()
                 ).show();
 
@@ -309,6 +316,7 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
                             .maxWidth(metrics.widthPixels / 3)
                             .showDelay(300)
                             .withCallback(this)
+                            .modal(mSwitchModal.isChecked())
                             .build()
                     );
                     tooltip.show();
