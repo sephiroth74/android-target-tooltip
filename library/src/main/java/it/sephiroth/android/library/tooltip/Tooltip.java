@@ -211,6 +211,8 @@ public final class Tooltip {
         void setTextColor(final ColorStateList color);
 
         void requestLayout();
+
+        View getContentView();
     }
 
     public interface Callback {
@@ -247,7 +249,8 @@ public final class Tooltip {
         private final long mShowDuration;
         private final int mClosePolicy;
         private final Point mPoint;
-        private final int mTextResId;
+        private final int mCustomResId;
+        private final int mCustomTextViewId;
         private final int mTopRule;
         private final int mMaxWidth;
         private final boolean mHideArrow;
@@ -417,7 +420,8 @@ public final class Tooltip {
             this.mToolTipId = builder.id;
             this.mText = builder.text;
             this.mGravity = builder.gravity;
-            this.mTextResId = builder.textResId;
+            this.mCustomResId = builder.customResId;
+            this.mCustomTextViewId = builder.customTextViewId;
             this.mMaxWidth = builder.maxWidth;
             this.mTopRule = builder.actionbarSize;
             this.mClosePolicy = builder.closePolicy;
@@ -644,6 +648,11 @@ public final class Tooltip {
         }
 
         @Override
+        public View getContentView() {
+            return this;
+        }
+
+        @Override
         public boolean isAttached() {
             return mAttached;
         }
@@ -788,10 +797,10 @@ public final class Tooltip {
             log(TAG, VERBOSE, "[%d] initializeView", mToolTipId);
 
             LayoutParams params = new LayoutParams(WRAP_CONTENT, WRAP_CONTENT);
-            mView = LayoutInflater.from(getContext()).inflate(mTextResId, this, false);
+            mView = LayoutInflater.from(getContext()).inflate(mCustomResId, this, false);
             mView.setLayoutParams(params);
 
-            mTextView = (TextView) mView.findViewById(android.R.id.text1);
+            mTextView = (TextView) mView.findViewById(mCustomTextViewId);
             mTextView.setText(Html.fromHtml((String) this.mText));
             if (mMaxWidth > -1) {
                 mTextView.setMaxWidth(mMaxWidth);
@@ -809,11 +818,11 @@ public final class Tooltip {
             }
 
             if (null != mDrawable) {
-                mTextView.setBackgroundDrawable(mDrawable);
+                mView.setBackgroundDrawable(mDrawable);
                 if (mHideArrow) {
-                    mTextView.setPadding(mPadding / 2, mPadding / 2, mPadding / 2, mPadding / 2);
+                    mView.setPadding(mPadding / 2, mPadding / 2, mPadding / 2, mPadding / 2);
                 } else {
-                    mTextView.setPadding(mPadding, mPadding, mPadding, mPadding);
+                    mView.setPadding(mPadding, mPadding, mPadding, mPadding);
                 }
             }
             this.addView(mView);
@@ -838,8 +847,8 @@ public final class Tooltip {
 
         @SuppressLint ("NewApi")
         private void setupElevation() {
-            mTextView.setElevation(mTextViewElevation);
-            mTextView.setOutlineProvider(ViewOutlineProvider.BACKGROUND);
+            mView.setElevation(mTextViewElevation);
+            mView.setOutlineProvider(ViewOutlineProvider.BACKGROUND);
         }
 
         protected void fadeIn(final long fadeDuration) {
@@ -1210,11 +1219,11 @@ public final class Tooltip {
             }
 
             final String property = direction == 2 ? "translationY" : "translationX";
-            final ValueAnimator anim1 = ObjectAnimator.ofFloat(mTextView, property, -endValue, endValue);
+            final ValueAnimator anim1 = ObjectAnimator.ofFloat(this, property, -endValue, endValue);
             anim1.setDuration(duration);
             anim1.setInterpolator(new AccelerateDecelerateInterpolator());
 
-            ValueAnimator anim2 = ObjectAnimator.ofFloat(mTextView, property, endValue, -endValue);
+            ValueAnimator anim2 = ObjectAnimator.ofFloat(this, property, endValue, -endValue);
             anim2.setDuration(duration);
             anim2.setInterpolator(new AccelerateDecelerateInterpolator());
 
@@ -1475,7 +1484,8 @@ public final class Tooltip {
         View view;
         Gravity gravity;
         int actionbarSize = 0;
-        int textResId = R.layout.tooltip_textview;
+        int customResId = R.layout.tooltip_textview;
+        int customTextViewId = android.R.id.text1;
         int closePolicy = ClosePolicy.NONE;
         long showDuration;
         Point point;
@@ -1503,12 +1513,6 @@ public final class Tooltip {
             this.id = sNextId++;
         }
 
-        @SuppressWarnings ("unused")
-        public Builder withCustomView(int resId) {
-            throwIfCompleted();
-            return withCustomView(resId, true);
-        }
-
         private void throwIfCompleted() {
             if (completed) {
                 throw new IllegalStateException("Builder cannot be modified");
@@ -1518,15 +1522,44 @@ public final class Tooltip {
         /**
          * Use a custom View for the tooltip. Note that the custom view
          * must include a TextView which id is `@android:id/text1`.<br />
-         * Moreover, when using a custom view, the anchor arrow will not be shown
+         * Moreover, if replaceBackground is true, the anchor arrow will not be shown
          *
          * @param resId             the custom layout view.
-         * @param replaceBackground if true the custom view's background won't be replaced
+         * @param replaceBackground if true the custom view's background won't be replaced, and the anchor arrow will not be shown
          * @return the builder for chaining.
          */
         public Builder withCustomView(int resId, boolean replaceBackground) {
-            this.textResId = resId;
+            this.customResId = resId;
             this.isCustomView = replaceBackground;
+            return this;
+        }
+
+        @SuppressWarnings ("unused")
+        public Builder withCustomView(int resId) {
+            throwIfCompleted();
+            return withCustomView(resId, true);
+        }
+
+        /**
+         * Use a custom View for the tooltip. <br />
+         * Moreover, if replaceBackground is true, the anchor arrow will not be shown
+         *
+         * @param resId             the custom layout view.
+         * @param textViewId        the custom TextView
+         * @param replaceBackground if true the custom view's background won't be replaced, and the anchor arrow will not be shown
+         * @return the builder for chaining.
+         */
+        public Builder withCustomView(int resId, int textViewId, boolean replaceBackground) {
+            throwIfCompleted();
+            this.withCustomView(resId, replaceBackground);
+            this.customTextViewId = textViewId;
+            return this;
+        }
+
+        @SuppressWarnings ("unused")
+        public Builder withCustomView(int resId, int textViewId) {
+            throwIfCompleted();
+            this.withCustomView(resId, textViewId, true);
             return this;
         }
 
