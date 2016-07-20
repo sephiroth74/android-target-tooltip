@@ -1285,7 +1285,7 @@ public final class Tooltip {
 
             log(TAG, INFO, "[%d] onTouchEvent: %d, active: %b", mToolTipId, action, mActivated);
 
-            if (!mActivated) {
+            if (!mActivated && mActivateDelay > 0) {
                 log(TAG, WARN, "[%d] not yet activated...", mToolTipId);
                 //onClose(true, false, true);
                 return false;
