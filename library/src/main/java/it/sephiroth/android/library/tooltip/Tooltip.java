@@ -284,7 +284,8 @@ public final class Tooltip {
                     return;
                 }
 
-                Activity activity = (Activity) getContext();
+                Activity activity = Utils.getActivity(getContext());
+
                 if (null != activity) {
                     if (activity.isFinishing()) {
                         log(TAG, WARN, "[%d] skipped because activity is finishing...", mToolTipId);
