@@ -24,7 +24,7 @@ install:
     - chmod +x ./gradlew; ls -l gradlew; ./gradlew wrapper -v
 
     # Download and show android dependencies
-    - ./gradlew androidDependencies
+    # - ./gradlew androidDependencies
 
 script:
     - ./gradlew library:check library:assemble
