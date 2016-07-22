@@ -1,7 +1,7 @@
 Android Tooltip
 ======================
 
-Create Toast like tooltips, physical targets can be specified, or even points on screen. 
+Create Toast like tooltips, physical targets can be specified, or even points on screen.
 Many additional features and customizations. Just look at the samples Activities.
 
 [![Build Status](https://travis-ci.org/sephiroth74/android-target-tooltip.svg?branch=master)](https://travis-ci.org/sephiroth74/android-target-tooltip)
@@ -10,8 +10,8 @@ Many additional features and customizations. Just look at the samples Activities
 Installation
 ===
 
-	compile 'it.sephiroth.android.library.targettooltip:target-tooltip-library:1.3.14'
-	
+	compile 'it.sephiroth.android.library.targettooltip:target-tooltip-library:1.3.15'
+
 
 Usage
 ===
@@ -69,7 +69,7 @@ And this is the style for the overlay touch:
         <attr name="ttlm_duration" format="integer" />
         <attr name="android:layout_margin" />
     </declare-styleable>
-	
+
 then pass the style in the Builder method **withStyleId(int resId)**
 
 
