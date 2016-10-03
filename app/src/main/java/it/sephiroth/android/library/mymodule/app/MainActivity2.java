@@ -172,6 +172,7 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
         Button mButton3;
         Button mButton4;
         Button mButton5;
+        Button mButton6;
         SwitchCompat mSwitch1;
         SwitchCompat mSwitch2;
         SwitchCompat mSwitch3;
@@ -195,11 +196,13 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
             mButton3 = (Button) view.findViewById(R.id.button3);
             mButton4 = (Button) view.findViewById(R.id.button4);
             mButton5 = (Button) view.findViewById(R.id.button5);
+            mButton6 = (Button) view.findViewById(R.id.button6);
             mButton1.setOnClickListener(this);
             mButton2.setOnClickListener(this);
             mButton3.setOnClickListener(this);
             mButton4.setOnClickListener(this);
             mButton5.setOnClickListener(this);
+            mButton6.setOnClickListener(this);
 
             mSwitch1 = (SwitchCompat) view.findViewById(R.id.switch1);
             mSwitch2 = (SwitchCompat) view.findViewById(R.id.switch2);
@@ -224,8 +227,8 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
         }
 
         @Override
-        public void onClick(final View v) {
-            final int id = v.getId();
+        public void onClick(final View onClickView) {
+            final int id = onClickView.getId();
 
             Log.i(TAG, "onClick: " + id);
 
@@ -236,7 +239,7 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
                 Tooltip.make(
                     getContext(),
                     new Tooltip.Builder()
-                        .anchor(v, Tooltip.Gravity.RIGHT)
+                        .anchor(onClickView, Tooltip.Gravity.RIGHT)
                         .closePolicy(mClosePolicy, 5000)
                         .text(
                             "RIGHT. Touch outside to close this tooltip. RIGHT. Touch outside to close this tooltip. RIGHT. Touch"
@@ -284,7 +287,7 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
                 Tooltip.make(
                     getContext(),
                     new Tooltip.Builder()
-                        .anchor(v, Tooltip.Gravity.TOP)
+                        .anchor(onClickView, Tooltip.Gravity.TOP)
                         .closePolicy(mClosePolicy, 5000)
                         .text("TOP. Touch Inside exclusive.")
                         .withArrow(true)
@@ -301,7 +304,7 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
                     tooltip = Tooltip.make(
                         getActivity(),
                         new Tooltip.Builder()
-                            .anchor(v, Tooltip.Gravity.LEFT)
+                            .anchor(onClickView, Tooltip.Gravity.LEFT)
                             .closePolicy(mClosePolicy, 5000)
                             .text("LEFT. Touch None, so the tooltip won't disappear with a touch, but with a delay")
                             .withArrow(false)
@@ -316,6 +319,64 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
                     tooltip.hide();
                     tooltip = null;
                 }
+
+            } if (id == mButton6.getId()) {
+
+                Tooltip.make(
+                    getActivity(),
+                    new Tooltip.Builder()
+                       .anchor(onClickView, Tooltip.Gravity.TOP)
+                       .closePolicy(Tooltip.ClosePolicy.TOUCH_NONE, 0)
+                       .text("Touch Done button to continue.")
+                       .withArrow(true)
+                       .withOverlay(false)
+                       .withCustomView(R.layout.custom_button, R.id.tv_tooltip, false)
+                       .withCallback(new Tooltip.Callback() {
+                           @Override
+                           public void onTooltipClose(Tooltip.TooltipView tooltip, boolean fromUser, boolean containsTouch) {
+
+                           }
+
+                           @Override
+                           public void onTooltipFailed(Tooltip.TooltipView view) {
+
+                           }
+
+                           @Override
+                           public void onTooltipShown(final Tooltip.TooltipView view) {
+
+                               // configure Button onClickListener
+                               View contentView = view.getContentView();
+                               Button button = (Button) contentView.findViewById(R.id.btn_done);
+                               button.setOnClickListener(new View.OnClickListener() {
+                                   @Override
+                                   public void onClick(View v2) {
+                                       // close current tooltip
+                                       view.remove();
+                                       // create next tooltip
+                                       Tooltip.make(
+                                          getContext(),
+                                          new Tooltip.Builder()
+                                             .anchor(onClickView, Tooltip.Gravity.TOP)
+                                             .closePolicy(Tooltip.ClosePolicy.TOUCH_ANYWHERE_NO_CONSUME, 0)
+                                             .text("This is a next Tooltip, touch anywhere to close.")
+                                             .withArrow(true)
+                                             .withOverlay(false)
+                                             .withCallback(Fragment1.this)
+                                             .build()
+                                       ).show();
+                                   }
+                               });
+
+                           }
+
+                           @Override
+                           public void onTooltipHidden(Tooltip.TooltipView view) {
+
+                           }
+                       })
+                       .build()
+                ).show();
 
             }
         }
