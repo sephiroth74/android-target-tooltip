@@ -1,8 +1,6 @@
 package it.sephiroth.android.library.tooltip;
 
 import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
@@ -24,7 +22,6 @@ import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.text.Html;
 import android.text.TextUtils;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
