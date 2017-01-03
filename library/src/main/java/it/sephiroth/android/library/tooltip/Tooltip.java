@@ -571,11 +571,17 @@ public final class Tooltip {
 
         void removeFromParent() {
             log(TAG, INFO, "[%d] removeFromParent", mToolTipId);
-            ViewParent parent = getParent();
+            final ViewParent parent = getParent();
             removeCallbacks();
 
             if (null != parent) {
-                ((ViewGroup) parent).removeView(TooltipViewImpl.this);
+                ((ViewGroup) parent).post(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        ((ViewGroup) parent).removeView(TooltipViewImpl.this);
+                    }
+                });
 
                 if (null != mShowAnimation && mShowAnimation.isStarted()) {
                     mShowAnimation.cancel();
