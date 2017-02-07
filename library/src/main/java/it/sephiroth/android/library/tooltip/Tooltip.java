@@ -259,6 +259,7 @@ public final class Tooltip {
         private final Point mTmpPoint = new Point();
         private final Rect mHitRect = new Rect();
         private final float mTextViewElevation;
+        private boolean mModal;
         private Callback mCallback;
         private int[] mOldLocation;
         private Gravity mGravity;
@@ -428,6 +429,7 @@ public final class Tooltip {
             this.mCallback = builder.closeCallback;
             this.mFloatingAnimation = builder.floatingAnimation;
             this.mSizeTolerance = (int) (context.getResources().getDisplayMetrics().density * TOLERANCE_VALUE);
+            this.mModal = builder.modal;
 
             if (builder.typeface != null) {
                 mTypeface = builder.typeface;
@@ -1319,7 +1321,9 @@ public final class Tooltip {
                 if (ClosePolicy.touchOutside(mClosePolicy)) {
                     onClose(true, false, false);
                 }
-                return ClosePolicy.consumeOutside(mClosePolicy);
+                boolean consume = ClosePolicy.consumeOutside(mClosePolicy);
+                // if Modal is enabled, then capture the touch event
+                return consume && this.mModal;
 
             }
             return false;
@@ -1477,6 +1481,7 @@ public final class Tooltip {
         boolean overlay = true;
         AnimationBuilder floatingAnimation;
         Typeface typeface;
+        boolean modal = true;
 
         public Builder(int id) {
             this.id = id;
@@ -1660,6 +1665,17 @@ public final class Tooltip {
             }
             completed = true;
             overlay = overlay && gravity != CENTER;
+            return this;
+        }
+
+        /**
+         * Enables modality.
+         * @param md
+         * @return
+         */
+        public Builder modal(boolean md) {
+            throwIfCompleted();
+            this.modal = md;
             return this;
         }
     }
