@@ -1,8 +1,6 @@
 package it.sephiroth.android.library.tooltip;
 
 import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
@@ -24,7 +22,6 @@ import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.text.Html;
 import android.text.TextUtils;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -356,7 +353,7 @@ public final class Tooltip {
         private TextView mTextView;
         private Typeface mTypeface;
         private int mSizeTolerance;
-        private Animator mAnimator;
+        private ValueAnimator mAnimator;
         private AnimationBuilder mFloatingAnimation;
         private boolean mAlreadyCheck;
         private final ViewTreeObserver.OnGlobalLayoutListener mGlobalLayoutListener =
@@ -1211,27 +1208,13 @@ public final class Tooltip {
             }
 
             final String property = direction == 2 ? "translationY" : "translationX";
-            final ValueAnimator anim1 = ObjectAnimator.ofFloat(mTextView, property, -endValue, endValue);
-            anim1.setDuration(duration);
-            anim1.setInterpolator(new AccelerateDecelerateInterpolator());
+            mAnimator = ObjectAnimator.ofFloat(mTextView, property, -endValue, endValue);
+            mAnimator.setDuration(duration);
+            mAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
 
-            ValueAnimator anim2 = ObjectAnimator.ofFloat(mTextView, property, endValue, -endValue);
-            anim2.setDuration(duration);
-            anim2.setInterpolator(new AccelerateDecelerateInterpolator());
+            mAnimator.setRepeatCount(ValueAnimator.INFINITE);
+            mAnimator.setRepeatMode(ValueAnimator.REVERSE);
 
-            AnimatorSet set = new AnimatorSet();
-            set.playSequentially(anim1, anim2);
-            set.addListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    super.onAnimationEnd(animation);
-                    if (isAttached()) {
-                        log(TAG, VERBOSE, "animation restart");
-                        animation.start();
-                    }
-                }
-            });
-            mAnimator = set;
             mAnimator.start();
         }
 

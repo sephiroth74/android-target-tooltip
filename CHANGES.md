@@ -1,3 +1,7 @@
+**Version 1.3.15**
+* Touches will close the tooltip if it's fading in but not yet active.
+* Get the correct Activity from current context
+
 
 **Version 1.3.14**
 * Added support for text gravity. Just use "android:gravity" inside your custom style.
