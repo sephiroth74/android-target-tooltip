@@ -31,6 +31,7 @@ import android.view.ViewParent;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.view.animation.AccelerateDecelerateInterpolator;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.lang.ref.WeakReference;
@@ -473,7 +474,7 @@ public final class Tooltip {
                 mViewOverlay.setLayoutParams(new LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
             }
 
-            if (!builder.isCustomView) {
+            if (!builder.isCustomView || !builder.hideArrow) {
                 this.mDrawable = new TooltipTextDrawable(context, builder);
             } else {
                 this.mDrawable = null;
@@ -812,16 +813,17 @@ public final class Tooltip {
                 if (mTypeface != null) {
                     mTextView.setTypeface(mTypeface);
                 }
+            }
 
-                if (null != mDrawable) {
-                    mTextView.setBackgroundDrawable(mDrawable);
-                    if (mHideArrow) {
-                        mTextView.setPadding(mPadding / 2, mPadding / 2, mPadding / 2, mPadding / 2);
-                    } else {
-                        mTextView.setPadding(mPadding, mPadding, mPadding, mPadding);
-                    }
+            if (null != mDrawable) {
+                mView.setBackgroundDrawable(mDrawable);
+                if (mHideArrow) {
+                    mView.setPadding(mPadding / 2, mPadding / 2, mPadding / 2, mPadding / 2);
+                } else {
+                    mView.setPadding(mPadding, mPadding, mPadding, mPadding);
                 }
             }
+
             this.addView(mView);
 
             if (null != mViewOverlay) {
@@ -844,8 +846,8 @@ public final class Tooltip {
 
         @SuppressLint("NewApi")
         private void setupElevation() {
-            mTextView.setElevation(mTextViewElevation);
-            mTextView.setOutlineProvider(ViewOutlineProvider.BACKGROUND);
+            mView.setElevation(mTextViewElevation);
+            mView.setOutlineProvider(ViewOutlineProvider.BACKGROUND);
         }
 
         protected void fadeIn(final long fadeDuration) {

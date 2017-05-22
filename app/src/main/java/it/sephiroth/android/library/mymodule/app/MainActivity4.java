@@ -155,6 +155,7 @@ public class MainActivity4 extends BaseActivity implements AdapterView.OnItemCli
                             .fadeDuration(200)
                             .showDelay(50)
                             .withCustomView(customView)
+                            .withArrow(true)
                             .withCallback(
                                     new Tooltip.Callback() {
                                         @Override

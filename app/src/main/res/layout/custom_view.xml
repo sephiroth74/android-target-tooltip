@@ -4,7 +4,7 @@
 	android:layout_width="200dp"
 	android:layout_height="300dp"
 	xmlns:android="http://schemas.android.com/apk/res/android"
-	android:background="@drawable/toast_frame">
+	>
 
 	<ImageView
 		android:layout_width="wrap_content"

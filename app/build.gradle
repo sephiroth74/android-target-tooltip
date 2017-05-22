@@ -1,14 +1,15 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion ANDROID_BUILD_SDK_VERSION as int
-    buildToolsVersion ANDROID_BUILD_TOOLS_VERSION
 
+
+    buildToolsVersion "25.0.2"
+    compileSdkVersion 25
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion ANDROID_BUILD_TARGET_SDK_VERSION as int
+        targetSdkVersion 25
         versionCode 1
-        versionName VERSION_NAME
+        versionName "1.0"
 
         jackOptions {
             enabled false

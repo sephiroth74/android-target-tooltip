@@ -1,17 +1,18 @@
 apply plugin: 'com.android.library'
 
-group GROUP
-version VERSION_NAME
+
+group "it.sephiroth.android.library.targettooltip"
+version "1.3.16"
 
 android {
-    compileSdkVersion ANDROID_BUILD_SDK_VERSION as int
-    buildToolsVersion ANDROID_BUILD_TOOLS_VERSION
+    compileSdkVersion 25
+    buildToolsVersion "25.0.2"
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion ANDROID_BUILD_TARGET_SDK_VERSION as int
-        versionCode 1
-        versionName VERSION_NAME
+        targetSdkVersion 25
+        versionCode 63
+        versionName "1.3.16"
         consumerProguardFiles 'proguard-rules.txt'
     }
 
@@ -48,7 +49,7 @@ dependencies {
 }
 
 
-apply from: rootProject.file('checkstyle.gradle')
-apply from: 'https://raw.githubusercontent.com/sephiroth74/gradle-mvn-push/master/gradle-mvn-push.gradle'
+apply from: '../checkstyle.gradle'
+//apply from: 'https://raw.githubusercontent.com/sephiroth74/gradle-mvn-push/master/gradle-mvn-push.gradle'
 
 uploadArchives.dependsOn 'check'
