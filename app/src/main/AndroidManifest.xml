@@ -26,6 +26,11 @@
             android:label="@string/title_activity_main_activity3"
             android:launchMode="singleTask"></activity>
 
+        <activity
+            android:name=".MainActivity4"
+            android:label="@string/title_activity_main_activity4"
+            android:launchMode="singleTask"></activity>
+
     </application>
 
 </manifest>

@@ -16,16 +16,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import it.sephiroth.android.library.tooltip.Tooltip;
 
-public class MainActivity3 extends BaseActivity implements AdapterView.OnItemClickListener {
+public class MainActivity4 extends BaseActivity implements AdapterView.OnItemClickListener {
     static final int TOOLTIP_ID = 101;
     static final int LIST_POSITION = 5;
-    private static final String TAG = "MainActivity3";
+    private static final String TAG = "MainActivity4";
     RecyclerView mRecyclerView;
     DisplayMetrics displayMetrics;
     private Tooltip.TooltipView mCurrentTooltip;
@@ -68,7 +69,6 @@ public class MainActivity3 extends BaseActivity implements AdapterView.OnItemCli
         super.onDestroy();
     }
 
-
     @Override
     public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
         Log.d(TAG, "onItemClick: " + position);
@@ -94,7 +94,7 @@ public class MainActivity3 extends BaseActivity implements AdapterView.OnItemCli
 
         @Override
         public RecyclerView.ViewHolder onCreateViewHolder(final ViewGroup parent, final int viewType) {
-            View view = LayoutInflater.from(MainActivity3.this).inflate(mResId, parent, false);
+            View view = LayoutInflater.from(MainActivity4.this).inflate(mResId, parent, false);
             final RecyclerView.ViewHolder holder = new RecyclerView.ViewHolder(view) {
             };
             view.setOnClickListener(new View.OnClickListener() {
@@ -136,8 +136,16 @@ public class MainActivity3 extends BaseActivity implements AdapterView.OnItemCli
                 return;
             }
 
+            View customView = LayoutInflater.from(getApplicationContext()).inflate(R.layout.custom_view, null);
+            customView.findViewById(R.id.button).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast.makeText(getApplicationContext(), "CLICK on TOST", Toast.LENGTH_LONG).show();
+                }
+            });
+
             mCurrentTooltip = Tooltip.make(
-                    MainActivity3.this,
+                    MainActivity4.this,
                     new Tooltip.Builder(TOOLTIP_ID)
                             .maxWidth((int) (displayMetrics.widthPixels / 2))
                             .anchor(holder.itemView.findViewById(android.R.id.text1), Tooltip.Gravity.RIGHT)
@@ -146,6 +154,8 @@ public class MainActivity3 extends BaseActivity implements AdapterView.OnItemCli
                             .fitToScreen(false)
                             .fadeDuration(200)
                             .showDelay(50)
+                            .withCustomView(customView)
+                            .withArrow(true)
                             .withCallback(
                                     new Tooltip.Callback() {
                                         @Override
