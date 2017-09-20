@@ -256,4 +256,8 @@ class TooltipTextDrawable extends Drawable {
         }
         //outline.setAlpha(getAlpha() / ALPHA_MAX);
     }
+
+    float getEllipseSize() {
+        return ellipseSize;
+    }
 }
