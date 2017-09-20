@@ -1,14 +1,14 @@
 package it.sephiroth.android.library.mymodule.app;
 
 import android.content.Context;
+import android.support.v7.widget.AppCompatTextView;
 import android.util.AttributeSet;
 import android.view.View;
-import android.widget.TextView;
 
 /**
  * Created by alessandro on 04/09/14.
  */
-public class MyTextView extends TextView {
+public class MyTextView extends AppCompatTextView {
     public static interface OnAttachStatusListener {
         void onAttachedtoWindow(View view);
 
