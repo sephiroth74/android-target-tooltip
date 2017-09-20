@@ -11,6 +11,7 @@
     <style name="ToolTipLayoutDefaultStyle.Custom1">
         <item name="android:textAppearance">?android:attr/textAppearanceSmallInverse</item>
         <item name="android:gravity">center</item>
+        <item name="ttlm_margin">30dp</item>
     </style>
 
     <style name="ToolTipLayoutCustomStyle">
@@ -31,6 +32,7 @@
 
     <style name="ToolTipLayoutDefaultStyle.CustomFont" parent="ToolTipLayoutDefaultStyle">
         <item name="ttlm_font">fonts/at.ttc</item>
+        <item name="ttlm_margin">20dp</item>
     </style>
 
 </resources>

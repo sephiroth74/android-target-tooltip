@@ -263,6 +263,7 @@ public final class Tooltip {
         private final Point mTmpPoint = new Point();
         private final Rect mHitRect = new Rect();
         private final float mTextViewElevation;
+        private final int margin;
         private Callback mCallback;
         private int[] mOldLocation;
         private Gravity mGravity;
@@ -412,6 +413,7 @@ public final class Tooltip {
                 .getInt(R.styleable.TooltipLayout_android_gravity, android.view.Gravity.TOP | android.view.Gravity.START);
             this.mTextViewElevation = theme.getDimension(R.styleable.TooltipLayout_ttlm_elevation, 0);
             int overlayStyle = theme.getResourceId(R.styleable.TooltipLayout_ttlm_overlayStyle, R.style.ToolTipOverlayDefaultStyle);
+            this.margin = theme.getDimensionPixelOffset(R.styleable.TooltipLayout_ttlm_margin, 0);
 
             String font = theme.getString(R.styleable.TooltipLayout_ttlm_font);
 
@@ -1127,6 +1129,9 @@ public final class Tooltip {
                 mViewRect.centerY() + height / 2
             );
 
+            mDrawRect.left -= margin;
+            mDrawRect.right -= margin;
+
             if ((mViewRect.width() / 2) < overlayWidth) {
                 mDrawRect.offset(-(overlayWidth - (mViewRect.width() / 2)), 0);
             }
@@ -1156,6 +1161,9 @@ public final class Tooltip {
                 mViewRect.right + width,
                 mViewRect.centerY() + height / 2
             );
+
+            mDrawRect.left += margin;
+            mDrawRect.right += margin;
 
             if ((mViewRect.width() / 2) < overlayWidth) {
                 mDrawRect.offset(overlayWidth - mViewRect.width() / 2, 0);
@@ -1187,6 +1195,9 @@ public final class Tooltip {
                 mViewRect.top
             );
 
+            mDrawRect.top -= margin;
+            mDrawRect.bottom -= margin;
+
             if ((mViewRect.height() / 2) < overlayHeight) {
                 mDrawRect.offset(0, -(overlayHeight - (mViewRect.height() / 2)));
             }
@@ -1216,6 +1227,9 @@ public final class Tooltip {
                 mViewRect.centerX() + width / 2,
                 mViewRect.bottom + height
             );
+
+            mDrawRect.top += margin;
+            mDrawRect.bottom += margin;
 
             if (mViewRect.height() / 2 < overlayHeight) {
                 mDrawRect.offset(0, overlayHeight - mViewRect.height() / 2);
