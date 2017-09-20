@@ -246,6 +246,7 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
                         .activateDelay(2000)
                         .maxWidth(metrics.widthPixels / 2)
                         .withCallback(this)
+                        .setAlignment(Tooltip.Alignment.BOTTOM)
                         .floatingAnimation(AnimationBuilder.DEFAULT)
                         .build()
                 ).show();
@@ -262,6 +263,7 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
                         .withArrow(true)
                         .maxWidth(metrics.widthPixels / 2)
                         .withCallback(this)
+                        .setAlignment(Tooltip.Alignment.LEFT)
                         .withStyleId(R.style.ToolTipLayoutDefaultStyle_Custom1)
                         .build()
                 ).show();
@@ -276,6 +278,7 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
                         .withArrow(true)
                         .maxWidth((int) (metrics.widthPixels / 2.5))
                         .withCallback(this)
+                        .setAlignment(Tooltip.Alignment.RIGHT)
                         .floatingAnimation(AnimationBuilder.DEFAULT)
                         .build()
                 ).show();
@@ -289,6 +292,7 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
                         .text("TOP. Touch Inside exclusive.")
                         .withArrow(true)
                         .withOverlay(false)
+                        .setAlignment(Tooltip.Alignment.RIGHT)
                         .maxWidth(metrics.widthPixels / 3)
                         .withCallback(this)
                         .build()
@@ -308,6 +312,7 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
                             .withOverlay(false)
                             .maxWidth(metrics.widthPixels / 3)
                             .showDelay(300)
+                            .setAlignment(Tooltip.Alignment.TOP)
                             .withCallback(this)
                             .build()
                     );
