@@ -177,6 +177,10 @@ public final class Tooltip {
         LEFT, RIGHT, TOP, BOTTOM, CENTER
     }
 
+    public enum Alignment {
+        LEFT, RIGHT, TOP, BOTTOM, CENTER
+    }
+
     @SuppressWarnings ("unused")
     public interface TooltipView {
         void show();
@@ -263,6 +267,7 @@ public final class Tooltip {
         private Callback mCallback;
         private int[] mOldLocation;
         private Gravity mGravity;
+        private Alignment mAlignment;
         private Animator mShowAnimation;
         private boolean mShowing;
         private WeakReference<View> mViewAnchor;
@@ -417,6 +422,7 @@ public final class Tooltip {
             this.mToolTipId = builder.id;
             this.mText = builder.text;
             this.mGravity = builder.gravity;
+            this.mAlignment = builder.alignment;
             this.mTextResId = builder.textResId;
             this.mMaxWidth = builder.maxWidth;
             this.mTopRule = builder.actionbarSize;
@@ -1031,6 +1037,42 @@ public final class Tooltip {
                 }
             }
 
+            Point center = new Point(mViewRect.centerX(), mViewRect.centerY());
+
+            switch (mAlignment) {
+                case LEFT:
+                    if (mGravity == TOP || mGravity == BOTTOM) {
+                        int shift = mViewRect.left - mDrawRect.left - (mHideArrow ? 0 : mPadding / 2);
+                        mDrawRect.offset(shift, 0);
+                    }
+                    break;
+
+                case RIGHT:
+                    if (mGravity == TOP || mGravity == BOTTOM) {
+                        int shift = mViewRect.right - mDrawRect.right + (mHideArrow ? 0 : mPadding / 2);
+                        mDrawRect.offset(shift, 0);
+                    }
+                    break;
+
+                case TOP:
+                    if (mGravity == LEFT || mGravity == RIGHT) {
+                        int shift = mViewRect.top - mDrawRect.top + (mHideArrow ? 0 : mPadding / 2);
+                        mDrawRect.offset(0, -shift);
+                    }
+                    break;
+
+                case BOTTOM:
+                    if (mGravity == LEFT || mGravity == RIGHT) {
+                        int shift = mViewRect.bottom - mDrawRect.bottom + (mHideArrow ? 0 : mPadding / 2);
+                        mDrawRect.offset(0, shift);
+                    }
+                    break;
+
+                case CENTER:
+                default:
+                    break;
+            }
+
             if (null != mViewOverlay) {
                 mViewOverlay.setTranslationX(mViewRect.centerX() - mViewOverlay.getWidth() / 2);
                 mViewOverlay.setTranslationY(mViewRect.centerY() - mViewOverlay.getHeight() / 2);
@@ -1041,7 +1083,7 @@ public final class Tooltip {
             mView.setTranslationY(mDrawRect.top);
 
             if (null != mDrawable) {
-                getAnchorPoint(gravity, mTmpPoint);
+                getAnchorPoint(gravity, mTmpPoint, center);
                 mDrawable.setAnchor(gravity, mHideArrow ? 0 : mPadding / 2, mHideArrow ? null : mTmpPoint);
             }
 
@@ -1245,6 +1287,36 @@ public final class Tooltip {
             } else if (this.mGravity == CENTER) {
                 outPoint.x = mViewRect.centerX();
                 outPoint.y = mViewRect.centerY();
+            }
+
+            outPoint.x -= mDrawRect.left;
+            outPoint.y -= mDrawRect.top;
+
+            if (!mHideArrow) {
+                if (gravity == LEFT || gravity == RIGHT) {
+                    outPoint.y -= mPadding / 2;
+                } else if (gravity == TOP || gravity == BOTTOM) {
+                    outPoint.x -= mPadding / 2;
+                }
+            }
+        }
+
+        void getAnchorPoint(final Gravity gravity, Point outPoint, Point center) {
+            if (gravity == BOTTOM) {
+                outPoint.x = center.x;
+                outPoint.y = mViewRect.bottom;
+            } else if (gravity == TOP) {
+                outPoint.x = center.x;
+                outPoint.y = mViewRect.top;
+            } else if (gravity == RIGHT) {
+                outPoint.x = mViewRect.right;
+                outPoint.y = center.y;
+            } else if (gravity == LEFT) {
+                outPoint.x = mViewRect.left;
+                outPoint.y = center.y;
+            } else if (this.mGravity == CENTER) {
+                outPoint.x = center.x;
+                outPoint.y = center.y;
             }
 
             outPoint.x -= mDrawRect.left;
@@ -1468,6 +1540,7 @@ public final class Tooltip {
         CharSequence text;
         View view;
         Gravity gravity;
+        Alignment alignment = Alignment.CENTER;
         int actionbarSize = 0;
         int textResId = R.layout.tooltip_textview;
         int closePolicy = ClosePolicy.NONE;
@@ -1609,6 +1682,11 @@ public final class Tooltip {
             this.view = null;
             this.point = new Point(point);
             this.gravity = gravity;
+            return this;
+        }
+
+        public Builder alignment(Alignment alignment) {
+            this.alignment = alignment;
             return this;
         }
 
