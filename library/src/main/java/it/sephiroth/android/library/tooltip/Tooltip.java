@@ -259,6 +259,7 @@ public final class Tooltip {
         private final Point mTmpPoint = new Point();
         private final Rect mHitRect = new Rect();
         private final float mTextViewElevation;
+        private final float mMargin;
         private Callback mCallback;
         private int[] mOldLocation;
         private Gravity mGravity;
@@ -407,6 +408,7 @@ public final class Tooltip {
                 .getInt(R.styleable.TooltipLayout_android_gravity, android.view.Gravity.TOP | android.view.Gravity.START);
             this.mTextViewElevation = theme.getDimension(R.styleable.TooltipLayout_ttlm_elevation, 0);
             int overlayStyle = theme.getResourceId(R.styleable.TooltipLayout_ttlm_overlayStyle, R.style.ToolTipOverlayDefaultStyle);
+            this.mMargin = theme.getDimension(R.styleable.TooltipLayout_ttlm_margin, 0);
 
             String font = theme.getString(R.styleable.TooltipLayout_ttlm_font);
 
@@ -1081,6 +1083,8 @@ public final class Tooltip {
                 mViewRect.centerY() + height / 2
             );
 
+            mDrawRect.offset(0, Math.round(-mMargin));
+
             if ((mViewRect.width() / 2) < overlayWidth) {
                 mDrawRect.offset(-(overlayWidth - (mViewRect.width() / 2)), 0);
             }
@@ -1110,6 +1114,8 @@ public final class Tooltip {
                 mViewRect.right + width,
                 mViewRect.centerY() + height / 2
             );
+
+            mDrawRect.offset(Math.round(mMargin), 0);
 
             if ((mViewRect.width() / 2) < overlayWidth) {
                 mDrawRect.offset(overlayWidth - mViewRect.width() / 2, 0);
@@ -1141,6 +1147,8 @@ public final class Tooltip {
                 mViewRect.top
             );
 
+            mDrawRect.offset(0, Math.round(-mMargin));
+
             if ((mViewRect.height() / 2) < overlayHeight) {
                 mDrawRect.offset(0, -(overlayHeight - (mViewRect.height() / 2)));
             }
@@ -1170,6 +1178,8 @@ public final class Tooltip {
                 mViewRect.centerX() + width / 2,
                 mViewRect.bottom + height
             );
+
+            mDrawRect.offset(0, Math.round(mMargin));
 
             if (mViewRect.height() / 2 < overlayHeight) {
                 mDrawRect.offset(0, overlayHeight - mViewRect.height() / 2);

@@ -51,6 +51,7 @@ Tooltip style can be customized in your style object:
         <attr name="android:textAppearance" />
         <attr name="ttlm_overlayStyle" format="reference" />
         <attr name="ttlm_elevation" format="dimension" />
+        <attr name="ttlm_margin" format="dimension" />
 
         <!-- font file path inside your assets folder -->
         <attr name="ttlm_font" format="string" />
