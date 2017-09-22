@@ -12,6 +12,7 @@
         <attr name="ttlm_cornerRadius" format="dimension" />
         <attr name="ttlm_arrowRatio" format="float" />
         <attr name="ttlm_arrowHeight" format="dimension" />
+        <attr name="ttlm_anchorShift" format="dimension" />
         <attr name="android:textAppearance" />
         <attr name="android:gravity" />
         <attr name="ttlm_overlayStyle" format="reference" />

@@ -268,6 +268,7 @@ public final class Tooltip {
         private int[] mOldLocation;
         private Gravity mGravity;
         private Alignment mAlignment;
+        private int mAnchorShift;
         private Animator mShowAnimation;
         private boolean mShowing;
         private WeakReference<View> mViewAnchor;
@@ -416,6 +417,7 @@ public final class Tooltip {
             this.mTextViewElevation = theme.getDimension(R.styleable.TooltipLayout_ttlm_elevation, 0);
             int overlayStyle = theme.getResourceId(R.styleable.TooltipLayout_ttlm_overlayStyle, R.style.ToolTipOverlayDefaultStyle);
             this.mMargin = theme.getDimension(R.styleable.TooltipLayout_ttlm_margin, 0);
+            this.mAnchorShift = theme.getDimensionPixelOffset(R.styleable.TooltipLayout_ttlm_anchorShift, -1);
 
             String font = theme.getString(R.styleable.TooltipLayout_ttlm_font);
 
@@ -1048,33 +1050,40 @@ public final class Tooltip {
             switch (mAlignment) {
                 case LEFT:
                     if (mGravity == TOP || mGravity == BOTTOM) {
-                        int shift = mViewRect.left - mDrawRect.left - Math.round(mArrowHeight);
+                        int shift = mViewRect.left - mDrawRect.left - Math.round(mArrowHeight) + mAnchorShift;
                         mDrawRect.offset(shift, 0);
                     }
                     break;
 
                 case RIGHT:
                     if (mGravity == TOP || mGravity == BOTTOM) {
-                        int shift = mViewRect.right - mDrawRect.right + Math.round(mArrowHeight);
+                        int shift = mViewRect.right - mDrawRect.right + Math.round(mArrowHeight) + mAnchorShift;
                         mDrawRect.offset(shift, 0);
                     }
                     break;
 
                 case TOP:
                     if (mGravity == LEFT || mGravity == RIGHT) {
-                        int shift = mViewRect.top - mDrawRect.top + Math.round(mArrowHeight);
-                        mDrawRect.offset(0, -shift);
+                        int shift = mViewRect.top - mDrawRect.top + Math.round(mArrowHeight + mAnchorShift);
+                        mDrawRect.offset(0, shift);
                     }
                     break;
 
                 case BOTTOM:
                     if (mGravity == LEFT || mGravity == RIGHT) {
-                        int shift = mViewRect.bottom - mDrawRect.bottom + Math.round(mArrowHeight);
+                        int shift = mViewRect.bottom - mDrawRect.bottom + Math.round(mArrowHeight + mAnchorShift);
                         mDrawRect.offset(0, shift);
                     }
                     break;
 
                 case CENTER:
+                    if (mGravity == TOP || mGravity == BOTTOM) {
+                        mDrawRect.offset(-mAnchorShift, 0);
+                    } else if (mGravity == LEFT || mGravity == RIGHT) {
+                        mDrawRect.offset(0, mAnchorShift);
+                    }
+                    break;
+
                 default:
                     break;
             }
