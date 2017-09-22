@@ -317,6 +317,7 @@ public final class Tooltip {
             }
         };
         private int mPadding;
+        private float mArrowHeight;
         private CharSequence mText;
         private Rect mViewRect;
         private View mView;
@@ -408,6 +409,7 @@ public final class Tooltip {
                 context.getTheme()
                     .obtainStyledAttributes(null, R.styleable.TooltipLayout, builder.defStyleAttr, builder.defStyleRes);
             this.mPadding = theme.getDimensionPixelSize(R.styleable.TooltipLayout_ttlm_padding, 30);
+            this.mArrowHeight = theme.getDimension(R.styleable.TooltipLayout_ttlm_arrowHeight, 0);
             this.mTextAppearance = theme.getResourceId(R.styleable.TooltipLayout_android_textAppearance, 0);
             this.mTextGravity = theme
                 .getInt(R.styleable.TooltipLayout_android_gravity, android.view.Gravity.TOP | android.view.Gravity.START);
@@ -430,6 +432,13 @@ public final class Tooltip {
             this.mShowDuration = builder.showDuration;
             this.mShowDelay = builder.showDelay;
             this.mHideArrow = builder.hideArrow;
+            if (mHideArrow) {
+                mArrowHeight = 0;
+            } else {
+                if (mArrowHeight == 0) {
+                    mArrowHeight = mPadding;
+                }
+            }
             this.mActivateDelay = builder.activateDelay;
             this.mRestrict = builder.restrictToScreenEdges;
             this.mFadeDuration = builder.fadeDuration;
@@ -816,11 +825,8 @@ public final class Tooltip {
 
             if (null != mDrawable) {
                 mTextView.setBackgroundDrawable(mDrawable);
-                if (mHideArrow) {
-                    mTextView.setPadding(mPadding / 2, mPadding / 2, mPadding / 2, mPadding / 2);
-                } else {
-                    mTextView.setPadding(mPadding, mPadding, mPadding, mPadding);
-                }
+                mTextView.setPadding(mPadding + Math.round(mArrowHeight), mPadding + Math.round(mArrowHeight),
+                        mPadding + Math.round(mArrowHeight), mPadding + Math.round(mArrowHeight));
             }
             this.addView(mView);
 
@@ -1042,28 +1048,28 @@ public final class Tooltip {
             switch (mAlignment) {
                 case LEFT:
                     if (mGravity == TOP || mGravity == BOTTOM) {
-                        int shift = mViewRect.left - mDrawRect.left - (mHideArrow ? 0 : mPadding / 2);
+                        int shift = mViewRect.left - mDrawRect.left - Math.round(mArrowHeight);
                         mDrawRect.offset(shift, 0);
                     }
                     break;
 
                 case RIGHT:
                     if (mGravity == TOP || mGravity == BOTTOM) {
-                        int shift = mViewRect.right - mDrawRect.right + (mHideArrow ? 0 : mPadding / 2);
+                        int shift = mViewRect.right - mDrawRect.right + Math.round(mArrowHeight);
                         mDrawRect.offset(shift, 0);
                     }
                     break;
 
                 case TOP:
                     if (mGravity == LEFT || mGravity == RIGHT) {
-                        int shift = mViewRect.top - mDrawRect.top + (mHideArrow ? 0 : mPadding / 2);
+                        int shift = mViewRect.top - mDrawRect.top + Math.round(mArrowHeight);
                         mDrawRect.offset(0, -shift);
                     }
                     break;
 
                 case BOTTOM:
                     if (mGravity == LEFT || mGravity == RIGHT) {
-                        int shift = mViewRect.bottom - mDrawRect.bottom + (mHideArrow ? 0 : mPadding / 2);
+                        int shift = mViewRect.bottom - mDrawRect.bottom + Math.round(mArrowHeight);
                         mDrawRect.offset(0, shift);
                     }
                     break;
@@ -1084,7 +1090,7 @@ public final class Tooltip {
 
             if (null != mDrawable) {
                 getAnchorPoint(gravity, mTmpPoint, center);
-                mDrawable.setAnchor(gravity, mHideArrow ? 0 : mPadding / 2, mHideArrow ? null : mTmpPoint);
+                mDrawable.setAnchor(gravity, mHideArrow ? 0 : mPadding, mArrowHeight, mHideArrow ? null : mTmpPoint);
             }
 
             if (!mAlreadyCheck) {
@@ -1294,9 +1300,9 @@ public final class Tooltip {
 
             if (!mHideArrow) {
                 if (gravity == LEFT || gravity == RIGHT) {
-                    outPoint.y -= mPadding / 2;
+                    outPoint.y -= mArrowHeight;
                 } else if (gravity == TOP || gravity == BOTTOM) {
-                    outPoint.x -= mPadding / 2;
+                    outPoint.x -= mArrowHeight;
                 }
             }
         }
@@ -1324,9 +1330,9 @@ public final class Tooltip {
 
             if (!mHideArrow) {
                 if (gravity == LEFT || gravity == RIGHT) {
-                    outPoint.y -= mPadding / 2;
+                    outPoint.y -= mArrowHeight;
                 } else if (gravity == TOP || gravity == BOTTOM) {
-                    outPoint.x -= mPadding / 2;
+                    outPoint.x -= mArrowHeight;
                 }
             }
         }
