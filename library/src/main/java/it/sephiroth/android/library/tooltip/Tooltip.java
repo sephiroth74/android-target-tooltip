@@ -972,7 +972,9 @@ public final class Tooltip {
 
             if (mViewRect == null) {
                 mViewRect = new Rect();
-                mViewRect.set(mPoint.x, mPoint.y + statusbarHeight, mPoint.x, mPoint.y + statusbarHeight);
+                if (mPoint != null) {
+                    mViewRect.set(mPoint.x, mPoint.y + statusbarHeight, mPoint.x, mPoint.y + statusbarHeight);
+                }
             }
 
             final int screenTop = mScreenRect.top + mTopRule;
