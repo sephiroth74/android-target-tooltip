@@ -817,6 +817,12 @@ public final class Tooltip {
 
             if (0 != mTextAppearance) {
                 mTextView.setTextAppearance(getContext(), mTextAppearance);
+
+                final TypedArray ta = getContext().obtainStyledAttributes(mTextAppearance, R.styleable.TooltipLayout);
+                final int lineSpacingAdd = ta.getDimensionPixelSize(R.styleable.TooltipLayout_android_lineSpacingExtra, 0);
+                final float lineSpacingMultiplier = ta.getFloat(R.styleable.TooltipLayout_android_lineSpacingMultiplier, 1);
+                ta.recycle();
+                mTextView.setLineSpacing(lineSpacingAdd, lineSpacingMultiplier);
             }
 
             mTextView.setGravity(mTextGravity);
