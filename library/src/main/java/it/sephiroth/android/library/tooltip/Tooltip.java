@@ -581,6 +581,10 @@ public final class Tooltip {
                 } else {
                     removeFromParentNow(parentViewGroup);
                 }
+
+                if (null != mShowAnimation && mShowAnimation.isStarted()) {
+                    mShowAnimation.cancel();
+                }
             }
         }
 
@@ -600,10 +604,6 @@ public final class Tooltip {
 
         private void removeFromParentNow(ViewGroup parent) {
             parent.removeView(TooltipViewImpl.this);
-
-            if (null != mShowAnimation && mShowAnimation.isStarted()) {
-                mShowAnimation.cancel();
-            }
         }
 
         @Override
