@@ -16,6 +16,16 @@ allprojects {
     repositories {
         jcenter()
         mavenCentral()
+        maven { url "https://maven.google.com" }
     }
 }
 
+
+ext {
+    minSdkVersion = 14
+    targetSdkVersion = 26
+    compileSdkVersion = 26
+    buildToolsVersion = '26.0.2'
+
+    supportLibVersion = '26.1.0'
+}
