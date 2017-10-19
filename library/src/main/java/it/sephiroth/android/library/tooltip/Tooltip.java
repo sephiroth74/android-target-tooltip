@@ -572,10 +572,14 @@ public final class Tooltip {
             removeCallbacks();
 
             if (null != parent) {
-                ((ViewGroup) parent).removeView(TooltipViewImpl.this);
+                ViewGroup parentViewGroup = (ViewGroup) parent;
 
-                if (null != mShowAnimation && mShowAnimation.isStarted()) {
-                    mShowAnimation.cancel();
+                // If layout is requested we should delay removing the view to avoid parent
+                // onLayout crash
+                if (parentViewGroup.isLayoutRequested()) {
+                    postRemoveFromParentNow(parentViewGroup);
+                } else {
+                    removeFromParentNow(parentViewGroup);
                 }
             }
         }
@@ -583,6 +587,23 @@ public final class Tooltip {
         private void removeCallbacks() {
             mHandler.removeCallbacks(hideRunnable);
             mHandler.removeCallbacks(activateRunnable);
+        }
+
+        private void postRemoveFromParentNow(final ViewGroup parent) {
+            post(new Runnable() {
+                @Override
+                public void run() {
+                    removeFromParentNow(parent);
+                }
+            });
+        }
+
+        private void removeFromParentNow(ViewGroup parent) {
+            parent.removeView(TooltipViewImpl.this);
+
+            if (null != mShowAnimation && mShowAnimation.isStarted()) {
+                mShowAnimation.cancel();
+            }
         }
 
         @Override
