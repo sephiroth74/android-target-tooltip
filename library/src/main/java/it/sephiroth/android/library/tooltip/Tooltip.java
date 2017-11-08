@@ -177,6 +177,10 @@ public final class Tooltip {
         LEFT, RIGHT, TOP, BOTTOM, CENTER
     }
 
+    public enum Alignment {
+        LEFT, RIGHT, TOP, BOTTOM, CENTER
+    }
+
     @SuppressWarnings ("unused")
     public interface TooltipView {
         void show();
@@ -259,9 +263,12 @@ public final class Tooltip {
         private final Point mTmpPoint = new Point();
         private final Rect mHitRect = new Rect();
         private final float mTextViewElevation;
+        private final float mMargin;
         private Callback mCallback;
         private int[] mOldLocation;
         private Gravity mGravity;
+        private Alignment mAlignment;
+        private int mAnchorShift;
         private Animator mShowAnimation;
         private boolean mShowing;
         private WeakReference<View> mViewAnchor;
@@ -311,6 +318,7 @@ public final class Tooltip {
             }
         };
         private int mPadding;
+        private float mArrowHeight;
         private CharSequence mText;
         private Rect mViewRect;
         private View mView;
@@ -402,11 +410,14 @@ public final class Tooltip {
                 context.getTheme()
                     .obtainStyledAttributes(null, R.styleable.TooltipLayout, builder.defStyleAttr, builder.defStyleRes);
             this.mPadding = theme.getDimensionPixelSize(R.styleable.TooltipLayout_ttlm_padding, 30);
+            this.mArrowHeight = theme.getDimension(R.styleable.TooltipLayout_ttlm_arrowHeight, 0);
             this.mTextAppearance = theme.getResourceId(R.styleable.TooltipLayout_android_textAppearance, 0);
             this.mTextGravity = theme
                 .getInt(R.styleable.TooltipLayout_android_gravity, android.view.Gravity.TOP | android.view.Gravity.START);
             this.mTextViewElevation = theme.getDimension(R.styleable.TooltipLayout_ttlm_elevation, 0);
             int overlayStyle = theme.getResourceId(R.styleable.TooltipLayout_ttlm_overlayStyle, R.style.ToolTipOverlayDefaultStyle);
+            this.mMargin = theme.getDimension(R.styleable.TooltipLayout_ttlm_margin, 0);
+            this.mAnchorShift = theme.getDimensionPixelOffset(R.styleable.TooltipLayout_ttlm_anchorShift, -1);
 
             String font = theme.getString(R.styleable.TooltipLayout_ttlm_font);
 
@@ -415,6 +426,7 @@ public final class Tooltip {
             this.mToolTipId = builder.id;
             this.mText = builder.text;
             this.mGravity = builder.gravity;
+            this.mAlignment = builder.alignment;
             this.mTextResId = builder.textResId;
             this.mMaxWidth = builder.maxWidth;
             this.mTopRule = builder.actionbarSize;
@@ -422,6 +434,13 @@ public final class Tooltip {
             this.mShowDuration = builder.showDuration;
             this.mShowDelay = builder.showDelay;
             this.mHideArrow = builder.hideArrow;
+            if (mHideArrow) {
+                mArrowHeight = 0;
+            } else {
+                if (mArrowHeight == 0) {
+                    mArrowHeight = mPadding;
+                }
+            }
             this.mActivateDelay = builder.activateDelay;
             this.mRestrict = builder.restrictToScreenEdges;
             this.mFadeDuration = builder.fadeDuration;
@@ -798,6 +817,12 @@ public final class Tooltip {
 
             if (0 != mTextAppearance) {
                 mTextView.setTextAppearance(getContext(), mTextAppearance);
+
+                final TypedArray ta = getContext().obtainStyledAttributes(mTextAppearance, R.styleable.TooltipLayout);
+                final int lineSpacingAdd = ta.getDimensionPixelSize(R.styleable.TooltipLayout_android_lineSpacingExtra, 0);
+                final float lineSpacingMultiplier = ta.getFloat(R.styleable.TooltipLayout_android_lineSpacingMultiplier, 1);
+                ta.recycle();
+                mTextView.setLineSpacing(lineSpacingAdd, lineSpacingMultiplier);
             }
 
             mTextView.setGravity(mTextGravity);
@@ -808,11 +833,8 @@ public final class Tooltip {
 
             if (null != mDrawable) {
                 mTextView.setBackgroundDrawable(mDrawable);
-                if (mHideArrow) {
-                    mTextView.setPadding(mPadding / 2, mPadding / 2, mPadding / 2, mPadding / 2);
-                } else {
-                    mTextView.setPadding(mPadding, mPadding, mPadding, mPadding);
-                }
+                mTextView.setPadding(mPadding + Math.round(mArrowHeight), mPadding + Math.round(mArrowHeight),
+                        mPadding + Math.round(mArrowHeight), mPadding + Math.round(mArrowHeight));
             }
             this.addView(mView);
 
@@ -1029,6 +1051,49 @@ public final class Tooltip {
                 }
             }
 
+            Point center = new Point(mViewRect.centerX(), mViewRect.centerY());
+
+            switch (mAlignment) {
+                case LEFT:
+                    if (mGravity == TOP || mGravity == BOTTOM) {
+                        int shift = mViewRect.left - mDrawRect.left - Math.round(mArrowHeight) + mAnchorShift;
+                        mDrawRect.offset(shift, 0);
+                    }
+                    break;
+
+                case RIGHT:
+                    if (mGravity == TOP || mGravity == BOTTOM) {
+                        int shift = mViewRect.right - mDrawRect.right + Math.round(mArrowHeight) + mAnchorShift;
+                        mDrawRect.offset(shift, 0);
+                    }
+                    break;
+
+                case TOP:
+                    if (mGravity == LEFT || mGravity == RIGHT) {
+                        int shift = mViewRect.top - mDrawRect.top + Math.round(mArrowHeight + mAnchorShift);
+                        mDrawRect.offset(0, shift);
+                    }
+                    break;
+
+                case BOTTOM:
+                    if (mGravity == LEFT || mGravity == RIGHT) {
+                        int shift = mViewRect.bottom - mDrawRect.bottom + Math.round(mArrowHeight + mAnchorShift);
+                        mDrawRect.offset(0, shift);
+                    }
+                    break;
+
+                case CENTER:
+                    if (mGravity == TOP || mGravity == BOTTOM) {
+                        mDrawRect.offset(-mAnchorShift, 0);
+                    } else if (mGravity == LEFT || mGravity == RIGHT) {
+                        mDrawRect.offset(0, mAnchorShift);
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+
             if (null != mViewOverlay) {
                 mViewOverlay.setTranslationX(mViewRect.centerX() - mViewOverlay.getWidth() / 2);
                 mViewOverlay.setTranslationY(mViewRect.centerY() - mViewOverlay.getHeight() / 2);
@@ -1039,8 +1104,8 @@ public final class Tooltip {
             mView.setTranslationY(mDrawRect.top);
 
             if (null != mDrawable) {
-                getAnchorPoint(gravity, mTmpPoint);
-                mDrawable.setAnchor(gravity, mHideArrow ? 0 : mPadding / 2, mHideArrow ? null : mTmpPoint);
+                getAnchorPoint(gravity, mTmpPoint, center);
+                mDrawable.setAnchor(gravity, mHideArrow ? 0 : mPadding, mArrowHeight, mHideArrow ? null : mTmpPoint);
             }
 
             if (!mAlreadyCheck) {
@@ -1081,6 +1146,8 @@ public final class Tooltip {
                 mViewRect.centerY() + height / 2
             );
 
+            mDrawRect.offset(0, Math.round(-mMargin));
+
             if ((mViewRect.width() / 2) < overlayWidth) {
                 mDrawRect.offset(-(overlayWidth - (mViewRect.width() / 2)), 0);
             }
@@ -1110,6 +1177,8 @@ public final class Tooltip {
                 mViewRect.right + width,
                 mViewRect.centerY() + height / 2
             );
+
+            mDrawRect.offset(Math.round(mMargin), 0);
 
             if ((mViewRect.width() / 2) < overlayWidth) {
                 mDrawRect.offset(overlayWidth - mViewRect.width() / 2, 0);
@@ -1141,6 +1210,8 @@ public final class Tooltip {
                 mViewRect.top
             );
 
+            mDrawRect.offset(0, Math.round(-mMargin));
+
             if ((mViewRect.height() / 2) < overlayHeight) {
                 mDrawRect.offset(0, -(overlayHeight - (mViewRect.height() / 2)));
             }
@@ -1170,6 +1241,8 @@ public final class Tooltip {
                 mViewRect.centerX() + width / 2,
                 mViewRect.bottom + height
             );
+
+            mDrawRect.offset(0, Math.round(mMargin));
 
             if (mViewRect.height() / 2 < overlayHeight) {
                 mDrawRect.offset(0, overlayHeight - mViewRect.height() / 2);
@@ -1242,9 +1315,39 @@ public final class Tooltip {
 
             if (!mHideArrow) {
                 if (gravity == LEFT || gravity == RIGHT) {
-                    outPoint.y -= mPadding / 2;
+                    outPoint.y -= mArrowHeight;
                 } else if (gravity == TOP || gravity == BOTTOM) {
-                    outPoint.x -= mPadding / 2;
+                    outPoint.x -= mArrowHeight;
+                }
+            }
+        }
+
+        void getAnchorPoint(final Gravity gravity, Point outPoint, Point center) {
+            if (gravity == BOTTOM) {
+                outPoint.x = center.x;
+                outPoint.y = mViewRect.bottom;
+            } else if (gravity == TOP) {
+                outPoint.x = center.x;
+                outPoint.y = mViewRect.top;
+            } else if (gravity == RIGHT) {
+                outPoint.x = mViewRect.right;
+                outPoint.y = center.y;
+            } else if (gravity == LEFT) {
+                outPoint.x = mViewRect.left;
+                outPoint.y = center.y;
+            } else if (this.mGravity == CENTER) {
+                outPoint.x = center.x;
+                outPoint.y = center.y;
+            }
+
+            outPoint.x -= mDrawRect.left;
+            outPoint.y -= mDrawRect.top;
+
+            if (!mHideArrow) {
+                if (gravity == LEFT || gravity == RIGHT) {
+                    outPoint.y -= mArrowHeight;
+                } else if (gravity == TOP || gravity == BOTTOM) {
+                    outPoint.x -= mArrowHeight;
                 }
             }
         }
@@ -1458,6 +1561,7 @@ public final class Tooltip {
         CharSequence text;
         View view;
         Gravity gravity;
+        Alignment alignment = Alignment.CENTER;
         int actionbarSize = 0;
         int textResId = R.layout.tooltip_textview;
         int closePolicy = ClosePolicy.NONE;
@@ -1599,6 +1703,11 @@ public final class Tooltip {
             this.view = null;
             this.point = new Point(point);
             this.gravity = gravity;
+            return this;
+        }
+
+        public Builder alignment(Alignment alignment) {
+            this.alignment = alignment;
             return this;
         }
 

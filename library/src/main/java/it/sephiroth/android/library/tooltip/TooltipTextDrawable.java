@@ -30,6 +30,7 @@ class TooltipTextDrawable extends Drawable {
     private final float ellipseSize;
     private Point point;
     private int padding = 0;
+    private float arrowHeight;
     private int arrowWeight = 0;
     private Tooltip.Gravity gravity;
 
@@ -77,11 +78,12 @@ class TooltipTextDrawable extends Drawable {
         }
     }
 
-    public void setAnchor(final Tooltip.Gravity gravity, int padding, @Nullable Point point) {
+    public void setAnchor(final Tooltip.Gravity gravity, int padding, float arrowHeight, @Nullable Point point) {
         if (gravity != this.gravity || padding != this.padding || !Utils.equals(this.point, point)) {
             this.gravity = gravity;
             this.padding = padding;
-            this.arrowWeight = (int) ((float) padding / arrowRatio);
+            this.arrowHeight = arrowHeight;
+            this.arrowWeight = (int) (arrowHeight / arrowRatio);
 
             if (null != point) {
                 this.point = new Point(point);
@@ -98,10 +100,10 @@ class TooltipTextDrawable extends Drawable {
     }
 
     void calculatePath(Rect outBounds) {
-        int left = outBounds.left + padding;
-        int top = outBounds.top + padding;
-        int right = outBounds.right - padding;
-        int bottom = outBounds.bottom - padding;
+        int left = outBounds.left + Math.round(arrowHeight);
+        int top = outBounds.top + Math.round(arrowHeight);
+        int right = outBounds.right - Math.round(arrowHeight);
+        int bottom = outBounds.bottom - Math.round(arrowHeight);
 
         final float maxY = bottom - ellipseSize;
         final float maxX = right - ellipseSize;

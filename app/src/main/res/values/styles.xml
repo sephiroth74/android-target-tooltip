@@ -18,7 +18,7 @@
         <item name="ttlm_strokeColor">#ffe5a000</item>
         <item name="ttlm_backgroundColor">#ffe5c700</item>
         <item name="ttlm_strokeWeight">2dip</item>
-        <item name="ttlm_cornerRadius">8dip</item>
+        <item name="ttlm_cornerRadius">5dip</item>
         <item name="ttlm_overlayStyle">@style/ToolTipOverlayCustomStyle</item>
         <item name="android:textAppearance">?android:attr/textAppearanceInverse</item>
     </style>
