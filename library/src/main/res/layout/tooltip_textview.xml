@@ -11,5 +11,6 @@
         android:layout_height="wrap_content"
         android:autoLink="all"
         android:clipToPadding="false"
+        android:scrollbars="vertical"
         android:textAppearance="?android:attr/textAppearanceSmallInverse" />
 </FrameLayout>

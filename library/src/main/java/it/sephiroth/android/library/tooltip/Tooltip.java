@@ -22,6 +22,7 @@ import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.text.Html;
 import android.text.TextUtils;
+import android.text.method.ScrollingMovementMethod;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -208,6 +209,8 @@ public final class Tooltip {
         void setTextColor(final ColorStateList color);
 
         void requestLayout();
+
+        TextView getTextView();
     }
 
     public interface Callback {
@@ -259,6 +262,7 @@ public final class Tooltip {
         private final Point mTmpPoint = new Point();
         private final Rect mHitRect = new Rect();
         private final float mTextViewElevation;
+        private final boolean mCanScroll;
         private Callback mCallback;
         private int[] mOldLocation;
         private Gravity mGravity;
@@ -394,6 +398,7 @@ public final class Tooltip {
             };
 
         private boolean mIsCustomView;
+        private OnClickListener mOnClickListener;
 
         public TooltipViewImpl(Context context, final Builder builder) {
             super(context);
@@ -428,6 +433,8 @@ public final class Tooltip {
             this.mCallback = builder.closeCallback;
             this.mFloatingAnimation = builder.floatingAnimation;
             this.mSizeTolerance = (int) (context.getResources().getDisplayMetrics().density * TOLERANCE_VALUE);
+            this.mCanScroll = builder.canScroll;
+            this.mOnClickListener = builder.onClickListener;
 
             if (builder.typeface != null) {
                 mTypeface = builder.typeface;
@@ -642,6 +649,11 @@ public final class Tooltip {
         }
 
         @Override
+        public TextView getTextView() {
+            return mTextView;
+        }
+
+        @Override
         public boolean isAttached() {
             return mAttached;
         }
@@ -822,6 +834,14 @@ public final class Tooltip {
 
             if (!mIsCustomView && mTextViewElevation > 0 && Build.VERSION.SDK_INT >= 21) {
                 setupElevation();
+            }
+
+            if (mCanScroll) {
+                mTextView.setMovementMethod(ScrollingMovementMethod.getInstance());
+            }
+
+            if (mOnClickListener != null) {
+                mTextView.setOnClickListener(mOnClickListener);
             }
         }
 
@@ -1477,6 +1497,8 @@ public final class Tooltip {
         boolean overlay = true;
         AnimationBuilder floatingAnimation;
         Typeface typeface;
+        boolean canScroll;
+        View.OnClickListener onClickListener;
 
         public Builder(int id) {
             this.id = id;
@@ -1648,6 +1670,16 @@ public final class Tooltip {
         public Builder showDelay(long ms) {
             throwIfCompleted();
             this.showDelay = ms;
+            return this;
+        }
+
+        public Builder canScroll(boolean enabled) {
+            this.canScroll = enabled;
+            return this;
+        }
+
+        public Builder onClickListener(View.OnClickListener onClickListener) {
+            this.onClickListener = onClickListener;
             return this;
         }
 
