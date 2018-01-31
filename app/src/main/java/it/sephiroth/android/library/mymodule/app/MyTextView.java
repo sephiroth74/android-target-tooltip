@@ -3,13 +3,15 @@ package it.sephiroth.android.library.mymodule.app;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.View;
-import android.widget.TextView;
+import android.support.v7.widget.AppCompatTextView;
 
 /**
  * Created by alessandro on 04/09/14.
  */
-public class MyTextView extends TextView {
-    public static interface OnAttachStatusListener {
+public class MyTextView extends AppCompatTextView {
+
+    public interface OnAttachStatusListener {
+
         void onAttachedtoWindow(View view);
 
         void onDetachedFromWindow(View view);
