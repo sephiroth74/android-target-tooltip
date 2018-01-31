@@ -38,7 +38,7 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
         setContentView(R.layout.activity_main_activity2);
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
 
-        mViewPager = (ViewPager) findViewById(R.id.viewpager);
+        mViewPager = findViewById(R.id.viewpager);
         mViewPager.addOnPageChangeListener(this);
         setupViewPager(mViewPager);
         Tooltip.dbg = true;
@@ -58,7 +58,7 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
 
         viewPager.setAdapter(adapter);
 
-        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
+        TabLayout tabLayout = findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(viewPager);
         return adapter;
     }
@@ -70,7 +70,7 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
     }
 
     private void test() {
-        TabLayout tablayout = (TabLayout) findViewById(R.id.tabs);
+        TabLayout tablayout = findViewById(R.id.tabs);
         final ViewGroup root = (ViewGroup) tablayout.getChildAt(0);
         final View tab = root.getChildAt(1);
 
@@ -190,21 +190,21 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
         public void onViewCreated(final View view, @Nullable final Bundle savedInstanceState) {
             super.onViewCreated(view, savedInstanceState);
 
-            mButton1 = (Button) view.findViewById(R.id.button1);
-            mButton2 = (Button) view.findViewById(R.id.button2);
-            mButton3 = (Button) view.findViewById(R.id.button3);
-            mButton4 = (Button) view.findViewById(R.id.button4);
-            mButton5 = (Button) view.findViewById(R.id.button5);
+            mButton1 = view.findViewById(R.id.button1);
+            mButton2 = view.findViewById(R.id.button2);
+            mButton3 = view.findViewById(R.id.button3);
+            mButton4 = view.findViewById(R.id.button4);
+            mButton5 = view.findViewById(R.id.button5);
             mButton1.setOnClickListener(this);
             mButton2.setOnClickListener(this);
             mButton3.setOnClickListener(this);
             mButton4.setOnClickListener(this);
             mButton5.setOnClickListener(this);
 
-            mSwitch1 = (SwitchCompat) view.findViewById(R.id.switch1);
-            mSwitch2 = (SwitchCompat) view.findViewById(R.id.switch2);
-            mSwitch3 = (SwitchCompat) view.findViewById(R.id.switch3);
-            mSwitch4 = (SwitchCompat) view.findViewById(R.id.switch4);
+            mSwitch1 = view.findViewById(R.id.switch1);
+            mSwitch2 = view.findViewById(R.id.switch2);
+            mSwitch3 = view.findViewById(R.id.switch3);
+            mSwitch4 = view.findViewById(R.id.switch4);
 
             final int policy = mClosePolicy.getPolicy();
             mSwitch1.setChecked(Tooltip.ClosePolicy.touchInside(policy));

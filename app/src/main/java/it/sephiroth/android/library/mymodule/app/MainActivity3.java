@@ -44,7 +44,7 @@ public class MainActivity3 extends AppCompatActivity implements AdapterView.OnIt
 
         displayMetrics = getResources().getDisplayMetrics();
 
-        mRecyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+        mRecyclerView = findViewById(R.id.recyclerView);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         mRecyclerView.setAdapter(new MyAdapter(this, R.layout.custom_list_textview, array));
         mRecyclerView.setHasFixedSize(true);
@@ -156,7 +156,7 @@ public class MainActivity3 extends AppCompatActivity implements AdapterView.OnIt
             mCurrentTooltip = Tooltip.make(
                 MainActivity3.this,
                 new Tooltip.Builder(TOOLTIP_ID)
-                    .maxWidth((int) (displayMetrics.widthPixels / 2))
+                    .maxWidth((displayMetrics.widthPixels / 2))
                     .anchor(holder.itemView.findViewById(android.R.id.text1), Tooltip.Gravity.RIGHT)
                     .closePolicy(Tooltip.ClosePolicy.TOUCH_INSIDE_NO_CONSUME, 0)
                     .text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc lacinia sem non neque commodo consectetur")

@@ -297,7 +297,6 @@ public final class Tooltip {
         };
         private Runnable hideRunnable = new Runnable() {
             @Override
-
             public void run() {
                 onClose(false, false, false);
             }
@@ -789,7 +788,7 @@ public final class Tooltip {
             mView = LayoutInflater.from(getContext()).inflate(mTextResId, this, false);
             mView.setLayoutParams(params);
 
-            mTextView = (TextView) mView.findViewById(android.R.id.text1);
+            mTextView = mView.findViewById(android.R.id.text1);
             mTextView.setText(Html.fromHtml((String) this.mText));
             if (mMaxWidth > -1) {
                 mTextView.setMaxWidth(mMaxWidth);
