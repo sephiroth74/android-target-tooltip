@@ -288,7 +288,7 @@ public final class Tooltip {
                         log(TAG, WARN, "[%d] skipped because activity is finishing...", mToolTipId);
                         return;
                     }
-                    if (Build.VERSION.SDK_INT >= 17 && activity.isDestroyed()) {
+                    if (Build.VERSION.SDK_INT >= 17 || activity.isDestroyed()) {
                         return;
                     }
                     onClose(false, false, true);
