@@ -8,6 +8,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.ColorStateList;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
@@ -16,17 +17,16 @@ import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Handler;
-import android.os.IBinder;
 import android.text.Html;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
+import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
 import android.view.ViewParent;
 import android.view.ViewTreeObserver;
-import android.view.WindowInsets;
 import android.view.WindowManager;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.PopupWindow;
@@ -1043,16 +1043,31 @@ public final class Tooltip {
             // => better solution would be to take this into account in calcualtions,
             // but for now a post calculation correction must do it
             if (mShowAsPopup) {
+                int offsetTop = 0;
+                int offsetLeft = 0;
+                int additionalOffsetLeft = 0;
                 int realStatusBarHeight = Utils.getStatusBarHeight(getContext());
+                int orientation = getResources().getConfiguration().orientation;
+                if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                    int softButtonsHeight = Utils.getSoftButtonsBarHeight(getContext());
+                    int deviceRotation = Utils.getDeviceRotation(getContext());
+                    // soft buttons are only at the left if device is rotated to the right
+                    if (softButtonsHeight > 0 && deviceRotation == Surface.ROTATION_270) {
+                        additionalOffsetLeft -= softButtonsHeight;
+                    }
+                }
                 mViewRect.top -= realStatusBarHeight;
                 mViewRect.bottom -= realStatusBarHeight;
 
                 Rect outRect = new Rect();
                 mView.getWindowVisibleDisplayFrame(outRect);
-                mViewRect.left -= outRect.left;
-                mViewRect.top -= outRect.top;
-                mDrawRect.left -= outRect.left;
-                mDrawRect.top -= outRect.top;
+                offsetTop -= outRect.top;
+                offsetLeft -= outRect.left;
+
+                mViewRect.left += offsetLeft + additionalOffsetLeft;
+                mViewRect.top += offsetTop;
+                mDrawRect.left += offsetLeft;
+                mDrawRect.top += offsetTop;
             }
 
             if (dbg) {
