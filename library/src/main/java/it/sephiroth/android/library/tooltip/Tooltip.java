@@ -1031,7 +1031,6 @@ public final class Tooltip {
 
             // correction needed -> popups root view does NOT contain status bar!
             if (mShowAsPopup) {
-//                screenTop = Utils.getStatusBarHeight(getContext());
                 int realStatusBarHeight = Utils.getStatusBarHeight(getContext());
                 mViewRect.top -= realStatusBarHeight;
                 mViewRect.bottom -= realStatusBarHeight;
