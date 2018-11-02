@@ -396,7 +396,7 @@ public final class Tooltip {
             };
 
         private boolean mIsCustomView;
-        private boolean mShowAsPopup = false;
+        private boolean mShowAsPopup;
         private PopupWindow mPopup = null;
 
         public TooltipViewImpl(Context context, final Builder builder) {
