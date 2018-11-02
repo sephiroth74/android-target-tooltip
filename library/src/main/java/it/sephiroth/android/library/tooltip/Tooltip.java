@@ -497,6 +497,17 @@ public final class Tooltip {
                         mPopup = new PopupWindow(this, LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT,true);
                         // view serves as window token provider only here!
                         mPopup.showAtLocation(v, android.view.Gravity.BOTTOM, 0, 0);
+                        v.addOnAttachStateChangeListener(new OnAttachStateChangeListener() {
+                            @Override
+                            public void onViewAttachedToWindow(View view) {
+
+                            }
+
+                            @Override
+                            public void onViewDetachedFromWindow(View view) {
+                                removePopup();
+                            }
+                        });
                     }
                 }
             } else if (getParent() == null) {
@@ -685,6 +696,12 @@ public final class Tooltip {
         }
 
         @Override
+        protected void onConfigurationChanged(Configuration newConfig) {
+            removePopup();
+            super.onConfigurationChanged(newConfig);
+        }
+
+        @Override
         protected void onDetachedFromWindow() {
             log(TAG, INFO, "[%d] onDetachedFromWindow", mToolTipId);
             removePopup();
@@ -739,7 +756,8 @@ public final class Tooltip {
 
         private void removePopup() {
             if (mPopup != null) {
-                mPopup.dismiss();
+                if (mPopup.isShowing())
+                    mPopup.dismiss();
                 mPopup = null;
             }
         }
