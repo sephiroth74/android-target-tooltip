@@ -4,9 +4,11 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.graphics.Rect;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import android.os.Build;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import static android.util.Log.INFO;
 import static android.util.Log.VERBOSE;
@@ -59,5 +61,16 @@ final class Utils {
 
     static boolean rectContainsRectWithTolerance(@NonNull final Rect parentRect, @NonNull final Rect childRect, final int t) {
         return parentRect.contains(childRect.left + t, childRect.top + t, childRect.right - t, childRect.bottom - t);
+    }
+
+    static int getStatusBarHeight(Context context) {
+        int result = 0;
+        int resourceId = context.getResources().getIdentifier("status_bar_height", "dimen", "android");
+        if (resourceId > 0) {
+            result = context.getResources().getDimensionPixelSize(resourceId);
+        } else {
+            result = (int) Math.ceil((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? 24 : 25) * context.getResources().getDisplayMetrics().density);
+        }
+        return result;
     }
 }
