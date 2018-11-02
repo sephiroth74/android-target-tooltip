@@ -16,6 +16,7 @@ import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Handler;
+import android.os.IBinder;
 import android.text.Html;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -25,6 +26,7 @@ import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
 import android.view.ViewParent;
 import android.view.ViewTreeObserver;
+import android.view.WindowInsets;
 import android.view.WindowManager;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.PopupWindow;
@@ -685,6 +687,7 @@ public final class Tooltip {
         @Override
         protected void onDetachedFromWindow() {
             log(TAG, INFO, "[%d] onDetachedFromWindow", mToolTipId);
+            removePopup();
             removeListeners();
             stopFloatingAnimations();
             mAttached = false;
@@ -731,6 +734,13 @@ public final class Tooltip {
                     }
                 }
                 calculatePositions();
+            }
+        }
+
+        private void removePopup() {
+            if (mPopup != null) {
+                mPopup.dismiss();
+                mPopup = null;
             }
         }
 
@@ -1029,11 +1039,20 @@ public final class Tooltip {
                 calculatePositionCenter(checkEdges, screenTop, width, height);
             }
 
-            // correction needed -> popups root view does NOT contain status bar!
+            // correction needed to support dialog as well e.g.
+            // => better solution would be to take this into account in calcualtions,
+            // but for now a post calculation correction must do it
             if (mShowAsPopup) {
                 int realStatusBarHeight = Utils.getStatusBarHeight(getContext());
                 mViewRect.top -= realStatusBarHeight;
                 mViewRect.bottom -= realStatusBarHeight;
+
+                Rect outRect = new Rect();
+                mView.getWindowVisibleDisplayFrame(outRect);
+                mViewRect.left -= outRect.left;
+                mViewRect.top -= outRect.top;
+                mDrawRect.left -= outRect.left;
+                mDrawRect.top -= outRect.top;
             }
 
             if (dbg) {
