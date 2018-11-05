@@ -4,14 +4,11 @@ group GROUP
 version VERSION_NAME
 
 android {
-    compileSdkVersion ANDROID_BUILD_SDK_VERSION as int // must be 28!
-    //buildToolsVersion ANDROID_BUILD_TOOLS_VERSION
+    compileSdkVersion ANDROID_BUILD_SDK_VERSION as int
 
     defaultConfig {
         minSdkVersion 14
         targetSdkVersion ANDROID_BUILD_TARGET_SDK_VERSION as int
-        versionCode 1
-        versionName VERSION_NAME
         consumerProguardFiles 'proguard-rules.txt'
     }
 
@@ -42,7 +39,6 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
     implementation "androidx.appcompat:appcompat:1.0.0"
 }
 

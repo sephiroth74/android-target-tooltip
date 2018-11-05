@@ -13,7 +13,7 @@
     android:weightSum="2"
     tools:context="it.sephiroth.android.library.mymodule.app.MainActivity2">
 
-    <android.support.v7.widget.AppCompatTextView
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_gravity="top"
@@ -29,7 +29,7 @@
         android:columnCount="2"
         android:rowCount="3">
 
-        <android.support.v7.widget.AppCompatTextView
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_column="0"
@@ -39,7 +39,7 @@
             android:gravity="center"
             android:text="Change the tooltip close policy" />
 
-        <android.support.v7.widget.SwitchCompat
+        <Switch
             android:id="@+id/switch1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -48,7 +48,7 @@
             android:layout_row="1"
             android:text="Touch Inside" />
 
-        <android.support.v7.widget.SwitchCompat
+        <Switch
             android:id="@+id/switch2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -57,7 +57,7 @@
             android:layout_row="2"
             android:text="Consume Inside" />
 
-        <android.support.v7.widget.SwitchCompat
+        <Switch
             android:id="@+id/switch3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -66,7 +66,7 @@
             android:layout_row="1"
             android:text="Touch Outside" />
 
-        <android.support.v7.widget.SwitchCompat
+        <Switch
             android:id="@+id/switch4"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

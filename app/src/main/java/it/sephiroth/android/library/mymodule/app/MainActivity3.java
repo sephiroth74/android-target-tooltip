@@ -3,10 +3,6 @@ package it.sephiroth.android.library.mymodule.app;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -20,6 +16,10 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import it.sephiroth.android.library.tooltip.Tooltip;
 
 public class MainActivity3 extends AppCompatActivity implements AdapterView.OnItemClickListener {
@@ -44,8 +44,8 @@ public class MainActivity3 extends AppCompatActivity implements AdapterView.OnIt
 
         displayMetrics = getResources().getDisplayMetrics();
 
-        mRecyclerView = (RecyclerView) findViewById(R.id.recyclerView);
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+        mRecyclerView = findViewById(R.id.recyclerView);
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false));
         mRecyclerView.setAdapter(new MyAdapter(this, R.layout.custom_list_textview, array));
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.addOnScrollListener(
