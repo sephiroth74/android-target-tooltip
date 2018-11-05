@@ -494,7 +494,8 @@ public final class Tooltip {
                 if (mPopup == null) {
                     View v = mViewAnchor.get();
                     if (v != null) {
-                        mPopup = new PopupWindow(this, LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT,true);
+                        mPopup = new PopupWindow(this, LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT,
+                                true);
                         // view serves as window token provider only here!
                         mPopup.showAtLocation(v, android.view.Gravity.BOTTOM, 0, 0);
                         v.addOnAttachStateChangeListener(new OnAttachStateChangeListener() {

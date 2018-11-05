@@ -72,7 +72,8 @@ final class Utils {
         if (resourceId > 0) {
             result = context.getResources().getDimensionPixelSize(resourceId);
         } else {
-            result = (int) Math.ceil((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? 24 : 25) * context.getResources().getDisplayMetrics().density);
+            result = (int) Math.ceil((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? 24 : 25)
+                    * context.getResources().getDisplayMetrics().density);
         }
         return result;
     }
@@ -90,10 +91,11 @@ final class Utils {
             int usableSize = orientation == Configuration.ORIENTATION_LANDSCAPE ? metrics.widthPixels : metrics.heightPixels;
             activity.getWindowManager().getDefaultDisplay().getRealMetrics(metrics);
             int realSize = orientation == Configuration.ORIENTATION_LANDSCAPE ? metrics.widthPixels : metrics.heightPixels;
-            if (realSize > usableSize)
+            if (realSize > usableSize) {
                 return realSize - usableSize;
-            else
+            } else {
                 return 0;
+            }
         }
         return 0;
     }
