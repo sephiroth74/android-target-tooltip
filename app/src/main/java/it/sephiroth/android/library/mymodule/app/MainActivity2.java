@@ -2,16 +2,10 @@ package it.sephiroth.android.library.mymodule.app;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.design.widget.TabLayout;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
-import android.support.v4.view.ViewPager.OnPageChangeListener;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.SwitchCompat;
-import android.support.v7.widget.Toolbar;
+import androidx.annotation.Nullable;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -21,14 +15,21 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.Switch;
+
+import com.google.android.material.tabs.TabLayout;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.viewpager.widget.ViewPager;
 import it.sephiroth.android.library.tooltip.Tooltip;
 import it.sephiroth.android.library.tooltip.Tooltip.AnimationBuilder;
 
-public class MainActivity2 extends AppCompatActivity implements OnPageChangeListener {
+public class MainActivity2 extends AppCompatActivity implements ViewPager.OnPageChangeListener {
     private static final String TAG = MainActivity2.class.getSimpleName();
     ViewPager mViewPager;
 
@@ -38,7 +39,7 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
         setContentView(R.layout.activity_main_activity2);
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
 
-        mViewPager = (ViewPager) findViewById(R.id.viewpager);
+        mViewPager = findViewById(R.id.viewpager);
         mViewPager.addOnPageChangeListener(this);
         setupViewPager(mViewPager);
         Tooltip.dbg = true;
@@ -172,10 +173,10 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
         Button mButton3;
         Button mButton4;
         Button mButton5;
-        SwitchCompat mSwitch1;
-        SwitchCompat mSwitch2;
-        SwitchCompat mSwitch3;
-        SwitchCompat mSwitch4;
+        Switch mSwitch1;
+        Switch mSwitch2;
+        Switch mSwitch3;
+        Switch mSwitch4;
         private Tooltip.TooltipView tooltip;
         private Tooltip.ClosePolicy mClosePolicy = Tooltip.ClosePolicy.TOUCH_ANYWHERE_CONSUME;
 
@@ -190,21 +191,21 @@ public class MainActivity2 extends AppCompatActivity implements OnPageChangeList
         public void onViewCreated(final View view, @Nullable final Bundle savedInstanceState) {
             super.onViewCreated(view, savedInstanceState);
 
-            mButton1 = (Button) view.findViewById(R.id.button1);
-            mButton2 = (Button) view.findViewById(R.id.button2);
-            mButton3 = (Button) view.findViewById(R.id.button3);
-            mButton4 = (Button) view.findViewById(R.id.button4);
-            mButton5 = (Button) view.findViewById(R.id.button5);
+            mButton1 = view.findViewById(R.id.button1);
+            mButton2 = view.findViewById(R.id.button2);
+            mButton3 = view.findViewById(R.id.button3);
+            mButton4 = view.findViewById(R.id.button4);
+            mButton5 = view.findViewById(R.id.button5);
             mButton1.setOnClickListener(this);
             mButton2.setOnClickListener(this);
             mButton3.setOnClickListener(this);
             mButton4.setOnClickListener(this);
             mButton5.setOnClickListener(this);
 
-            mSwitch1 = (SwitchCompat) view.findViewById(R.id.switch1);
-            mSwitch2 = (SwitchCompat) view.findViewById(R.id.switch2);
-            mSwitch3 = (SwitchCompat) view.findViewById(R.id.switch3);
-            mSwitch4 = (SwitchCompat) view.findViewById(R.id.switch4);
+            mSwitch1 = view.findViewById(R.id.switch1);
+            mSwitch2 = view.findViewById(R.id.switch2);
+            mSwitch3 = view.findViewById(R.id.switch3);
+            mSwitch4 = view.findViewById(R.id.switch4);
 
             final int policy = mClosePolicy.getPolicy();
             mSwitch1.setChecked(Tooltip.ClosePolicy.touchInside(policy));
