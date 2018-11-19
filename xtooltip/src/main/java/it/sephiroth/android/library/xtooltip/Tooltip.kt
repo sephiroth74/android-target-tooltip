@@ -25,7 +25,8 @@ import androidx.annotation.StringRes
 import androidx.annotation.StyleRes
 import androidx.core.view.setPadding
 import timber.log.Timber
-import java.util.ArrayList
+import java.lang.ref.WeakReference
+import java.util.*
 
 
 class Tooltip private constructor(private val context: Context, builder: Builder) {
@@ -34,7 +35,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     var isShowing = false
         private set
 
-    val mGravities = Gravity.values()
+    private val mGravities = Gravity.values()
     private var isVisible = false
     private val mSizeTolerance = context.resources.displayMetrics.density * 10
 
@@ -51,9 +52,6 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     private var mPadding: Int = 0
     private var mActivateDelay: Long
     private var mClosePolicy: ClosePolicy
-    private var mAnchorView: View? = null
-    private var mDrawable: TooltipTextDrawable? = null
-    private lateinit var mTextView: TextView
 
     private var mFitToScreen: Boolean
     private var mFadeDuration: Long
@@ -66,13 +64,18 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     private var mIsCustomView: Boolean = false
     private var mTooltipLayoutIdRes = R.layout.textview
     private var mTextViewIdRes = android.R.id.text1
-    private var mViewOverlay: TooltipOverlay? = null
-    private lateinit var mContentView: View
     private var mFloatingAnimation: Animation?
     private var mAnimator: ValueAnimator? = null
     private var mShowOverlay: Boolean
     private var mOverlayStyle: Int
     private var mActivated = false
+    private var mHasAnchorView = false
+
+    private var mViewOverlay: TooltipOverlay? = null
+    private var mDrawable: TooltipTextDrawable? = null
+    private var mAnchorView: WeakReference<View>? = null
+    private lateinit var mContentView: View
+    private lateinit var mTextView: TextView
 
     private val hideRunnable = Runnable { close(false, false, false) }
     private val activateRunnable = Runnable { mActivated = true }
@@ -89,12 +92,12 @@ class Tooltip private constructor(private val context: Context, builder: Builder
                 theme.getResourceId(R.styleable.TooltipLayout_ttlm_overlayStyle, R.style.ToolTipOverlayDefaultStyle)
         val font = theme.getString(R.styleable.TooltipLayout_ttlm_font)
         theme.recycle()
+
         this.mText = builder.text
         this.mActivateDelay = builder.activateDelay
         this.mGravity = builder.gravity
         this.mAnchorPoint = builder.point!!
         this.mClosePolicy = builder.closePolicy
-        this.mAnchorView = builder.anchorView
         this.mMaxWidth = builder.maxWidth
         this.mFloatingAnimation = builder.floatingAnimation
         this.mShowDuration = builder.showDuration
@@ -102,6 +105,10 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         this.mShowOverlay = builder.overlay
         this.mShowArrow = builder.showArrow && builder.layoutId == null
         this.mFitToScreen = builder.fitToScreen
+        builder.anchorView?.let {
+            this.mAnchorView = WeakReference(it)
+            this.mHasAnchorView = true
+        }
 
         builder.layoutId?.let {
             mTextViewIdRes = builder.textId!!
@@ -179,9 +186,9 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             mViewOverlay = TooltipOverlay(context, 0, mOverlayStyle)
             mViewOverlay!!.adjustViewBounds = true
             mViewOverlay!!.layoutParams = ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                                                                )
         }
 
         val contentView = LayoutInflater.from(context).inflate(mTooltipLayoutIdRes, viewContainer, false)
@@ -216,15 +223,15 @@ class Tooltip private constructor(private val context: Context, builder: Builder
 
         if (null != mViewOverlay) {
             viewContainer.addView(
-                mViewOverlay,
-                FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
-            )
+                    mViewOverlay,
+                    FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
+                                 )
         }
 
         viewContainer.addView(
-            contentView,
-            FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
-        )
+                contentView,
+                FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
+                             )
 
         viewContainer.measureAllChildren = true
         viewContainer.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
@@ -237,12 +244,11 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     }
 
     private fun findPosition(
-        parent: View,
-        anchor: View?,
-        p: WindowManager.LayoutParams,
-        offset: Point,
-        gravities: ArrayList<Gravity>
-    ): Positions? {
+            parent: View,
+            anchor: View?,
+            offset: Point,
+            gravities: ArrayList<Gravity>,
+            params: WindowManager.LayoutParams): Positions? {
         if (null == mPopupView) return null
         if (gravities.isEmpty()) return null
 
@@ -350,23 +356,24 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             val finalRect = Rect(contentPosition.x, contentPosition.y, contentPosition.x + w, contentPosition.y + h)
             if (!displayFrame.rectContainsWithTolerance(finalRect, mSizeTolerance.toInt())) {
                 Timber.e("content won't fit! $displayFrame, $finalRect")
-                return findPosition(parent = parent, anchor = anchor, p = p, gravities = gravities, offset = offset)
+                return findPosition(parent, anchor, offset, gravities, params)
             }
         }
 
-        return Positions(arrowPosition, centerPosition, contentPosition, gravity, p)
+        return Positions(arrowPosition, centerPosition, contentPosition, gravity, params)
     }
 
     private fun invokePopup(positions: Positions?) {
         positions?.let {
+            isShowing = true
 
-            setupFloatingAnimations(positions.gravity)
+            setupAnimation(positions.gravity)
 
             mDrawable?.setAnchor(
-                it.gravity,
-                if (!mShowArrow) 0 else mPadding / 2,
-                if (!mShowArrow) null else it.arrowPoint
-            )
+                    it.gravity,
+                    if (!mShowArrow) 0 else mPadding / 2,
+                    if (!mShowArrow) null else it.arrowPoint
+                                )
 
             mContentView.translationX = it.contentPoint.x.toFloat()
             mContentView.translationY = it.contentPoint.y.toFloat()
@@ -383,7 +390,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         }
     }
 
-    private fun setupFloatingAnimations(gravity: Gravity) {
+    private fun setupAnimation(gravity: Gravity) {
         if (mTextView === mContentView || null == mFloatingAnimation) {
             return
         }
@@ -427,17 +434,18 @@ class Tooltip private constructor(private val context: Context, builder: Builder
 
     fun show(parent: View) {
         if (isShowing) return
+        if (mHasAnchorView && mAnchorView?.get() == null) return
 
-        isShowing = true
         isVisible = false
-        val p = createPopupLayoutParams(parent.windowToken)
-        preparePopup(p)
+
+        val params = createPopupLayoutParams(parent.windowToken)
+        preparePopup(params)
 
         val gravities = mGravities.toCollection(ArrayList())
         gravities.remove(mGravity)
         gravities.add(0, mGravity)
 
-        invokePopup(findPosition(parent, mAnchorView, p, mAnchorPoint, gravities))
+        invokePopup(findPosition(parent, mAnchorView?.get(), mAnchorPoint, gravities, params))
     }
 
     fun hide() {
@@ -574,12 +582,12 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     }
 
     private data class Positions(
-        val arrowPoint: Point,
-        val centerPoint: Point,
-        val contentPoint: Point,
-        val gravity: Gravity,
-        val params: WindowManager.LayoutParams
-    )
+            val arrowPoint: Point,
+            val centerPoint: Point,
+            val contentPoint: Point,
+            val gravity: Gravity,
+            val params: WindowManager.LayoutParams
+                                )
 
     enum class Gravity {
         LEFT, RIGHT, TOP, BOTTOM, CENTER
