@@ -19,7 +19,10 @@ import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.FrameLayout
 import android.widget.PopupWindow.INPUT_METHOD_NOT_NEEDED
 import android.widget.TextView
-import androidx.annotation.*
+import androidx.annotation.IdRes
+import androidx.annotation.LayoutRes
+import androidx.annotation.StringRes
+import androidx.annotation.StyleRes
 import androidx.core.view.setPadding
 import timber.log.Timber
 import java.lang.ref.WeakReference
@@ -115,10 +118,10 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             mDrawable = TooltipTextDrawable(context, builder)
         }
 
-        if (builder.typeface != null) {
-            mTypeface = builder.typeface
-        } else if (!font.isNullOrEmpty()) {
-            mTypeface = Typefaces[context, font]
+        builder.typeface?.let {
+            mTypeface = it
+        } ?: run {
+            font?.let { mTypeface = Typefaces[context, it] }
         }
 
         Timber.i("mAnchorPoint: $mAnchorPoint")
@@ -209,11 +212,6 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             mTextView.setPadding(mPadding / 2, mPadding / 2, mPadding / 2, mPadding / 2)
         }
 
-        mTextView.text = Html.fromHtml(this.mText as String)
-        mTextView.gravity = mTextGravity
-
-        mMaxWidth?.let { mTextView.maxWidth = it }
-        mTypeface?.let { mTextView.typeface = it }
 
         if (mTextAppearance != 0) {
             mTextView.setTextAppearance(context, mTextAppearance)
@@ -224,6 +222,12 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             mTextView.translationZ = mTextViewElevation
             mTextView.outlineProvider = ViewOutlineProvider.BACKGROUND
         }
+
+        mTextView.text = Html.fromHtml(this.mText as String)
+        mTextView.gravity = mTextGravity
+
+        mMaxWidth?.let { mTextView.maxWidth = it }
+        mTypeface?.let { mTextView.typeface = it }
 
         if (null != mViewOverlay) {
             viewContainer.addView(
@@ -630,6 +634,12 @@ class Tooltip private constructor(private val context: Context, builder: Builder
 
         @IdRes
         internal var textId: Int? = null
+
+        fun typeface(value: Typeface?): Builder {
+            this.typeface = value
+            Timber.d("typeface: $value")
+            return this
+        }
 
         fun fitToScreen(value: Boolean): Builder {
             this.fitToScreen = value

@@ -10,6 +10,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import it.sephiroth.android.library.xtooltip.ClosePolicy
 import it.sephiroth.android.library.xtooltip.Tooltip
+import it.sephiroth.android.library.xtooltip.Typefaces
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -57,6 +58,7 @@ class MainActivity : AppCompatActivity() {
                     tooltip = Tooltip
                         .Builder(this)
                         .closePolicy(ClosePolicy.TOUCH_OUTSIDE_CONSUME)
+                        .typeface(Typefaces[this, "fonts/at.ttc"])
                         .fadeDuration(300)
                         .overlay(true)
                         .arrow(true)
