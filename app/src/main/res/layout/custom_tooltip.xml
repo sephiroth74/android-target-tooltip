@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content">
+    <androidx.appcompat.widget.AppCompatTextView
+            android:id="@android:id/text1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:autoLink="all"
+            android:text="Hello World!"
+            android:clipToPadding="false"
+            android:textAppearance="?android:attr/textAppearanceButton"/>
+</FrameLayout>
