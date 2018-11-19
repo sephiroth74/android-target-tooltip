@@ -19,10 +19,7 @@ import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.FrameLayout
 import android.widget.PopupWindow.INPUT_METHOD_NOT_NEEDED
 import android.widget.TextView
-import androidx.annotation.IdRes
-import androidx.annotation.LayoutRes
-import androidx.annotation.StringRes
-import androidx.annotation.StyleRes
+import androidx.annotation.*
 import androidx.core.view.setPadding
 import timber.log.Timber
 import java.lang.ref.WeakReference
@@ -186,12 +183,19 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             mViewOverlay = TooltipOverlay(context, 0, mOverlayStyle)
             mViewOverlay!!.adjustViewBounds = true
             mViewOverlay!!.layoutParams = ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-                                                                )
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
         }
 
         val contentView = LayoutInflater.from(context).inflate(mTooltipLayoutIdRes, viewContainer, false)
+
+        mAnchorView?.get()?.addOnAttachStateChangeListener {
+            onViewDetachedFromWindow {
+                Timber.i("onViewDetachedFromWindow")
+                dismiss()
+            }
+        }
 
         mFloatingAnimation?.let { contentView.setPadding(it.radius) }
 
@@ -223,15 +227,15 @@ class Tooltip private constructor(private val context: Context, builder: Builder
 
         if (null != mViewOverlay) {
             viewContainer.addView(
-                    mViewOverlay,
-                    FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
-                                 )
+                mViewOverlay,
+                FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
+            )
         }
 
         viewContainer.addView(
-                contentView,
-                FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
-                             )
+            contentView,
+            FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
+        )
 
         viewContainer.measureAllChildren = true
         viewContainer.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
@@ -244,11 +248,12 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     }
 
     private fun findPosition(
-            parent: View,
-            anchor: View?,
-            offset: Point,
-            gravities: ArrayList<Gravity>,
-            params: WindowManager.LayoutParams): Positions? {
+        parent: View,
+        anchor: View?,
+        offset: Point,
+        gravities: ArrayList<Gravity>,
+        params: WindowManager.LayoutParams
+    ): Positions? {
         if (null == mPopupView) return null
         if (gravities.isEmpty()) return null
 
@@ -370,10 +375,10 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             setupAnimation(positions.gravity)
 
             mDrawable?.setAnchor(
-                    it.gravity,
-                    if (!mShowArrow) 0 else mPadding / 2,
-                    if (!mShowArrow) null else it.arrowPoint
-                                )
+                it.gravity,
+                if (!mShowArrow) 0 else mPadding / 2,
+                if (!mShowArrow) null else it.arrowPoint
+            )
 
             mContentView.translationX = it.contentPoint.x.toFloat()
             mContentView.translationY = it.contentPoint.y.toFloat()
@@ -455,6 +460,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
 
     private fun dismiss() {
         if (isShowing && mPopupView != null) {
+            Timber.v("dismiss")
             windowManager.removeView(mPopupView)
             mPopupView = null
             isShowing = false
@@ -582,12 +588,12 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     }
 
     private data class Positions(
-            val arrowPoint: Point,
-            val centerPoint: Point,
-            val contentPoint: Point,
-            val gravity: Gravity,
-            val params: WindowManager.LayoutParams
-                                )
+        val arrowPoint: Point,
+        val centerPoint: Point,
+        val contentPoint: Point,
+        val gravity: Gravity,
+        val params: WindowManager.LayoutParams
+    )
 
     enum class Gravity {
         LEFT, RIGHT, TOP, BOTTOM, CENTER

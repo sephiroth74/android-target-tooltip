@@ -2,6 +2,7 @@ package it.sephiroth.android.library.xtooltip
 
 import android.animation.Animator
 import android.graphics.Rect
+import android.view.View
 import android.view.ViewPropertyAnimator
 
 
@@ -16,6 +17,35 @@ internal inline fun Rect.intersection(other: Rect): Rect {
     intersect.right = Math.min(right, other.right)
     intersect.bottom = Math.min(bottom, other.bottom)
     return intersect
+}
+
+internal inline fun View.addOnAttachStateChangeListener(func: __AttachStateChangeListener.() -> Unit): View {
+    val listener = __AttachStateChangeListener()
+    listener.func()
+    addOnAttachStateChangeListener(listener)
+    return this
+}
+
+class __AttachStateChangeListener : View.OnAttachStateChangeListener {
+
+    private var _onViewAttachedToWindow: ((view: View?) -> Unit)? = null
+    private var _onViewDetachedFromWindow: ((view: View?) -> Unit)? = null
+
+    fun onViewDetachedFromWindow(func: (view: View?) -> Unit) {
+        _onViewDetachedFromWindow = func
+    }
+
+    fun onViewAttachedToWindow(func: (view: View?) -> Unit) {
+        _onViewAttachedToWindow = func
+    }
+
+    override fun onViewDetachedFromWindow(v: View?) {
+        _onViewDetachedFromWindow?.invoke(v)
+    }
+
+    override fun onViewAttachedToWindow(v: View?) {
+        _onViewAttachedToWindow?.invoke(v)
+    }
 }
 
 inline fun ViewPropertyAnimator.setListener(
