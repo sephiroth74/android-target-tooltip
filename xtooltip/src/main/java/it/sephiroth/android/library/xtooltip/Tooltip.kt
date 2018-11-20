@@ -35,7 +35,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     var isShowing = false
         private set
 
-    private val mGravities = Gravity.values()
+    private val mGravities = Gravity.values().filter { it != Gravity.CENTER }
     private var isVisible = false
     private val mSizeTolerance = context.resources.displayMetrics.density * 10
 
@@ -47,13 +47,10 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     private var mPopupView: TooltipViewContainer? = null
     private var mText: CharSequence?
     private var mAnchorPoint: Point
-    private var mGravity: Gravity
     private var mShowArrow: Boolean
     private var mPadding: Int = 0
     private var mActivateDelay: Long
     private var mClosePolicy: ClosePolicy
-
-    private var mFitToScreen: Boolean
     private var mFadeDuration: Long
     private var mShowDuration: Long
     private var mMaxWidth: Int? = null
@@ -95,7 +92,6 @@ class Tooltip private constructor(private val context: Context, builder: Builder
 
         this.mText = builder.text
         this.mActivateDelay = builder.activateDelay
-        this.mGravity = builder.gravity
         this.mAnchorPoint = builder.point!!
         this.mClosePolicy = builder.closePolicy
         this.mMaxWidth = builder.maxWidth
@@ -104,7 +100,6 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         this.mFadeDuration = builder.fadeDuration
         this.mShowOverlay = builder.overlay
         this.mShowArrow = builder.showArrow && builder.layoutId == null
-        this.mFitToScreen = builder.fitToScreen
         builder.anchorView?.let {
             this.mAnchorView = WeakReference(it)
             this.mHasAnchorView = true
@@ -125,6 +120,13 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         }
 
         Timber.i("mAnchorPoint: $mAnchorPoint")
+    }
+
+    private var mFailureFunc: ((tooltip: Tooltip) -> Unit)? = null
+
+    fun doOnFailure(func: ((tooltip: Tooltip) -> Unit)?): Tooltip {
+        mFailureFunc = func
+        return this
     }
 
     @SuppressLint("RtlHardcoded")
@@ -179,85 +181,89 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         return curFlags1
     }
 
-    private fun preparePopup(params: WindowManager.LayoutParams) {
-        val viewContainer = TooltipViewContainer(context)
-
-        if (mShowOverlay) {
-            mViewOverlay = TooltipOverlay(context, 0, mOverlayStyle)
-            mViewOverlay!!.adjustViewBounds = true
-            mViewOverlay!!.layoutParams = ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        }
-
-        val contentView = LayoutInflater.from(context).inflate(mTooltipLayoutIdRes, viewContainer, false)
-
-        mAnchorView?.get()?.addOnAttachStateChangeListener {
-            onViewDetachedFromWindow {
-                Timber.i("onViewDetachedFromWindow")
-                dismiss()
+    private fun preparePopup(params: WindowManager.LayoutParams, gravity: Gravity) {
+        mPopupView?.let {
+            if (mViewOverlay != null && gravity == Gravity.CENTER) {
+                it.removeView(mViewOverlay)
+                mViewOverlay = null
             }
+        } ?: run {
+            val viewContainer = TooltipViewContainer(context)
+
+            if (mShowOverlay && mViewOverlay == null) {
+                mViewOverlay = TooltipOverlay(context, 0, mOverlayStyle)
+                with(mViewOverlay!!) {
+                    adjustViewBounds = true
+                    layoutParams = ViewGroup.LayoutParams(
+                            ViewGroup.LayoutParams.WRAP_CONTENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT)
+                }
+            }
+
+            val contentView = LayoutInflater.from(context).inflate(mTooltipLayoutIdRes, viewContainer, false)
+
+            mAnchorView?.get()?.addOnAttachStateChangeListener {
+                onViewDetachedFromWindow {
+                    Timber.i("onViewDetachedFromWindow")
+                    dismiss()
+                }
+            }
+
+            mFloatingAnimation?.let { contentView.setPadding(it.radius) }
+
+            mTextView = contentView.findViewById(mTextViewIdRes)
+
+            mDrawable?.let { mTextView.background = it }
+
+            if (mShowArrow && gravity != Gravity.CENTER) {
+                mTextView.setPadding(mPadding, mPadding, mPadding, mPadding)
+            } else {
+                mTextView.setPadding(mPadding / 2, mPadding / 2, mPadding / 2, mPadding / 2)
+            }
+
+            if (mTextAppearance != 0) {
+                mTextView.setTextAppearance(context, mTextAppearance)
+            }
+
+            if (!mIsCustomView && mTextViewElevation > 0 && Build.VERSION.SDK_INT >= 21) {
+                mTextView.elevation = mTextViewElevation
+                mTextView.translationZ = mTextViewElevation
+                mTextView.outlineProvider = ViewOutlineProvider.BACKGROUND
+            }
+
+            mTextView.text = Html.fromHtml(this.mText as String)
+            mTextView.gravity = mTextGravity
+
+            mMaxWidth?.let { mTextView.maxWidth = it }
+            mTypeface?.let { mTextView.typeface = it }
+
+            if (null != mViewOverlay) {
+                viewContainer.addView(
+                        mViewOverlay,
+                        FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
+                                     )
+            }
+
+            viewContainer.addView(contentView, FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT))
+            viewContainer.measureAllChildren = true
+            viewContainer.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+
+            Timber.i("viewContainer size: ${viewContainer.measuredWidth}, ${viewContainer.measuredHeight}")
+            Timber.i("contentView size: ${contentView.measuredWidth}, ${contentView.measuredHeight}")
+
+            mContentView = contentView
+            mPopupView = viewContainer
         }
-
-        mFloatingAnimation?.let { contentView.setPadding(it.radius) }
-
-        mTextView = contentView.findViewById(mTextViewIdRes)
-
-        mDrawable?.let { mTextView.background = it }
-
-        if (mShowArrow) {
-            mTextView.setPadding(mPadding, mPadding, mPadding, mPadding)
-        } else {
-            mTextView.setPadding(mPadding / 2, mPadding / 2, mPadding / 2, mPadding / 2)
-        }
-
-
-        if (mTextAppearance != 0) {
-            mTextView.setTextAppearance(context, mTextAppearance)
-        }
-
-        if (!mIsCustomView && mTextViewElevation > 0 && Build.VERSION.SDK_INT >= 21) {
-            mTextView.elevation = mTextViewElevation
-            mTextView.translationZ = mTextViewElevation
-            mTextView.outlineProvider = ViewOutlineProvider.BACKGROUND
-        }
-
-        mTextView.text = Html.fromHtml(this.mText as String)
-        mTextView.gravity = mTextGravity
-
-        mMaxWidth?.let { mTextView.maxWidth = it }
-        mTypeface?.let { mTextView.typeface = it }
-
-        if (null != mViewOverlay) {
-            viewContainer.addView(
-                mViewOverlay,
-                FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
-            )
-        }
-
-        viewContainer.addView(
-            contentView,
-            FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
-        )
-
-        viewContainer.measureAllChildren = true
-        viewContainer.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
-
-        Timber.i("viewContainer size: ${viewContainer.measuredWidth}, ${viewContainer.measuredHeight}")
-        Timber.i("contentView size: ${contentView.measuredWidth}, ${contentView.measuredHeight}")
-
-        mContentView = contentView
-        mPopupView = viewContainer
     }
 
     private fun findPosition(
-        parent: View,
-        anchor: View?,
-        offset: Point,
-        gravities: ArrayList<Gravity>,
-        params: WindowManager.LayoutParams
-    ): Positions? {
+            parent: View,
+            anchor: View?,
+            offset: Point,
+            gravities: ArrayList<Gravity>,
+            params: WindowManager.LayoutParams,
+            fitToScreen: Boolean = false): Positions? {
+
         if (null == mPopupView) return null
         if (gravities.isEmpty()) return null
 
@@ -361,11 +367,11 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         Timber.d("centerPosition: $centerPosition")
         Timber.d("contentPosition: $contentPosition")
 
-        if (mFitToScreen) {
+        if (fitToScreen) {
             val finalRect = Rect(contentPosition.x, contentPosition.y, contentPosition.x + w, contentPosition.y + h)
             if (!displayFrame.rectContainsWithTolerance(finalRect, mSizeTolerance.toInt())) {
                 Timber.e("content won't fit! $displayFrame, $finalRect")
-                return findPosition(parent, anchor, offset, gravities, params)
+                return findPosition(parent, anchor, offset, gravities, params, fitToScreen)
             }
         }
 
@@ -379,10 +385,10 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             setupAnimation(positions.gravity)
 
             mDrawable?.setAnchor(
-                it.gravity,
-                if (!mShowArrow) 0 else mPadding / 2,
-                if (!mShowArrow) null else it.arrowPoint
-            )
+                    it.gravity,
+                    if (!mShowArrow) 0 else mPadding / 2,
+                    if (!mShowArrow) null else it.arrowPoint
+                                )
 
             mContentView.translationX = it.contentPoint.x.toFloat()
             mContentView.translationY = it.contentPoint.y.toFloat()
@@ -396,6 +402,8 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             mPopupView?.fitsSystemWindows = mLayoutInsetDecor
             windowManager.addView(mPopupView, it.params)
             fadeIn(mFadeDuration)
+        } ?: run {
+            mFailureFunc?.invoke(this)
         }
     }
 
@@ -441,20 +449,20 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         })
     }
 
-    fun show(parent: View) {
+    fun show(parent: View, gravity: Gravity, fitToScreen: Boolean = false) {
         if (isShowing) return
         if (mHasAnchorView && mAnchorView?.get() == null) return
 
         isVisible = false
 
         val params = createPopupLayoutParams(parent.windowToken)
-        preparePopup(params)
+        preparePopup(params, gravity)
 
         val gravities = mGravities.toCollection(ArrayList())
-        gravities.remove(mGravity)
-        gravities.add(0, mGravity)
+        gravities.remove(gravity)
+        gravities.add(0, gravity)
 
-        invokePopup(findPosition(parent, mAnchorView?.get(), mAnchorPoint, gravities, params))
+        invokePopup(findPosition(parent, mAnchorView?.get(), mAnchorPoint, gravities, params, fitToScreen))
     }
 
     fun hide() {
@@ -592,12 +600,12 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     }
 
     private data class Positions(
-        val arrowPoint: Point,
-        val centerPoint: Point,
-        val contentPoint: Point,
-        val gravity: Gravity,
-        val params: WindowManager.LayoutParams
-    )
+            val arrowPoint: Point,
+            val centerPoint: Point,
+            val contentPoint: Point,
+            val gravity: Gravity,
+            val params: WindowManager.LayoutParams
+                                )
 
     enum class Gravity {
         LEFT, RIGHT, TOP, BOTTOM, CENTER
@@ -614,7 +622,6 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     class Builder(val context: Context) {
         internal var point: Point? = null
         internal var closePolicy = ClosePolicy.TOUCH_INSIDE_CONSUME
-        internal var gravity = Gravity.RIGHT
         internal var text: CharSequence? = null
         internal var anchorView: View? = null
         internal var maxWidth: Int? = null
@@ -627,7 +634,6 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         internal var fadeDuration: Long = 0
         internal var showArrow = true
         internal var activateDelay = 0L
-        internal var fitToScreen = false
 
         @LayoutRes
         internal var layoutId: Int? = null
@@ -638,11 +644,6 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         fun typeface(value: Typeface?): Builder {
             this.typeface = value
             Timber.d("typeface: $value")
-            return this
-        }
-
-        fun fitToScreen(value: Boolean): Builder {
-            this.fitToScreen = value
             return this
         }
 
@@ -725,13 +726,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             return this
         }
 
-        fun gravity(gravity: Gravity): Builder {
-            this.gravity = gravity
-            return this
-        }
-
         fun create(): Tooltip {
-            if (gravity == Gravity.CENTER) overlay = false
             if (null == anchorView && null == point) {
                 throw IllegalArgumentException("missing anchor point or anchor view")
             }

@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import it.sephiroth.android.library.xtooltip.ClosePolicy
 import it.sephiroth.android.library.xtooltip.Tooltip
 import it.sephiroth.android.library.xtooltip.Typefaces
+import it.sephiroth.android.library.xtooltip.Tooltip.Gravity
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -38,14 +39,12 @@ class MainActivity : AppCompatActivity() {
                 dialog.findViewById<Button>(R.id.button)?.setOnClickListener {
                     Tooltip.Builder(this@MainActivity)
                         .fadeDuration(200)
-                        .gravity(Tooltip.Gravity.LEFT)
                         .text("This is a tooltip fellas!")
                         .anchor(it, 0, 0)
                         .maxWidth(400)
                         .floatingAnimation(Tooltip.Animation.DEFAULT)
-                        .fitToScreen(true)
                         .create()
-                        .show(it)
+                        .show(it, Gravity.LEFT, false)
                 }
 
             } else {
@@ -62,15 +61,16 @@ class MainActivity : AppCompatActivity() {
                         .fadeDuration(300)
                         .overlay(true)
                         .arrow(true)
-                        .gravity(Tooltip.Gravity.LEFT)
                         .text("This is just a sample text\nfor the tooltip X!")
                         .anchor(findViewById(R.id.center_text), 0, 0)
                         .maxWidth(660)
                         .floatingAnimation(Tooltip.Animation.DEFAULT)
-                        .fitToScreen(true)
                         .create()
+                        .doOnFailure { tooltip ->
+                            tooltip.show(fab, Gravity.CENTER, false)
+                        }
 
-                    tooltip!!.show(fab)
+                    tooltip!!.show(fab, Gravity.LEFT, true)
                 }
             }
         }
