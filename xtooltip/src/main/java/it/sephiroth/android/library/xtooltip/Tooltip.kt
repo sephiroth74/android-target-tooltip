@@ -123,9 +123,21 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     }
 
     private var mFailureFunc: ((tooltip: Tooltip) -> Unit)? = null
+    private var mShownFunc: ((tooltip: Tooltip) -> Unit)? = null
+    private var mHiddenFunc: ((tooltip: Tooltip) -> Unit)? = null
 
     fun doOnFailure(func: ((tooltip: Tooltip) -> Unit)?): Tooltip {
         mFailureFunc = func
+        return this
+    }
+
+    fun doOnShown(func: ((tooltip: Tooltip) -> Unit)?): Tooltip {
+        mShownFunc = func
+        return this
+    }
+
+    fun doOnHidden(func: ((tooltip: Tooltip) -> Unit)?): Tooltip {
+        mHiddenFunc = func
         return this
     }
 
@@ -147,17 +159,22 @@ class Tooltip private constructor(private val context: Context, builder: Builder
 
     private fun computeFlags(curFlags: Int): Int {
         Timber.d("curFlags: $curFlags")
+        //WindowManager.LayoutParams.FLAG_IGNORE_CHEEK_PRESSES or
+        //WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH or
+        //WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
+        //WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM or
+        //WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
 
         var curFlags1 = curFlags
         curFlags1 = curFlags1 or
-////                WindowManager.LayoutParams.FLAG_IGNORE_CHEEK_PRESSES or
-////                        WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH or
-////                        WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
-////                        WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM or
-////                        WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+
+        Timber.d("close policy consume: ${mClosePolicy.consume()}")
+
+        if (!mClosePolicy.consume()) {
+            curFlags1 = curFlags1 or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+        }
 //
         curFlags1 = curFlags1 or WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM
 //
@@ -213,29 +230,28 @@ class Tooltip private constructor(private val context: Context, builder: Builder
 
             mTextView = contentView.findViewById(mTextViewIdRes)
 
-            mDrawable?.let { mTextView.background = it }
+            with(mTextView) {
+                mDrawable?.let { background = it }
 
-            if (mShowArrow && gravity != Gravity.CENTER) {
-                mTextView.setPadding(mPadding, mPadding, mPadding, mPadding)
-            } else {
-                mTextView.setPadding(mPadding / 2, mPadding / 2, mPadding / 2, mPadding / 2)
+                if (mShowArrow)
+                    setPadding(mPadding, mPadding, mPadding, mPadding)
+                else
+                    setPadding(mPadding / 2, mPadding / 2, mPadding / 2, mPadding / 2)
+
+                if (mTextAppearance != 0) {
+                    setTextAppearance(context, mTextAppearance)
+                }
+
+                if (!mIsCustomView && mTextViewElevation > 0 && Build.VERSION.SDK_INT >= 21) {
+                    elevation = mTextViewElevation
+                    translationZ = mTextViewElevation
+                    outlineProvider = ViewOutlineProvider.BACKGROUND
+                }
+                this.gravity = mTextGravity
+                text = Html.fromHtml(this@Tooltip.mText as String)
+                mMaxWidth?.let { maxWidth = it }
+                mTypeface?.let { typeface = it }
             }
-
-            if (mTextAppearance != 0) {
-                mTextView.setTextAppearance(context, mTextAppearance)
-            }
-
-            if (!mIsCustomView && mTextViewElevation > 0 && Build.VERSION.SDK_INT >= 21) {
-                mTextView.elevation = mTextViewElevation
-                mTextView.translationZ = mTextViewElevation
-                mTextView.outlineProvider = ViewOutlineProvider.BACKGROUND
-            }
-
-            mTextView.text = Html.fromHtml(this.mText as String)
-            mTextView.gravity = mTextGravity
-
-            mMaxWidth?.let { mTextView.maxWidth = it }
-            mTypeface?.let { mTextView.typeface = it }
 
             if (null != mViewOverlay) {
                 viewContainer.addView(
@@ -378,7 +394,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         return Positions(arrowPosition, centerPosition, contentPosition, gravity, params)
     }
 
-    private fun invokePopup(positions: Positions?) {
+    private fun invokePopup(positions: Positions?): Tooltip? {
         positions?.let {
             isShowing = true
 
@@ -402,8 +418,10 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             mPopupView?.fitsSystemWindows = mLayoutInsetDecor
             windowManager.addView(mPopupView, it.params)
             fadeIn(mFadeDuration)
+            return this
         } ?: run {
             mFailureFunc?.invoke(this)
+            return null
         }
     }
 
@@ -449,9 +467,8 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         })
     }
 
-    fun show(parent: View, gravity: Gravity, fitToScreen: Boolean = false) {
-        if (isShowing) return
-        if (mHasAnchorView && mAnchorView?.get() == null) return
+    fun show(parent: View, gravity: Gravity, fitToScreen: Boolean = false): Tooltip? {
+        if (isShowing || mHasAnchorView && mAnchorView?.get() == null) return null
 
         isVisible = false
 
@@ -462,7 +479,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         gravities.remove(gravity)
         gravities.add(0, gravity)
 
-        invokePopup(findPosition(parent, mAnchorView?.get(), mAnchorPoint, gravities, params, fitToScreen))
+        return invokePopup(findPosition(parent, mAnchorView?.get(), mAnchorPoint, gravities, params, fitToScreen))
     }
 
     fun hide() {
@@ -498,6 +515,8 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             mPopupView!!.alpha = 0F
             mPopupView!!.animate().setDuration(mFadeDuration).alpha(1f).start()
         }
+
+        mShownFunc?.invoke(this)
     }
 
     private fun fadeOut(fadeDuration: Long) {
@@ -525,6 +544,8 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         } else {
             dismiss()
         }
+
+        mHiddenFunc?.invoke(this)
     }
 
     inner class TooltipViewContainer(context: Context) : FrameLayout(context) {
@@ -563,27 +584,32 @@ class Tooltip private constructor(private val context: Context, builder: Builder
 //            }
 //        }
 
-        override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
-            Timber.i("onInterceptTouchEvent: $ev")
-//            return super.onInterceptTouchEvent(ev)
-            return true
-        }
-
-        //
-        override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
-            Timber.i("dispatchTouchEvent: $ev")
-//            return if (mTouchInterceptor != null && mTouchInterceptor.onTouch(this, ev)) {
-//                true
-//            } else
-            super.dispatchTouchEvent(ev)
-            return false
-        }
 
         @SuppressLint("ClickableViewAccessibility")
         override fun onTouchEvent(event: MotionEvent): Boolean {
             Timber.i("onTouchEvent: $event")
-//            super.onTouchEvent(event)
-            return true
+
+            Timber.d("event coords: ${event.x}, ${event.y}")
+
+            val r1 = Rect()
+            mTextView?.getHitRect(r1)
+            Timber.v("hitRect: $r1")
+
+            mTextView?.getDrawingRect(r1)
+            Timber.v("drawingRect: $r1")
+
+            mTextView.getGlobalVisibleRect(r1)
+            val containsTouch = r1.contains(event.x.toInt(), event.y.toInt())
+
+            if (mClosePolicy.inside() && containsTouch) {
+                hide()
+            } else if(mClosePolicy.outside()) {
+                hide()
+            }
+
+
+            return false
+
 //            val x = event.x.toInt()
 //            val y = event.y.toInt()
 //
@@ -743,6 +769,8 @@ class ClosePolicy {
         policy = NONE
     }
 
+    fun consume() = policy and CONSUME == CONSUME
+
     internal constructor(policy: Int) {
         this.policy = policy
     }
@@ -750,13 +778,13 @@ class ClosePolicy {
     @SuppressWarnings("unused")
     fun insidePolicy(close: Boolean, consume: Boolean): ClosePolicy {
         policy = if (close) policy or TOUCH_INSIDE else policy and TOUCH_INSIDE.inv()
-        policy = if (consume) policy or CONSUME_INSIDE else policy and CONSUME_INSIDE.inv()
+        policy = if (consume) policy or CONSUME else policy and CONSUME.inv()
         return this
     }
 
     fun outsidePolicy(close: Boolean, consume: Boolean): ClosePolicy {
         policy = if (close) policy or TOUCH_OUTSIDE else policy and TOUCH_OUTSIDE.inv()
-        policy = if (consume) policy or CONSUME_OUTSIDE else policy and CONSUME_OUTSIDE.inv()
+        policy = if (consume) policy or CONSUME else policy and CONSUME.inv()
         return this
     }
 
@@ -769,35 +797,26 @@ class ClosePolicy {
         return policy
     }
 
+    fun inside(): Boolean {
+        return policy and TOUCH_INSIDE == TOUCH_INSIDE
+    }
+
+    fun outside(): Boolean {
+        return policy and TOUCH_OUTSIDE == TOUCH_OUTSIDE
+    }
+
     companion object {
-        internal val NONE = 0
-        internal val TOUCH_INSIDE = 1 shl 1
-        internal val TOUCH_OUTSIDE = 1 shl 2
-        internal val CONSUME_INSIDE = 1 shl 3
-        internal val CONSUME_OUTSIDE = 1 shl 4
+        private val NONE = 0
+        private val TOUCH_INSIDE = 1 shl 1
+        private val TOUCH_OUTSIDE = 1 shl 2
+        private val CONSUME = 1 shl 3
         val TOUCH_NONE = ClosePolicy(NONE)
-        val TOUCH_INSIDE_CONSUME = ClosePolicy(TOUCH_INSIDE or CONSUME_INSIDE)
+        val TOUCH_INSIDE_CONSUME = ClosePolicy(TOUCH_INSIDE or CONSUME)
         val TOUCH_INSIDE_NO_CONSUME = ClosePolicy(TOUCH_INSIDE)
-        val TOUCH_OUTSIDE_CONSUME = ClosePolicy(TOUCH_OUTSIDE or CONSUME_OUTSIDE)
+        val TOUCH_OUTSIDE_CONSUME = ClosePolicy(TOUCH_OUTSIDE or CONSUME)
         val TOUCH_OUTSIDE_NO_CONSUME = ClosePolicy(TOUCH_OUTSIDE)
         val TOUCH_ANYWHERE_NO_CONSUME = ClosePolicy(TOUCH_INSIDE or TOUCH_OUTSIDE)
-        val TOUCH_ANYWHERE_CONSUME = ClosePolicy(TOUCH_INSIDE or TOUCH_OUTSIDE or CONSUME_INSIDE or CONSUME_OUTSIDE)
-
-        fun touchInside(value: Int): Boolean {
-            return value and TOUCH_INSIDE == TOUCH_INSIDE
-        }
-
-        fun touchOutside(value: Int): Boolean {
-            return value and TOUCH_OUTSIDE == TOUCH_OUTSIDE
-        }
-
-        fun consumeInside(value: Int): Boolean {
-            return value and CONSUME_INSIDE == CONSUME_INSIDE
-        }
-
-        fun consumeOutside(value: Int): Boolean {
-            return value and CONSUME_OUTSIDE == CONSUME_OUTSIDE
-        }
+        val TOUCH_ANYWHERE_CONSUME = ClosePolicy(TOUCH_INSIDE or TOUCH_OUTSIDE or CONSUME)
     }
 
 }

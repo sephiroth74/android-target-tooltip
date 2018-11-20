@@ -10,9 +10,10 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import it.sephiroth.android.library.xtooltip.ClosePolicy
 import it.sephiroth.android.library.xtooltip.Tooltip
-import it.sephiroth.android.library.xtooltip.Typefaces
 import it.sephiroth.android.library.xtooltip.Tooltip.Gravity
+import it.sephiroth.android.library.xtooltip.Typefaces
 import kotlinx.android.synthetic.main.activity_main.*
+import timber.log.Timber
 
 class MainActivity : AppCompatActivity() {
 
@@ -56,7 +57,7 @@ class MainActivity : AppCompatActivity() {
 
                     tooltip = Tooltip
                         .Builder(this)
-                        .closePolicy(ClosePolicy.TOUCH_OUTSIDE_CONSUME)
+                        .closePolicy(ClosePolicy.TOUCH_OUTSIDE_NO_CONSUME)
                         .typeface(Typefaces[this, "fonts/at.ttc"])
                         .fadeDuration(300)
                         .overlay(true)
@@ -69,8 +70,13 @@ class MainActivity : AppCompatActivity() {
                         .doOnFailure { tooltip ->
                             tooltip.show(fab, Gravity.CENTER, false)
                         }
-
-                    tooltip!!.show(fab, Gravity.LEFT, true)
+                        .doOnShown {
+                            Timber.v("tooltip show")
+                        }
+                        .doOnHidden {
+                            Timber.v("tooltip hidden")
+                        }
+                        .show(fab, Gravity.TOP, true)
                 }
             }
         }
