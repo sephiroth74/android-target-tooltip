@@ -592,36 +592,16 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             Timber.d("event coords: ${event.x}, ${event.y}")
 
             val r1 = Rect()
-            mTextView?.getHitRect(r1)
-            Timber.v("hitRect: $r1")
-
-            mTextView?.getDrawingRect(r1)
-            Timber.v("drawingRect: $r1")
-
             mTextView.getGlobalVisibleRect(r1)
             val containsTouch = r1.contains(event.x.toInt(), event.y.toInt())
 
             if (mClosePolicy.inside() && containsTouch) {
                 hide()
-            } else if(mClosePolicy.outside()) {
+            } else if (mClosePolicy.outside()) {
                 hide()
             }
 
-
-            return false
-
-//            val x = event.x.toInt()
-//            val y = event.y.toInt()
-//
-//            if (event.action == MotionEvent.ACTION_DOWN && (x < 0 || x >= width || y < 0 || y >= height)) {
-//                dismiss()
-//                return true
-//            } else if (event.action == MotionEvent.ACTION_OUTSIDE) {
-//                dismiss()
-//                return true
-//            } else {
-//                return super.onTouchEvent(event)
-//            }
+            return mClosePolicy.consume()
         }
     }
 

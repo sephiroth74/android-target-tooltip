@@ -57,7 +57,7 @@ class MainActivity : AppCompatActivity() {
 
                     tooltip = Tooltip
                         .Builder(this)
-                        .closePolicy(ClosePolicy.TOUCH_OUTSIDE_NO_CONSUME)
+                        .closePolicy(ClosePolicy.TOUCH_NONE)
                         .typeface(Typefaces[this, "fonts/at.ttc"])
                         .fadeDuration(300)
                         .overlay(true)
