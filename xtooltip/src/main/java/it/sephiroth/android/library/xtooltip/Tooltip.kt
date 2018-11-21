@@ -219,13 +219,6 @@ class Tooltip private constructor(private val context: Context, builder: Builder
 
             val contentView = LayoutInflater.from(context).inflate(mTooltipLayoutIdRes, viewContainer, false)
 
-            mAnchorView?.get()?.addOnAttachStateChangeListener {
-                onViewDetachedFromWindow {
-                    Timber.i("onViewDetachedFromWindow")
-                    dismiss()
-                }
-            }
-
             mFloatingAnimation?.let { contentView.setPadding(it.radius) }
 
             mTextView = contentView.findViewById(mTextViewIdRes)
@@ -394,25 +387,34 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         return Positions(arrowPosition, centerPosition, contentPosition, gravity, params)
     }
 
+    private var mCurrentPosition: Positions? = null
+
+    @SuppressLint("NewApi")
     private fun invokePopup(positions: Positions?): Tooltip? {
         positions?.let {
             isShowing = true
+            mCurrentPosition = positions
 
             setupAnimation(positions.gravity)
+
+            mAnchorView?.get()?.addOnAttachStateChangeListener {
+                onViewDetachedFromWindow {
+                    Timber.i("onViewDetachedFromWindow")
+                    dismiss()
+                }
+            }
+
+            mAnchorView?.get()?.setOnScrollChangeListener { v, scrollX, scrollY, oldScrollX, oldScrollY ->
+                Timber.i("onScrollChanged($scrollX, $scrollY, $oldScrollX, $oldScrollY)")
+                update(-scrollX, -scrollY)
+            }
 
             mDrawable?.setAnchor(
                     it.gravity,
                     if (!mShowArrow) 0 else mPadding / 2,
-                    if (!mShowArrow) null else it.arrowPoint
-                                )
+                    if (!mShowArrow) null else it.arrowPoint)
 
-            mContentView.translationX = it.contentPoint.x.toFloat()
-            mContentView.translationY = it.contentPoint.y.toFloat()
-
-            mViewOverlay?.let { viewOverlay ->
-                viewOverlay.translationX = it.centerPoint.x.toFloat() - viewOverlay.measuredWidth / 2
-                viewOverlay.translationY = it.centerPoint.y.toFloat() - viewOverlay.measuredHeight / 2
-            }
+            update(0, 0)
 
             it.params.packageName = context.packageName
             mPopupView?.fitsSystemWindows = mLayoutInsetDecor
@@ -422,6 +424,19 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         } ?: run {
             mFailureFunc?.invoke(this)
             return null
+        }
+    }
+
+    private fun update(xoff: Int, yoff: Int) {
+        if (isShowing && mPopupView != null && mCurrentPosition != null) {
+            Timber.i("update($xoff, $yoff)")
+            mContentView.translationX = mCurrentPosition!!.contentPoint.x.toFloat() + xoff
+            mContentView.translationY = mCurrentPosition!!.contentPoint.y.toFloat() + yoff
+
+            mViewOverlay?.let { viewOverlay ->
+                viewOverlay.translationX = mCurrentPosition!!.centerPoint.x.toFloat() - viewOverlay.measuredWidth / 2 + xoff
+                viewOverlay.translationY = mCurrentPosition!!.centerPoint.y.toFloat() - viewOverlay.measuredHeight / 2 + yoff
+            }
         }
     }
 
@@ -587,7 +602,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
 
         @SuppressLint("ClickableViewAccessibility")
         override fun onTouchEvent(event: MotionEvent): Boolean {
-            if(!isShowing || !isVisible) return false
+            if (!isShowing || !isVisible) return false
 
             Timber.i("onTouchEvent: ${event}")
             Timber.d("event coords: ${event.x}, ${event.y}")

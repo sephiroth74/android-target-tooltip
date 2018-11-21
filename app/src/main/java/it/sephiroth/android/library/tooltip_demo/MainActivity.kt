@@ -6,6 +6,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Button
+import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import it.sephiroth.android.library.xtooltip.ClosePolicy
@@ -13,17 +14,20 @@ import it.sephiroth.android.library.xtooltip.Tooltip
 import it.sephiroth.android.library.xtooltip.Tooltip.Gravity
 import it.sephiroth.android.library.xtooltip.Typefaces
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.content_main.*
 import timber.log.Timber
 
 class MainActivity : AppCompatActivity() {
 
     var tooltip: Tooltip? = null
+    lateinit var textView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
+        textView = center_text
 
         fab.setOnClickListener { view: View ->
 
@@ -50,14 +54,17 @@ class MainActivity : AppCompatActivity() {
 
             } else {
                 if (null != tooltip && tooltip!!.isShowing) {
-                    tooltip!!.hide()
+//                    tooltip!!.hide()
+                    center_text.scrollBy(0, 10)
+
+
                 } else {
                     val displayFrame = Rect()
                     fab.getWindowVisibleDisplayFrame(displayFrame)
 
                     tooltip = Tooltip
                         .Builder(this)
-                        .closePolicy(ClosePolicy.TOUCH_ANYWHERE_CONSUME)
+                        .closePolicy(ClosePolicy.TOUCH_NONE)
                         .typeface(Typefaces[this, "fonts/at.ttc"])
                         .fadeDuration(300)
                         .overlay(true)
