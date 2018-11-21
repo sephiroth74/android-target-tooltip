@@ -587,8 +587,9 @@ class Tooltip private constructor(private val context: Context, builder: Builder
 
         @SuppressLint("ClickableViewAccessibility")
         override fun onTouchEvent(event: MotionEvent): Boolean {
-            Timber.i("onTouchEvent: $event")
+            if(!isShowing || !isVisible) return false
 
+            Timber.i("onTouchEvent: ${event}")
             Timber.d("event coords: ${event.x}, ${event.y}")
 
             val r1 = Rect()
@@ -741,41 +742,9 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     }
 }
 
-class ClosePolicy {
-    var policy: Int = 0
-        private set
-
-    constructor() {
-        policy = NONE
-    }
+class ClosePolicy internal constructor(val policy: Int) {
 
     fun consume() = policy and CONSUME == CONSUME
-
-    internal constructor(policy: Int) {
-        this.policy = policy
-    }
-
-    @SuppressWarnings("unused")
-    fun insidePolicy(close: Boolean, consume: Boolean): ClosePolicy {
-        policy = if (close) policy or TOUCH_INSIDE else policy and TOUCH_INSIDE.inv()
-        policy = if (consume) policy or CONSUME else policy and CONSUME.inv()
-        return this
-    }
-
-    fun outsidePolicy(close: Boolean, consume: Boolean): ClosePolicy {
-        policy = if (close) policy or TOUCH_OUTSIDE else policy and TOUCH_OUTSIDE.inv()
-        policy = if (consume) policy or CONSUME else policy and CONSUME.inv()
-        return this
-    }
-
-    fun clear(): ClosePolicy {
-        policy = NONE
-        return this
-    }
-
-    fun build(): Int {
-        return policy
-    }
 
     fun inside(): Boolean {
         return policy and TOUCH_INSIDE == TOUCH_INSIDE
@@ -790,6 +759,7 @@ class ClosePolicy {
         private val TOUCH_INSIDE = 1 shl 1
         private val TOUCH_OUTSIDE = 1 shl 2
         private val CONSUME = 1 shl 3
+
         val TOUCH_NONE = ClosePolicy(NONE)
         val TOUCH_INSIDE_CONSUME = ClosePolicy(TOUCH_INSIDE or CONSUME)
         val TOUCH_INSIDE_NO_CONSUME = ClosePolicy(TOUCH_INSIDE)
