@@ -662,9 +662,11 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             mTextView.getGlobalVisibleRect(r1)
             val containsTouch = r1.contains(event.x.toInt(), event.y.toInt())
 
-            if (mClosePolicy.inside() && containsTouch) {
+            if (mClosePolicy.anywhere()) {
                 hide()
-            } else if (mClosePolicy.outside()) {
+            } else if (mClosePolicy.inside() && containsTouch) {
+                hide()
+            } else if (mClosePolicy.outside() && !containsTouch) {
                 hide()
             }
 
@@ -704,7 +706,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         internal var overlay = true
         internal var floatingAnimation: Animation? = null
         internal var showDuration: Long = 0
-        internal var fadeDuration: Long = 0
+        internal var fadeDuration: Long = 100
         internal var showArrow = true
         internal var activateDelay = 0L
         internal var followAnchor = false
@@ -714,11 +716,6 @@ class Tooltip private constructor(private val context: Context, builder: Builder
 
         @IdRes
         internal var textId: Int? = null
-
-        fun follow(value: Boolean): Builder {
-            followAnchor = value
-            return this
-        }
 
         fun typeface(value: Typeface?): Builder {
             this.typeface = value
@@ -779,8 +776,9 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             return this
         }
 
-        fun anchor(view: View, xoff: Int = 0, yoff: Int = 0): Builder {
+        fun anchor(view: View, xoff: Int = 0, yoff: Int = 0, follow: Boolean = false): Builder {
             this.anchorView = view
+            this.followAnchor = follow
             this.point = Point(xoff, yoff)
             return this
         }
@@ -825,6 +823,8 @@ class ClosePolicy internal constructor(val policy: Int) {
     fun outside(): Boolean {
         return policy and TOUCH_OUTSIDE == TOUCH_OUTSIDE
     }
+
+    fun anywhere() = inside() and outside()
 
     companion object {
         private val NONE = 0
