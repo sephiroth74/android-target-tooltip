@@ -2,13 +2,13 @@ package it.sephiroth.android.library.tooltip_demo
 
 import android.graphics.Rect
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
-import android.view.View
+import android.view.*
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import it.sephiroth.android.library.xtooltip.ClosePolicy
 import it.sephiroth.android.library.xtooltip.Tooltip
 import it.sephiroth.android.library.xtooltip.Tooltip.Gravity
@@ -26,6 +26,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
+        setupRecycler()
 
         textView = center_text
 
@@ -70,7 +71,8 @@ class MainActivity : AppCompatActivity() {
                         .overlay(true)
                         .arrow(true)
                         .text("This is just a sample text\nfor the tooltip X!")
-                        .anchor(findViewById(R.id.center_text), 0, 0)
+                        .anchor(recyclerView.getChildAt(5), 0, 0)
+                        .follow(true)
                         .maxWidth(660)
                         .floatingAnimation(Tooltip.Animation.DEFAULT)
                         .create()
@@ -86,6 +88,31 @@ class MainActivity : AppCompatActivity() {
                         .show(fab, Gravity.TOP, true)
                 }
             }
+        }
+    }
+
+    fun setupRecycler() {
+        val recycler = recyclerView
+        val data = arrayOfNulls<Int>(100)
+        recycler.layoutManager = LinearLayoutManager(this)
+
+        recycler.adapter = object : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+            val inflater = LayoutInflater.from(this@MainActivity)
+
+
+            override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+                val view = inflater.inflate(android.R.layout.simple_list_item_1, parent, false)
+                return object : RecyclerView.ViewHolder(view) {}
+            }
+
+            override fun getItemCount(): Int {
+                return data.size
+            }
+
+            override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+                holder.itemView.findViewById<TextView>(android.R.id.text1).text = "Item $position"
+            }
+
         }
     }
 
