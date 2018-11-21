@@ -24,11 +24,19 @@ class MainActivity : AppCompatActivity() {
                 .typeface(Typefaces.get(this, "fonts/at.ttc"))
                 .maxWidth(metrics.widthPixels / 2)
                 .floatingAnimation(Tooltip.Animation.DEFAULT)
-                .closePolicy(ClosePolicy.TOUCH_INSIDE_CONSUME)
+                .closePolicy(getClosePolicy())
                 .showDuration(5000)
                 .create()
                 .show(button, Tooltip.Gravity.RIGHT, true)
         }
+    }
+
+    private fun getClosePolicy(): ClosePolicy {
+        val builder = ClosePolicy.Builder()
+        builder.inside(switch1.isChecked)
+        builder.outside(switch3.isChecked)
+        builder.consume(switch2.isChecked)
+        return builder.build()
     }
 
 }

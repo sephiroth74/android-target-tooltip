@@ -800,6 +800,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
 
         fun closePolicy(policy: ClosePolicy): Builder {
             this.closePolicy = policy
+            Timber.v("closePolicy: $policy")
             return this
         }
 
@@ -825,6 +826,35 @@ class ClosePolicy internal constructor(val policy: Int) {
     }
 
     fun anywhere() = inside() and outside()
+
+    override fun toString(): String {
+        return "ClosePolicy{inside:${inside()}, outside: ${outside()}}"
+    }
+
+    class Builder {
+        var policy = NONE
+
+        fun consume(value: Boolean): Builder {
+            policy = if (value) policy or CONSUME else policy and CONSUME.inv()
+            return this
+        }
+
+        fun inside(value: Boolean): Builder {
+            policy = if (value) policy or TOUCH_INSIDE else policy and TOUCH_INSIDE.inv()
+            return this
+        }
+
+        fun outside(value: Boolean): Builder {
+            policy = if (value) policy or TOUCH_OUTSIDE else policy and TOUCH_OUTSIDE.inv()
+            return this
+        }
+
+        fun clear() {
+            policy = NONE
+        }
+
+        fun build() = ClosePolicy(policy)
+    }
 
     companion object {
         private val NONE = 0
