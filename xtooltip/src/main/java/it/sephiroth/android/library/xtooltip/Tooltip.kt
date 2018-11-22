@@ -217,8 +217,13 @@ class Tooltip private constructor(private val context: Context, builder: Builder
 
     private fun computeFlags(curFlags: Int): Int {
         var curFlags1 = curFlags
-        curFlags1 = curFlags1 or
-                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+        curFlags1 = curFlags1 or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+
+        curFlags1 = if (mClosePolicy.inside() || mClosePolicy.outside()) {
+            curFlags1 and WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE.inv()
+        } else {
+            curFlags1 or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+        }
 
         if (!mClosePolicy.consume()) {
             curFlags1 = curFlags1 or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
@@ -658,6 +663,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
 
         override fun dispatchKeyEvent(event: KeyEvent): Boolean {
             if (!isShowing || !isVisible || !mActivated) return super.dispatchKeyEvent(event)
+            Timber.i("dispatchKeyEvent: $event")
 
             if (event.keyCode == KeyEvent.KEYCODE_BACK) {
                 if (keyDispatcherState == null) {
@@ -864,7 +870,7 @@ class ClosePolicy internal constructor(private val policy: Int) {
     fun anywhere() = inside() and outside()
 
     override fun toString(): String {
-        return "ClosePolicy{policy: $policy, inside:${inside()}, outside: ${outside()}, consume: ${consume()}}"
+        return "ClosePolicy{policy: $policy, inside:${inside()}, outside: ${outside()}, anywhere: ${anywhere()}, consume: ${consume()}}"
     }
 
     @Suppress("unused")
