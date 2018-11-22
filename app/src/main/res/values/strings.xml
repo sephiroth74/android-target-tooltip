@@ -1,4 +1,13 @@
 <resources>
     <string name="app_name">ToolTip2</string>
     <string name="action_settings">Settings</string>
+
+
+    <string-array name="gravities">
+        <item>LEFT</item>
+        <item>RIGHT</item>
+        <item>TOP</item>
+        <item>BOTTOM</item>
+        <item>CENTER</item>
+    </string-array>
 </resources>

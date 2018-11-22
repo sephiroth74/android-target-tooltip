@@ -7,6 +7,7 @@ import it.sephiroth.android.library.xtooltip.Tooltip
 import it.sephiroth.android.library.xtooltip.Typefaces
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
+import timber.log.Timber
 
 
 class MainActivity : AppCompatActivity() {
@@ -18,16 +19,25 @@ class MainActivity : AppCompatActivity() {
         val metrics = resources.displayMetrics
 
         button1.setOnClickListener { button ->
+
+            val gravity = Tooltip.Gravity.valueOf(spinner_gravities.selectedItem.toString())
+            val closePolicy = getClosePolicy()
+            val typeface = if (checkbox_font.isChecked) Typefaces[this, "fonts/at.ttc"] else null
+            val animation = if (checkbox_animation.isChecked) Tooltip.Animation.DEFAULT else null
+
+            Timber.v("gravity: $gravity")
+            Timber.v("closePolicy: $closePolicy")
+
             Tooltip.Builder(this)
                 .anchor(button, 0, 0, false)
                 .text("RIGHT. Touch outside to close this tooltip. RIGHT. Touch outside to close this tooltip. RIGHT. Touch" + " outside to close this tooltip.")
-                .typeface(Typefaces.get(this, "fonts/at.ttc"))
+                .typeface(typeface)
                 .maxWidth(metrics.widthPixels / 2)
-                .floatingAnimation(Tooltip.Animation.DEFAULT)
-                .closePolicy(getClosePolicy())
+                .floatingAnimation(animation)
+                .closePolicy(closePolicy)
                 .showDuration(5000)
                 .create()
-                .show(button, Tooltip.Gravity.RIGHT, true)
+                .show(button, gravity, true)
         }
     }
 
