@@ -8,7 +8,6 @@
              android:layout_margin="0dp"
              android:clipChildren="false"
              android:clipToPadding="false"
-             android:background="#22000000"
              android:padding="0dp">
 
     <androidx.appcompat.widget.AppCompatTextView

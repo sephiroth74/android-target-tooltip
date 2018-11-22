@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.text.Html
+import android.text.Spannable
 import android.view.*
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
@@ -158,8 +159,6 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         } ?: run {
             font?.let { mTypeface = Typefaces[context, it] }
         }
-
-        Timber.i("mAnchorPoint: $mAnchorPoint")
     }
 
     private var mFailureFunc: ((tooltip: Tooltip) -> Unit)? = null
@@ -198,7 +197,6 @@ class Tooltip private constructor(private val context: Context, builder: Builder
 
 
     private fun computeFlags(curFlags: Int): Int {
-        Timber.d("curFlags: $curFlags")
         //WindowManager.LayoutParams.FLAG_IGNORE_CHEEK_PRESSES or
         //WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH or
         //WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
@@ -209,8 +207,6 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         curFlags1 = curFlags1 or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-
-        Timber.d("close policy consume: ${mClosePolicy.consume()}")
 
         if (!mClosePolicy.consume()) {
             curFlags1 = curFlags1 or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
@@ -233,7 +229,6 @@ class Tooltip private constructor(private val context: Context, builder: Builder
 //        curFlags1 = curFlags1 or WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR
 //        }
 //
-//        Timber.v("curFlags1: $curFlags1")
 
         return curFlags1
     }
@@ -283,7 +278,13 @@ class Tooltip private constructor(private val context: Context, builder: Builder
                     outlineProvider = ViewOutlineProvider.BACKGROUND
                 }
                 this.gravity = mTextGravity
-                text = Html.fromHtml(this@Tooltip.mText as String)
+
+                text = if (mText is Spannable) {
+                    mText
+                } else {
+                    Html.fromHtml(this@Tooltip.mText as String)
+                }
+
                 mMaxWidth?.let { maxWidth = it }
                 mTypeface?.let { typeface = it }
             }
@@ -302,17 +303,9 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             Timber.i("viewContainer size: ${viewContainer.measuredWidth}, ${viewContainer.measuredHeight}")
             Timber.i("contentView size: ${contentView.measuredWidth}, ${contentView.measuredHeight}")
 
-            mTextView.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
-                override fun onViewDetachedFromWindow(v: View?) {
-                    mAnimator?.cancel()
-                    removeCallbacks()
-                }
-
-                override fun onViewAttachedToWindow(v: View?) {
+            mTextView.addOnAttachStateChangeListener {
+                onViewAttachedToWindow {
                     mAnimator?.start()
-
-                    Timber.v("showDuration: $mShowDuration")
-                    Timber.v("activateDelay: $mActivateDelay")
 
                     if (mShowDuration > 0) {
                         mHandler.removeCallbacks(hideRunnable)
@@ -321,9 +314,13 @@ class Tooltip private constructor(private val context: Context, builder: Builder
 
                     mHandler.removeCallbacks(activateRunnable)
                     mHandler.postDelayed(activateRunnable, mActivateDelay)
-
                 }
-            })
+
+                onViewDetachedFromWindow {
+                    mAnimator?.cancel()
+                    removeCallbacks()
+                }
+            }
 
             mContentView = contentView
             mPopupView = viewContainer
@@ -604,7 +601,14 @@ class Tooltip private constructor(private val context: Context, builder: Builder
 
         if (fadeDuration > 0 && null != mPopupView) {
             mPopupView!!.alpha = 0F
-            mPopupView!!.animate().setDuration(mFadeDuration).alpha(1f).start()
+            mPopupView!!.animate()
+                .setDuration(mFadeDuration)
+                .setListener {
+                    onAnimationEnd {
+
+                    }
+                }
+                .alpha(1f).start()
         }
 
         mShownFunc?.invoke(this)

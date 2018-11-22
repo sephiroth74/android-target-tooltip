@@ -2,6 +2,7 @@ package it.sephiroth.android.library.tooltip_demo
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.text.toSpannable
 import it.sephiroth.android.library.xtooltip.ClosePolicy
 import it.sephiroth.android.library.xtooltip.Tooltip
 import it.sephiroth.android.library.xtooltip.Typefaces
@@ -24,18 +25,27 @@ class MainActivity : AppCompatActivity() {
             val closePolicy = getClosePolicy()
             val typeface = if (checkbox_font.isChecked) Typefaces[this, "fonts/at.ttc"] else null
             val animation = if (checkbox_animation.isChecked) Tooltip.Animation.DEFAULT else null
+            val showDuration = text_duration.text.toString().toLong()
+            val fadeDuration = text_fade.text.toString().toLong()
+            val arrow = checkbox_arrow.isChecked
+            val overlay = checkbox_overlay.isChecked
+            val text =
+                    if (text_tooltip.text.isNullOrEmpty()) "Lorem ipsum dolor sit amet" else text_tooltip.text!!.toSpannable()
 
             Timber.v("gravity: $gravity")
             Timber.v("closePolicy: $closePolicy")
 
             Tooltip.Builder(this)
                 .anchor(button, 0, 0, false)
-                .text("RIGHT. Touch outside to close this tooltip. RIGHT. Touch outside to close this tooltip. RIGHT. Touch" + " outside to close this tooltip.")
+                .text(text)
                 .typeface(typeface)
                 .maxWidth(metrics.widthPixels / 2)
+                .arrow(arrow)
                 .floatingAnimation(animation)
                 .closePolicy(closePolicy)
-                .showDuration(5000)
+                .showDuration(showDuration)
+                .fadeDuration(fadeDuration)
+                .overlay(overlay)
                 .create()
                 .show(button, gravity, true)
         }

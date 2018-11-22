@@ -4,10 +4,18 @@
 
 
     <string-array name="gravities">
+        <item>BOTTOM</item>
+        <item>TOP</item>
         <item>LEFT</item>
         <item>RIGHT</item>
-        <item>TOP</item>
-        <item>BOTTOM</item>
         <item>CENTER</item>
+    </string-array>
+
+    <string-array name="show_durations">
+        <item>0</item>
+        <item>1000</item>
+        <item>2000</item>
+        <item>5000</item>
+        <item>10000</item>
     </string-array>
 </resources>

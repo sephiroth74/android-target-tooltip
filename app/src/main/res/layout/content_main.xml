@@ -2,6 +2,7 @@
 
 <LinearLayout android:id="@+id/root_view"
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -9,7 +10,8 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    android:weightSum="1">
+    android:weightSum="1"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
     <androidx.appcompat.widget.AppCompatTextView
         android:layout_width="match_parent"
@@ -50,6 +52,7 @@
             android:layout_column="1"
             android:layout_gravity="right"
             android:layout_row="0"
+            android:checked="true"
             android:text="Touch Outside" />
 
         <com.google.android.material.checkbox.MaterialCheckBox
@@ -67,7 +70,71 @@
             android:layout_height="wrap_content"
             android:layout_column="0"
             android:layout_row="2"
+            android:checked="true"
             android:text="Floating Animation" />
+
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/checkbox_arrow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="1"
+            android:layout_gravity="right"
+            android:layout_row="2"
+            android:checked="true"
+            android:text="With Arrow" />
+
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/checkbox_overlay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_columnSpan="2"
+            android:layout_row="3"
+            android:checked="true"
+            android:text="With Overlay" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Show" />
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/text_duration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="3"
+                android:gravity="right"
+                android:inputType="number"
+                android:text="3000" />
+
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:orientation="horizontal">
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Fade" />
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/text_fade"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="3"
+                android:gravity="right"
+                android:inputType="number"
+                android:text="200" />
+
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -85,11 +152,16 @@
                 android:id="@+id/spinner_gravities"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_column="0"
-                android:layout_row="3"
                 android:entries="@array/gravities" />
         </LinearLayout>
 
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/text_tooltip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_columnSpan="2"
+            android:hint="Tooltip Text"
+            android:maxLines="2" />
 
     </GridLayout>
 
