@@ -9,6 +9,23 @@ import android.os.Build
 import androidx.core.util.ObjectsCompat
 import timber.log.Timber
 
+/**
+ * Created by alessandro crugnola on 12/12/15.
+ * alessandro.crugnola@gmail.com
+ *
+ *
+ * LICENSE
+ * Copyright 2015 Alessandro Crugnola
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software
+ * is furnished to do so, subject to the following conditions:
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
+ * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 internal class TooltipTextDrawable(context: Context, builder: Tooltip.Builder) : Drawable() {
     private val rectF: RectF
     private val path: Path
@@ -205,8 +222,6 @@ internal class TooltipTextDrawable(context: Context, builder: Tooltip.Builder) :
 
     companion object {
         const val ARROW_RATIO_DEFAULT = 1.4f
-        const val ALPHA_MAX = 255f
-        const val TAG = "TooltipTextDrawable"
 
         private fun isDrawPoint(
                 left: Int, top: Int, right: Int, bottom: Int, maxY: Float, maxX: Float, minY: Float,

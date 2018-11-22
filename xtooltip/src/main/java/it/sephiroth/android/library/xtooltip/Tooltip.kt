@@ -29,7 +29,23 @@ import timber.log.Timber
 import java.lang.ref.WeakReference
 import java.util.*
 
-
+/**
+ * Created by alessandro crugnola on 12/12/15.
+ * alessandro.crugnola@gmail.com
+ *
+ *
+ * LICENSE
+ * Copyright 2015 Alessandro Crugnola
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software
+ * is furnished to do so, subject to the following conditions:
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
+ * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 class Tooltip private constructor(private val context: Context, builder: Builder) {
 
     private val windowManager: WindowManager =
@@ -165,16 +181,19 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     private var mShownFunc: ((tooltip: Tooltip) -> Unit)? = null
     private var mHiddenFunc: ((tooltip: Tooltip) -> Unit)? = null
 
+    @Suppress("UNUSED")
     fun doOnFailure(func: ((tooltip: Tooltip) -> Unit)?): Tooltip {
         mFailureFunc = func
         return this
     }
 
+    @Suppress("UNUSED")
     fun doOnShown(func: ((tooltip: Tooltip) -> Unit)?): Tooltip {
         mShownFunc = func
         return this
     }
 
+    @Suppress("UNUSED")
     fun doOnHidden(func: ((tooltip: Tooltip) -> Unit)?): Tooltip {
         mHiddenFunc = func
         return this
@@ -212,6 +231,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         return curFlags1
     }
 
+    @Suppress("UNUSED_PARAMETER")
     private fun preparePopup(params: WindowManager.LayoutParams, gravity: Gravity) {
         mPopupView?.let {
             if (mViewOverlay != null && gravity == Gravity.CENTER) {
@@ -248,6 +268,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
                     setPadding(mPadding / 2, mPadding / 2, mPadding / 2, mPadding / 2)
 
                 if (mTextAppearance != 0) {
+                    @Suppress("DEPRECATION")
                     setTextAppearance(context, mTextAppearance)
                 }
 
@@ -261,6 +282,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
                 text = if (mText is Spannable) {
                     mText
                 } else {
+                    @Suppress("DEPRECATION")
                     Html.fromHtml(this@Tooltip.mText as String)
                 }
 
@@ -696,13 +718,15 @@ class Tooltip private constructor(private val context: Context, builder: Builder
 
     data class Animation(val radius: Int, val direction: Int, val duration: Long) {
 
+        @Suppress("unused")
         companion object {
             val DEFAULT = Animation(8, 0, 400)
             val SLOW = Animation(4, 0, 600)
         }
     }
 
-    class Builder(val context: Context) {
+    @Suppress("unused")
+    class Builder(private val context: Context) {
         internal var point: Point? = null
         internal var closePolicy = ClosePolicy.TOUCH_INSIDE_CONSUME
         internal var text: CharSequence? = null
@@ -825,7 +849,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     }
 }
 
-class ClosePolicy internal constructor(val policy: Int) {
+class ClosePolicy internal constructor(private val policy: Int) {
 
     fun consume() = policy and CONSUME == CONSUME
 
@@ -843,8 +867,9 @@ class ClosePolicy internal constructor(val policy: Int) {
         return "ClosePolicy{policy: $policy, inside:${inside()}, outside: ${outside()}, consume: ${consume()}}"
     }
 
+    @Suppress("unused")
     class Builder {
-        var policy = NONE
+        private var policy = NONE
 
         fun consume(value: Boolean): Builder {
             policy = if (value) policy or CONSUME else policy and CONSUME.inv()
@@ -868,11 +893,12 @@ class ClosePolicy internal constructor(val policy: Int) {
         fun build() = ClosePolicy(policy)
     }
 
+    @Suppress("unused")
     companion object {
-        private val NONE = 0
-        private val TOUCH_INSIDE = 1 shl 1
-        private val TOUCH_OUTSIDE = 1 shl 2
-        private val CONSUME = 1 shl 3
+        private const val NONE = 0
+        private const val TOUCH_INSIDE = 1 shl 1
+        private const val TOUCH_OUTSIDE = 1 shl 2
+        private const val CONSUME = 1 shl 3
 
         val TOUCH_NONE = ClosePolicy(NONE)
         val TOUCH_INSIDE_CONSUME = ClosePolicy(TOUCH_INSIDE or CONSUME)

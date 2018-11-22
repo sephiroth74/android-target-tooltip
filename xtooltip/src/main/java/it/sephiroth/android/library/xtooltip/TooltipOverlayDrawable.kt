@@ -11,12 +11,27 @@ import timber.log.Timber
 /**
  * Created by alessandro crugnola on 12/12/15.
  * alessandro.crugnola@gmail.com
+ *
+ *
+ * LICENSE
+ * Copyright 2015 Alessandro Crugnola
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software
+ * is furnished to do so, subject to the following conditions:
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
+ * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+
+@Suppress("SpellCheckingInspection")
 class TooltipOverlayDrawable(context: Context, defStyleResId: Int) : Drawable() {
     private val mOuterPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val mInnerPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private var mOuterRadius: Float = 0.toFloat()
-    var innerRadius = 0f
+    private var innerRadius = 0f
         set(rippleRadius) {
             field = rippleRadius
             invalidateSelf()
@@ -32,21 +47,21 @@ class TooltipOverlayDrawable(context: Context, defStyleResId: Int) : Drawable() 
     private var mRepeatCount = 1
     private var mDuration: Long = 400
 
-    var outerAlpha: Int
+    private var outerAlpha: Int
         get() = mOuterPaint.alpha
         set(value) {
             mOuterPaint.alpha = value
             invalidateSelf()
         }
 
-    var innerAlpha: Int
+    private var innerAlpha: Int
         get() = mInnerPaint.alpha
         set(value) {
             mInnerPaint.alpha = value
             invalidateSelf()
         }
 
-    var outerRadius: Float
+    private var outerRadius: Float
         get() = mOuterRadius
         set(value) {
             mOuterRadius = value
@@ -62,21 +77,21 @@ class TooltipOverlayDrawable(context: Context, defStyleResId: Int) : Drawable() 
         for (i in 0 until array.indexCount) {
             val index = array.getIndex(i)
 
-            if (index == R.styleable.TooltipOverlay_android_color) {
-                val color = array.getColor(index, 0)
-                mOuterPaint.color = color
-                mInnerPaint.color = color
+            when (index) {
+                R.styleable.TooltipOverlay_android_color -> {
+                    val color = array.getColor(index, 0)
+                    mOuterPaint.color = color
+                    mInnerPaint.color = color
 
-            } else if (index == R.styleable.TooltipOverlay_ttlm_repeatCount) {
-                mRepeatCount = array.getInt(index, 1)
+                }
+                R.styleable.TooltipOverlay_ttlm_repeatCount -> mRepeatCount = array.getInt(index, 1)
+                R.styleable.TooltipOverlay_android_alpha -> {
+                    val alpha = (array.getFloat(index, mInnerPaint.alpha / ALPHA_MAX) * 255).toInt()
+                    mInnerPaint.alpha = alpha
+                    mOuterPaint.alpha = alpha
 
-            } else if (index == R.styleable.TooltipOverlay_android_alpha) {
-                val alpha = (array.getFloat(index, mInnerPaint.alpha / ALPHA_MAX) * 255).toInt()
-                mInnerPaint.alpha = alpha
-                mOuterPaint.alpha = alpha
-
-            } else if (index == R.styleable.TooltipOverlay_ttlm_duration) {
-                mDuration = array.getInt(index, 400).toLong()
+                }
+                R.styleable.TooltipOverlay_ttlm_duration -> mDuration = array.getInt(index, 400).toLong()
             }
         }
 
@@ -198,7 +213,7 @@ class TooltipOverlayDrawable(context: Context, defStyleResId: Int) : Drawable() 
         return 96
     }
 
-    fun play() {
+    private fun play() {
         mRepeatIndex = 0
         mStarted = true
         mFirstAnimatorSet.start()
@@ -206,12 +221,12 @@ class TooltipOverlayDrawable(context: Context, defStyleResId: Int) : Drawable() 
         mSecondAnimatorSet.start()
     }
 
-    fun replay() {
+    private fun replay() {
         stop()
         play()
     }
 
-    fun stop() {
+    private fun stop() {
         mFirstAnimatorSet.cancel()
         mSecondAnimatorSet.cancel()
 
@@ -222,6 +237,7 @@ class TooltipOverlayDrawable(context: Context, defStyleResId: Int) : Drawable() 
         outerRadius = 0f
     }
 
+    @Suppress("SpellCheckingInspection")
     companion object {
         const val ALPHA_MAX = 255f
         const val FADEOUT_START_DELAY = 0.55
