@@ -87,10 +87,17 @@
             android:id="@+id/checkbox_overlay"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_columnSpan="2"
             android:layout_row="3"
             android:checked="true"
             android:text="With Overlay" />
+
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/checkbox_style"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_row="3"
+            android:layout_gravity="right"
+            android:text="Custom Style" />
 
         <LinearLayout
             android:layout_width="wrap_content"

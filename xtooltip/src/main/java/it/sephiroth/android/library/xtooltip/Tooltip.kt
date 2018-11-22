@@ -94,10 +94,10 @@ class Tooltip private constructor(private val context: Context, builder: Builder
                     }
 
                     if (mOldLocation!![0] != mNewLocation[1] || mOldLocation!![1] != mNewLocation[1]) {
-                        update(
+                        offsetBy(
                                 mNewLocation[0] - mOldLocation!![0],
                                 mNewLocation[1] - mOldLocation!![1]
-                              )
+                                )
                     }
                 }
             }
@@ -197,39 +197,18 @@ class Tooltip private constructor(private val context: Context, builder: Builder
 
 
     private fun computeFlags(curFlags: Int): Int {
-        //WindowManager.LayoutParams.FLAG_IGNORE_CHEEK_PRESSES or
-        //WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH or
-        //WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
-        //WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM or
-        //WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
-
         var curFlags1 = curFlags
         curFlags1 = curFlags1 or
-                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
 
         if (!mClosePolicy.consume()) {
             curFlags1 = curFlags1 or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
         }
-//
         curFlags1 = curFlags1 or WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM
-//
-//        if (true) {
         curFlags1 = curFlags1 or WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
-//        }
-//
-//        if (true) {
         curFlags1 = curFlags1 or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-//        }
-//
-//        if (true) {
         curFlags1 = curFlags1 or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
-//        }
-//        if (mLayoutInsetDecor) {
-//        curFlags1 = curFlags1 or WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR
-//        }
-//
-
+        // curFlags1 = curFlags1 or WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR
         return curFlags1
     }
 
@@ -304,7 +283,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             Timber.i("contentView size: ${contentView.measuredWidth}, ${contentView.measuredHeight}")
 
             mTextView.addOnAttachStateChangeListener {
-                onViewAttachedToWindow {
+                onViewAttachedToWindow { _: View?, _: View.OnAttachStateChangeListener ->
                     mAnimator?.start()
 
                     if (mShowDuration > 0) {
@@ -316,7 +295,8 @@ class Tooltip private constructor(private val context: Context, builder: Builder
                     mHandler.postDelayed(activateRunnable, mActivateDelay)
                 }
 
-                onViewDetachedFromWindow {
+                onViewDetachedFromWindow { view: View?, listener: View.OnAttachStateChangeListener ->
+                    view?.removeOnAttachStateChangeListener(listener)
                     mAnimator?.cancel()
                     removeCallbacks()
                 }
@@ -476,11 +456,12 @@ class Tooltip private constructor(private val context: Context, builder: Builder
                     if (!mShowArrow) null else it.arrowPoint
                                 )
 
-            update(0, 0)
+            offsetBy(0, 0)
 
             it.params.packageName = context.packageName
             mPopupView?.fitsSystemWindows = mLayoutInsetDecor
             windowManager.addView(mPopupView, it.params)
+            Timber.v("windowManager.addView: $mPopupView")
             fadeIn(mFadeDuration)
             return this
         } ?: run {
@@ -489,9 +470,9 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         }
     }
 
-    private fun update(xoff: Int, yoff: Int) {
+    private fun offsetBy(xoff: Int, yoff: Int) {
         if (isShowing && mPopupView != null && mCurrentPosition != null) {
-            Timber.i("update($xoff, $yoff)")
+            Timber.i("offsetBy($xoff, $yoff)")
             mContentView.translationX = mCurrentPosition!!.contentPoint.x.toFloat() + xoff
             mContentView.translationY = mCurrentPosition!!.contentPoint.y.toFloat() + yoff
 
@@ -506,7 +487,9 @@ class Tooltip private constructor(private val context: Context, builder: Builder
 
     private fun setupListeners(anchorView: View) {
         anchorView.addOnAttachStateChangeListener {
-            onViewDetachedFromWindow {
+            onViewDetachedFromWindow { view: View?, listener: View.OnAttachStateChangeListener ->
+                Timber.i("anchorView detached from parent")
+                view?.removeOnAttachStateChangeListener(listener)
                 dismiss()
             }
         }
@@ -577,15 +560,17 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         fadeOut(mFadeDuration)
     }
 
-    private fun dismiss() {
+    fun dismiss() {
         if (isShowing && mPopupView != null) {
-            Timber.v("dismiss")
             removeListeners(mAnchorView?.get())
             removeCallbacks()
             windowManager.removeView(mPopupView)
+            Timber.v("dismiss: $mPopupView")
             mPopupView = null
             isShowing = false
             isVisible = false
+
+            mHiddenFunc?.invoke(this)
         }
     }
 
@@ -603,14 +588,8 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             mPopupView!!.alpha = 0F
             mPopupView!!.animate()
                 .setDuration(mFadeDuration)
-                .setListener {
-                    onAnimationEnd {
-
-                    }
-                }
                 .alpha(1f).start()
         }
-
         mShownFunc?.invoke(this)
     }
 
@@ -639,8 +618,6 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         } else {
             dismiss()
         }
-
-        mHiddenFunc?.invoke(this)
     }
 
     inner class TooltipViewContainer(context: Context) : FrameLayout(context) {
@@ -657,12 +634,37 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             sizeChange?.invoke(w, h)
         }
 
+        override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+            if (!isShowing || !isVisible || !mActivated) return super.dispatchKeyEvent(event)
+
+            if (event.keyCode == KeyEvent.KEYCODE_BACK) {
+                if (keyDispatcherState == null) {
+                    return super.dispatchKeyEvent(event)
+                }
+
+                if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) {
+                    keyDispatcherState?.startTracking(event, this)
+                    return true
+                } else if (event.action == KeyEvent.ACTION_UP) {
+                    val state = keyDispatcherState
+                    if (state != null && state.isTracking(event) && !event.isCanceled) {
+                        Timber.v("Back pressed, close the tooltip")
+                        hide()
+                        return true
+                    }
+                }
+                return super.dispatchKeyEvent(event)
+            } else {
+                return super.dispatchKeyEvent(event)
+            }
+        }
+
         @SuppressLint("ClickableViewAccessibility")
         override fun onTouchEvent(event: MotionEvent): Boolean {
             if (!isShowing || !isVisible || !mActivated) return false
 
             Timber.i("onTouchEvent: $event")
-            Timber.d("event coords: ${event.x}, ${event.y}")
+            Timber.d("event position: ${event.x}, ${event.y}")
 
             val r1 = Rect()
             mTextView.getGlobalVisibleRect(r1)
@@ -728,9 +730,14 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             return this
         }
 
-        fun styleId(@StyleRes styleId: Int): Builder {
-            this.defStyleAttr = 0
-            this.defStyleRes = styleId
+        fun styleId(@StyleRes styleId: Int?): Builder {
+            styleId?.let {
+                this.defStyleAttr = 0
+                this.defStyleRes = it
+            } ?: run {
+                this.defStyleRes = R.style.ToolTipLayoutDefaultStyle
+                this.defStyleAttr = R.attr.ttlm_defaultStyle
+            }
             return this
         }
 

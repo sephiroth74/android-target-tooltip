@@ -17,7 +17,7 @@ internal class TooltipTextDrawable(context: Context, builder: Tooltip.Builder) :
     private val bgPaint: Paint?
     private val stPaint: Paint?
     private val arrowRatio: Float
-    val radius: Float
+    private val radius: Float
     private var point: Point? = null
     private var padding = 0
     private var arrowWeight = 0
@@ -26,11 +26,11 @@ internal class TooltipTextDrawable(context: Context, builder: Tooltip.Builder) :
     init {
 
         val theme = context.theme.obtainStyledAttributes(
-            null,
-            R.styleable.TooltipLayout,
-            builder.defStyleAttr,
-            builder.defStyleRes
-        )
+                null,
+                R.styleable.TooltipLayout,
+                builder.defStyleAttr,
+                builder.defStyleRes
+                                                        )
         this.radius = theme.getDimensionPixelSize(R.styleable.TooltipLayout_ttlm_cornerRadius, 4).toFloat()
         val strokeWidth = theme.getDimensionPixelSize(R.styleable.TooltipLayout_ttlm_strokeWeight, 2)
         val backgroundColor = theme.getColor(R.styleable.TooltipLayout_ttlm_backgroundColor, 0)
@@ -109,18 +109,18 @@ internal class TooltipTextDrawable(context: Context, builder: Tooltip.Builder) :
     }
 
     private fun calculatePathWithGravity(
-        outBounds: Rect,
-        left: Int,
-        top: Int,
-        right: Int,
-        bottom: Int,
-        maxY: Float,
-        maxX: Float,
-        minY: Float,
-        minX: Float
-    ) {
+            outBounds: Rect,
+            left: Int,
+            top: Int,
+            right: Int,
+            bottom: Int,
+            maxY: Float,
+            maxX: Float,
+            minY: Float,
+            minX: Float
+                                        ) {
         val drawPoint =
-            isDrawPoint(left, top, right, bottom, maxY, maxX, minY, minX, tmpPoint, point!!, gravity, arrowWeight)
+                isDrawPoint(left, top, right, bottom, maxY, maxX, minY, minX, tmpPoint, point!!, gravity, arrowWeight)
 
         Timber.v("drawPoint: $drawPoint")
 
@@ -178,12 +178,12 @@ internal class TooltipTextDrawable(context: Context, builder: Tooltip.Builder) :
     }
 
     override fun getAlpha(): Int {
-        return bgPaint!!.alpha
+        return bgPaint?.alpha ?: run { 0 }
     }
 
     override fun setAlpha(alpha: Int) {
-        bgPaint!!.alpha = alpha
-        stPaint!!.alpha = alpha
+        bgPaint?.alpha = alpha
+        stPaint?.alpha = alpha
     }
 
     override fun setColorFilter(cf: ColorFilter?) {}
@@ -209,10 +209,10 @@ internal class TooltipTextDrawable(context: Context, builder: Tooltip.Builder) :
         const val TAG = "TooltipTextDrawable"
 
         private fun isDrawPoint(
-            left: Int, top: Int, right: Int, bottom: Int, maxY: Float, maxX: Float, minY: Float,
-            minX: Float, tmpPoint: Point, point: Point, gravity: Tooltip.Gravity?,
-            arrowWeight: Int
-        ): Boolean {
+                left: Int, top: Int, right: Int, bottom: Int, maxY: Float, maxX: Float, minY: Float,
+                minX: Float, tmpPoint: Point, point: Point, gravity: Tooltip.Gravity?,
+                arrowWeight: Int
+                               ): Boolean {
             Timber.i("isDrawPoint: $left, $top, $right, $bottom, $maxX, $maxY, $minX, $minY, $point, $arrowWeight")
             var drawPoint = false
             tmpPoint.set(point.x, point.y)

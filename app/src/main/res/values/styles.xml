@@ -17,4 +17,23 @@
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
+
+    <!-- tooltip alt style -->
+
+    <style name="ToolTipAltStyle" parent="ToolTipLayoutDefaultStyle">
+        <item name="ttlm_padding">20dp</item>
+        <item name="ttlm_backgroundColor">#FF333333</item>
+        <item name="ttlm_cornerRadius">16dp</item>
+        <item name="ttlm_arrowRatio">1</item>
+        <item name="android:textAppearance">?android:attr/textAppearanceSmallInverse</item>
+        <item name="android:gravity">center</item>
+        <item name="ttlm_overlayStyle">@style/ToolTipOverlayAltStyle</item>
+        <item name="ttlm_elevation">0dp</item>
+    </style>
+
+    <style name="ToolTipOverlayAltStyle" parent="ToolTipOverlayDefaultStyle">
+        <item name="android:color">#FF333333</item>
+        <item name="android:alpha">0.3</item>
+    </style>
+
 </resources>

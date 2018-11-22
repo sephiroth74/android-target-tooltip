@@ -19,46 +19,45 @@ internal inline fun Rect.intersection(other: Rect): Rect {
     return intersect
 }
 
-internal inline fun View.addOnAttachStateChangeListener(func: __AttachStateChangeListener.() -> Unit): View {
-    val listener = __AttachStateChangeListener()
+internal inline fun View.addOnAttachStateChangeListener(func: AttachStateChangeListener.() -> Unit): View {
+    val listener = AttachStateChangeListener()
     listener.func()
     addOnAttachStateChangeListener(listener)
     return this
 }
 
-class __AttachStateChangeListener : View.OnAttachStateChangeListener {
+internal class AttachStateChangeListener : View.OnAttachStateChangeListener {
 
-    private var _onViewAttachedToWindow: ((view: View?) -> Unit)? = null
-    private var _onViewDetachedFromWindow: ((view: View?) -> Unit)? = null
+    private var _onViewAttachedToWindow: ((view: View?, listener: View.OnAttachStateChangeListener) -> Unit)? = null
+    private var _onViewDetachedFromWindow: ((view: View?, listener: View.OnAttachStateChangeListener) -> Unit)? = null
 
-    fun onViewDetachedFromWindow(func: (view: View?) -> Unit) {
+    fun onViewDetachedFromWindow(func: (view: View?, listener: View.OnAttachStateChangeListener) -> Unit) {
         _onViewDetachedFromWindow = func
     }
 
-    fun onViewAttachedToWindow(func: (view: View?) -> Unit) {
+    fun onViewAttachedToWindow(func: (view: View?, listener: View.OnAttachStateChangeListener) -> Unit) {
         _onViewAttachedToWindow = func
     }
 
     override fun onViewDetachedFromWindow(v: View?) {
-        _onViewDetachedFromWindow?.invoke(v)
+        _onViewDetachedFromWindow?.invoke(v, this)
     }
 
     override fun onViewAttachedToWindow(v: View?) {
-        _onViewAttachedToWindow?.invoke(v)
+        _onViewAttachedToWindow?.invoke(v, this)
     }
 }
 
-inline fun ViewPropertyAnimator.setListener(
-    func: __AnimationListener.() -> Unit
-): ViewPropertyAnimator {
-    val listener = __AnimationListener()
+internal inline fun ViewPropertyAnimator.setListener(
+        func: AnimationListener.() -> Unit
+                                           ): ViewPropertyAnimator {
+    val listener = AnimationListener()
     listener.func()
     setListener(listener)
     return this
 }
 
-class __AnimationListener : Animator.AnimatorListener {
-
+internal class AnimationListener : Animator.AnimatorListener {
     private var _onAnimationRepeat: ((animation: Animator) -> Unit)? = null
     private var _onAnimationEnd: ((animation: Animator) -> Unit)? = null
     private var _onAnimationStart: ((animation: Animator) -> Unit)? = null

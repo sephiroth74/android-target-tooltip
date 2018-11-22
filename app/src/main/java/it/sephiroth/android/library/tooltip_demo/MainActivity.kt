@@ -12,6 +12,8 @@ import timber.log.Timber
 
 
 class MainActivity : AppCompatActivity() {
+    private var tooltip: Tooltip? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -25,19 +27,21 @@ class MainActivity : AppCompatActivity() {
             val closePolicy = getClosePolicy()
             val typeface = if (checkbox_font.isChecked) Typefaces[this, "fonts/at.ttc"] else null
             val animation = if (checkbox_animation.isChecked) Tooltip.Animation.DEFAULT else null
-            val showDuration = text_duration.text.toString().toLong()
-            val fadeDuration = text_fade.text.toString().toLong()
+            val showDuration = if (text_duration.text.isNullOrEmpty()) 0 else text_duration.text.toString().toLong()
+            val fadeDuration = if (text_fade.text.isNullOrEmpty()) 0 else text_fade.text.toString().toLong()
             val arrow = checkbox_arrow.isChecked
             val overlay = checkbox_overlay.isChecked
+            val style = if(checkbox_style.isChecked) R.style.ToolTipAltStyle else null
             val text =
-                    if (text_tooltip.text.isNullOrEmpty()) "Lorem ipsum dolor sit amet" else text_tooltip.text!!.toSpannable()
+                    if (text_tooltip.text.isNullOrEmpty()) "Lorem ipsum dolor" else text_tooltip.text!!.toSpannable()
 
             Timber.v("gravity: $gravity")
             Timber.v("closePolicy: $closePolicy")
 
-            Tooltip.Builder(this)
+            tooltip = Tooltip.Builder(this)
                 .anchor(button, 0, 0, false)
                 .text(text)
+                .styleId(style)
                 .typeface(typeface)
                 .maxWidth(metrics.widthPixels / 2)
                 .arrow(arrow)
@@ -47,6 +51,9 @@ class MainActivity : AppCompatActivity() {
                 .fadeDuration(fadeDuration)
                 .overlay(overlay)
                 .create()
+                .doOnHidden {
+                    tooltip = null
+                }
                 .show(button, gravity, true)
         }
     }
@@ -57,6 +64,12 @@ class MainActivity : AppCompatActivity() {
         builder.outside(switch3.isChecked)
         builder.consume(switch2.isChecked)
         return builder.build()
+    }
+
+    override fun onDestroy() {
+        Timber.i("onDestroy")
+        super.onDestroy()
+        tooltip?.dismiss()
     }
 
 }
