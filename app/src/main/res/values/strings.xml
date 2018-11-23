@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Android Target ToolTip</string>
     <string name="action_settings">Settings</string>
+    <string name="click_me">Click Me!</string>
 
 
     <string-array name="gravities">
