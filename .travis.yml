@@ -3,24 +3,56 @@ language: android
 jdk:
     - oraclejdk8
 
+env:
+  global:
+  # install timeout in minutes (2 minutes by default)
+  - ADB_INSTALL_TIMEOUT=8
+
 android:
   components:
     - tools
+    - platform-tools
+    - tools
     - build-tools-28.0.3
-    - android-28
+    - android-25
     - extra-android-m2repository
-    - extra-google-m2repository
-    - extra-android-support
+    - extra-android-suppor
+    - add-on
+    - extra
+
+  licenses:
+    - 'android-sdk-license-.+'
+    - 'android-sdk-preview-license-.+'
+    - 'google-gdk-license-.+'
+    - 'intel-android-extra-license-.+'
+    - 'google-gdk-license-.+'
+    - 'android-googletv-license-.+'
 
 notifications:
-    email:
-        - alessandro.crugnola@gmail.com
+  email:
+    - alessandro.crugnola@gmail.com
 
-cache: false
-sudo: false
+before_install:
+  - mkdir "$ANDROID_HOME/licenses" || true
+  - echo "d56f5187479451eabf01fb78af6dfcb131a6481e" > "$ANDROID_HOME/licenses/android-sdk-license"
+  - sdkmanager tools
+  - sdkmanager --update
+  - sdkmanager "system-images;android-25;google_apis;arm64-v8a"
+  - echo no | avdmanager create avd --force -n test -k "system-images;android-25;google_apis;arm64-v8a"
 
 install:
-    - chmod +x ./gradlew; ls -l gradlew; ./gradlew wrapper -v
+    - ./gradlew clean build lint assemble --stacktrace
+
+before_script:
+  - $ANDROID_HOME/emulator/emulator -avd test -no-audio -no-window &
+  - android-wait-for-emulator
+  - adb shell input keyevent 82 &
 
 script:
-    - ./gradlew :xtooltip:check xtooltip:assemble
+  - ./gradlew app:connectedAndroidTest --stacktrace
+
+sudo: false
+
+cache:
+  directories:
+    - $HOME/.gradle
