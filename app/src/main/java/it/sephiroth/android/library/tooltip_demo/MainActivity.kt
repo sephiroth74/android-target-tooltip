@@ -58,6 +58,11 @@ class MainActivity : AppCompatActivity() {
                 .doOnShown { }
                 .show(button, gravity, true)
         }
+
+        button2.setOnClickListener {
+            val fragment = TestDialogFragment.newInstance()
+            fragment.showNow(supportFragmentManager, "test_dialog_fragment")
+        }
     }
 
     private fun getClosePolicy(): ClosePolicy {
