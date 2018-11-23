@@ -25,3 +25,4 @@ proguard/
 .idea/
 android-target-tooltip.iml
 *.iml
+.gradletasknamecache
