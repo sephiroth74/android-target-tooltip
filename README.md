@@ -10,28 +10,29 @@ Many additional features and customizations. Just look at the samples Activities
 Installation
 ===
 
-	compile 'it.sephiroth.android.library.targettooltip:target-tooltip-library:1.3.15'
+	compile 'it.sephiroth.android.library.targettooltip:target-tooltip-library:2.0.0'
 
 
 Usage
 ===
-
-	Tooltip.make(this,
-			new Builder(101)
-			.anchor(aView, Gravity.BOTTOM)
-			.closePolicy(new ClosePolicy()
-			    .insidePolicy(true, false)
-			    .outsidePolicy(true, false), 3000)
-			.activateDelay(800)
-			.showDelay(300)
-			.text(R.string.hello_world)
-			.maxWidth(500)
-			.withArrow(true)
-			.withOverlay(true)
-			.typeface(mYourCustomFont)
-			.floatingAnimation(AnimationBuilder.DEFAULT)
-			.build()
-		).show();
+    val tooltip = Tooltip.Builder(Context)
+        .anchor(View, Int, Int, Boolean)
+        .anchor(Int, Int)
+        .text(CharSequence)
+        .styleId(Int)
+        .typeface(Typeface)
+        .maxWidth(Int)
+        .arrow(Boolean)
+        .floatingAnimation(Tooltip.Animation)
+        .closePolicy(ClosePolicy)
+        .showDuration(Long)
+        .fadeDuration(Long)
+        .overlay(Boolean)
+        .create()
+        .doOnHidden { }
+        .doOnFailure { }
+        .doOnShown { }
+        .show(View, Tooltip.Gravity, Boolean)
 
 See the inner [Builder][1] class for the complete set of options
 
@@ -84,3 +85,10 @@ Screenshots
 
 
 [1]: https://github.com/sephiroth74/android-target-tooltip/blob/master/library/src/main/java/it/sephiroth/android/library/tooltip/Tooltip.java#L1471
+
+
+License
+===
+The MIT License
+
+See [LICENSE](LICENSE)

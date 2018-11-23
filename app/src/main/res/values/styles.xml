@@ -1,36 +1,39 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
 
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <style name="AppTheme.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
-        <item name="colorAccent" tools:ignore="NewApi">#0092ff</item>
-        <item name="colorPrimary" tools:ignore="NewApi">#ffcc00</item>
-        <item name="colorPrimaryDark" tools:ignore="NewApi">#ff6600</item>
     </style>
 
-    <style name="ToolTipLayoutDefaultStyle.Custom1">
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+
+    <!-- tooltip alt style -->
+
+    <style name="ToolTipAltStyle" parent="ToolTipLayoutDefaultStyle">
+        <item name="ttlm_padding">20dp</item>
+        <item name="ttlm_backgroundColor">#FF333333</item>
+        <item name="ttlm_cornerRadius">16dp</item>
+        <item name="ttlm_arrowRatio">1</item>
         <item name="android:textAppearance">?android:attr/textAppearanceSmallInverse</item>
         <item name="android:gravity">center</item>
+        <item name="ttlm_overlayStyle">@style/ToolTipOverlayAltStyle</item>
+        <item name="ttlm_elevation">0dp</item>
     </style>
 
-    <style name="ToolTipLayoutCustomStyle">
-        <item name="ttlm_padding">25dip</item>
-        <item name="ttlm_strokeColor">#ffe5a000</item>
-        <item name="ttlm_backgroundColor">#ffe5c700</item>
-        <item name="ttlm_strokeWeight">2dip</item>
-        <item name="ttlm_cornerRadius">8dip</item>
-        <item name="ttlm_overlayStyle">@style/ToolTipOverlayCustomStyle</item>
-        <item name="android:textAppearance">?android:attr/textAppearanceInverse</item>
-    </style>
-
-    <style name="ToolTipOverlayCustomStyle">
-        <item name="android:color">#66ff0000</item>
-        <item name="ttlm_repeatCount">999</item>
-        <item name="ttlm_duration">400</item>
-    </style>
-
-    <style name="ToolTipLayoutDefaultStyle.CustomFont" parent="ToolTipLayoutDefaultStyle">
-        <item name="ttlm_font">fonts/at.ttc</item>
+    <style name="ToolTipOverlayAltStyle" parent="ToolTipOverlayDefaultStyle">
+        <item name="android:color">#FF333333</item>
+        <item name="android:alpha">0.3</item>
     </style>
 
 </resources>
