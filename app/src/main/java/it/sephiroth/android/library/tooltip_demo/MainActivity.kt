@@ -31,7 +31,7 @@ class MainActivity : AppCompatActivity() {
             val fadeDuration = if (text_fade.text.isNullOrEmpty()) 0 else text_fade.text.toString().toLong()
             val arrow = checkbox_arrow.isChecked
             val overlay = checkbox_overlay.isChecked
-            val style = if(checkbox_style.isChecked) R.style.ToolTipAltStyle else null
+            val style = if (checkbox_style.isChecked) R.style.ToolTipAltStyle else null
             val text =
                     if (text_tooltip.text.isNullOrEmpty()) "Lorem ipsum dolor" else text_tooltip.text!!.toSpannable()
 
@@ -54,6 +54,8 @@ class MainActivity : AppCompatActivity() {
                 .doOnHidden {
                     tooltip = null
                 }
+                .doOnFailure { }
+                .doOnShown { }
                 .show(button, gravity, true)
         }
     }

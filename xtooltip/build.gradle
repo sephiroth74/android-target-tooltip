@@ -2,19 +2,19 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
+group GROUP
+version VERSION_NAME
+
 android {
-    compileSdkVersion 28
-
-
+    compileSdkVersion ANDROID_BUILD_SDK_VERSION as int
 
     defaultConfig {
         minSdkVersion 16
-        targetSdkVersion 28
-        versionCode 1
-        versionName "1.0"
+        targetSdkVersion ANDROID_BUILD_TARGET_SDK_VERSION as int
+        versionCode VERSION_CODE as int
+        versionName VERSION_NAME
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-
     }
 
     buildTypes {
@@ -39,6 +39,5 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0'
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
-repositories {
-    mavenCentral()
-}
+
+apply from: 'https://raw.githubusercontent.com/sephiroth74/gradle-mvn-push/master/gradle-mvn-push.gradle'
