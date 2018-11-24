@@ -6,7 +6,7 @@ jdk:
 env:
   global:
   # install timeout in minutes (2 minutes by default)
-  - ADB_INSTALL_TIMEOUT=12
+  - ADB_INSTALL_TIMEOUT=16
 
 android:
   components:
