@@ -33,14 +33,15 @@ class MainActivityTest {
 
     @Test
     fun testTooltipCreated() {
-        onView(withId(R.id.text_duration)).perform(replaceText("1000"))
+        onView(withId(R.id.text_duration)).perform(replaceText("5000"))
         onView(withId(R.id.text_fade)).perform(replaceText("100"))
-        onView(withText(R.string.click_me)).perform(click())
-        onView(withText("Lorem ipsum dolor")).check(matches(isDisplayed()))
+        onView(withId(R.id.button1)).perform(click())
+        Thread.sleep(200)
 
-        Thread.sleep(1400)
+        onView(withId(R.id.tooltip)).check(matches(isDisplayed()))
+        Thread.sleep(5400)
 
-        onView(withText("Lorem ipsum dolor")).check(doesNotExist())
+        onView(withId(R.id.tooltip)).check(doesNotExist())
     }
 
     @Test
