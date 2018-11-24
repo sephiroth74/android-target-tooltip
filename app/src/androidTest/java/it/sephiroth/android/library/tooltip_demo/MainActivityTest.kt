@@ -44,7 +44,7 @@ class MainActivityTest {
     }
 
     @Test
-    fun test_close() {
+    fun test_closeInside() {
         onView(withId(R.id.text_duration)).perform(replaceText("0"))
         onView(withId(R.id.text_fade)).perform(replaceText("100"))
 
@@ -74,7 +74,7 @@ class MainActivityTest {
         latch.await()
 
         // click outside
-        device.click(rect.left - 10, rect.top - 10)
+        device.click(rect.centerX(), rect.bottom + 10)
         Thread.sleep(500)
 
         onView(withId(R.id.tooltip)).check(matches(isDisplayed()))
@@ -83,6 +83,39 @@ class MainActivityTest {
         onView(withId(R.id.tooltip)).perform(click())
         Thread.sleep(500)
 
+        onView(withId(R.id.tooltip)).check(doesNotExist())
+    }
+
+    @Test
+    fun test_closeOutside() {
+        onView(withId(R.id.text_duration)).perform(replaceText("0"))
+        onView(withId(R.id.text_fade)).perform(replaceText("100"))
+
+        uncheck(R.id.switch1)
+        check(R.id.switch3)
+        check(R.id.switch2)
+
+        selectSpinnerValue(R.id.spinner_gravities, "TOP")
+        Thread.sleep(200)
+
+        onView(withId(R.id.button1)).perform(click())
+        Thread.sleep(200)
+
+        onView(withId(R.id.tooltip)).check(matches(isDisplayed()))
+
+        val tooltipRect = getTooltipRect()
+
+        // click inside the tooltip
+        onView(withId(R.id.tooltip)).perform(click())
+        Thread.sleep(500)
+
+        // check is still displayed
+        onView(withId(R.id.tooltip)).check(matches(isDisplayed()))
+
+        device.click(tooltipRect.centerX(), tooltipRect.bottom + 100)
+        Thread.sleep(500)
+
+        // tooltip removed
         onView(withId(R.id.tooltip)).check(doesNotExist())
     }
 
@@ -97,5 +130,24 @@ class MainActivityTest {
         if (activityRule.activity.findViewById<CheckBox>(id).isChecked)
             onView(withId(id)).perform(click())
         onView(withId(id)).check(ViewAssertions.matches(isNotChecked()))
+    }
+
+    private fun selectSpinnerValue(@IdRes id: Int, value: String) {
+        onView(withId(id)).perform(click())
+        onData(allOf(isA(String::class.java), `is`(value))).perform(click())
+        onView(withId(id)).check(matches(withSpinnerText(containsString(value))))
+    }
+
+    private fun getTooltipRect(): Rect {
+        val latch = CountDownLatch(1)
+        val rect = Rect()
+        val tooltipContent = activityRule.activity.tooltip!!.contentView!!
+
+        tooltipContent.doOnPreDraw {
+            it.getHitRect(rect)
+            latch.countDown()
+        }
+        latch.await()
+        return rect
     }
 }
