@@ -44,7 +44,7 @@ before_install:
 
 before_script:
   # - $ANDROID_HOME/emulator/emulator -avd test -no-audio -skin 1440x2560 &
-  - $ANDROID_HOME/emulator/emulator -avd test -no-audio &
+  - $ANDROID_HOME/emulator/emulator -avd test -gpu auto -no-audio -no-window -verbose -accel auto &
   - android-wait-for-emulator
   - adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done; input keyevent 82'
 
