@@ -6,7 +6,7 @@ jdk:
 env:
   global:
   # install timeout in minutes (2 minutes by default)
-  - ADB_INSTALL_TIMEOUT=8
+  - ADB_INSTALL_TIMEOUT=12
 
 android:
   components:
@@ -43,9 +43,9 @@ before_install:
   - echo no | avdmanager create avd --force -n test -k "system-images;android-25;google_apis;arm64-v8a" --device "pixel_xl" --sdcard 512M
 
 before_script:
-  - $ANDROID_HOME/emulator/emulator -avd test -no-audio -no-window -skin 1440x2560 &
-  - android-wait-for-emulator
-  - adb shell input keyevent 82 &
+  # - $ANDROID_HOME/emulator/emulator -avd test -no-audio -skin 1440x2560 &
+  - $ANDROID_HOME/emulator/emulator -avd test -no-audio &
+  - adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done; input keyevent 82'
 
 script:
   - adb logcat > logcat.log &
