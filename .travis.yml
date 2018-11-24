@@ -40,13 +40,13 @@ before_install:
   - sdkmanager emulator
   - sdkmanager "system-images;android-25;google_apis;armeabi-v7a"
   - sdkmanager --update
-  - echo no | avdmanager create avd --force -n test -k "system-images;android-25;google_apis;armeabi-v7a"
+  - echo no | avdmanager create avd --force -n test -k "system-images;android-25;google_apis;armeabi-v7a" --device 'Pixel 2 XL' --sdcard 512M
 
 install:
     - ./gradlew clean build lint assemble --stacktrace
 
 before_script:
-  - $ANDROID_HOME/emulator/emulator -avd test -no-audio -no-window &
+  - $ANDROID_HOME/emulator/emulator -avd test -no-audio -no-window -skin 1440x2880 &
   - android-wait-for-emulator
   - adb shell input keyevent 82 &
 
