@@ -38,20 +38,22 @@ before_install:
   - sdkmanager tools
   - sdkmanager --update
   - sdkmanager emulator
-  - sdkmanager "system-images;android-25;google_apis;armeabi-v7a"
+  - sdkmanager "system-images;android-25;google_apis;arm64-v8a"
   - sdkmanager --update
-  - echo no | avdmanager create avd --force -n test -k "system-images;android-25;google_apis;armeabi-v7a" --device "pixel_xl" --sdcard 512M
-
-install:
-    - ./gradlew clean build lint assemble --stacktrace
+  - echo no | avdmanager create avd --force -n test -k "system-images;android-25;google_apis;arm64-v8a" --device "pixel_xl" --sdcard 512M
 
 before_script:
-  - $ANDROID_HOME/emulator/emulator -avd test -no-audio -no-window -skin 1440x2880 &
+  - $ANDROID_HOME/emulator/emulator -avd test -no-audio -no-window -skin 1440x2560 &
   - android-wait-for-emulator
   - adb shell input keyevent 82 &
 
 script:
-  - ./gradlew app:connectedAndroidTest --stacktrace
+  - adb logcat > logcat.log &
+  - ./gradlew clean build lint assemble
+  - ./gradlew app:connectedCheck
+
+after_failure:
+   - cat logcat.log
 
 sudo: false
 
