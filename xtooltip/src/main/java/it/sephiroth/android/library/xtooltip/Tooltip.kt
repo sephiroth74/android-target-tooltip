@@ -96,6 +96,10 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     private val hideRunnable = Runnable { hide() }
     private val activateRunnable = Runnable { mActivated = true }
 
+    var contentView: View? = null
+        get() = mContentView
+        private set
+
     private var predrawListener = ViewTreeObserver.OnPreDrawListener {
         if (mHasAnchorView && null != mAnchorView?.get()) {
             val view = mAnchorView?.get()!!
@@ -557,8 +561,8 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         }
     }
 
-    fun show(parent: View, gravity: Gravity, fitToScreen: Boolean = false): Tooltip? {
-        if (isShowing || (mHasAnchorView && mAnchorView?.get() == null)) return null
+    fun show(parent: View, gravity: Gravity, fitToScreen: Boolean = false) {
+        if (isShowing || (mHasAnchorView && mAnchorView?.get() == null)) return
 
         isVisible = false
 
@@ -569,7 +573,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         gravities.remove(gravity)
         gravities.add(0, gravity)
 
-        return invokePopup(
+        invokePopup(
                 findPosition(
                         parent,
                         mAnchorView?.get(),
@@ -578,7 +582,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
                         params,
                         fitToScreen
                             )
-                          )
+                   )
     }
 
     fun hide() {
