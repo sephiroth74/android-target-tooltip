@@ -44,7 +44,7 @@ before_install:
 
 before_script:
   # - $ANDROID_HOME/emulator/emulator -avd test -no-audio -skin 1440x2560 &
-  - $ANDROID_HOME/emulator/emulator -avd test -gpu auto -no-audio -no-window -verbose -accel auto &
+  - $ANDROID_HOME/emulator/emulator -avd test -gpu swiftshader_indirect -no-audio -no-window -verbose &
   - android-wait-for-emulator
   - adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done; input keyevent 82'
 
@@ -52,6 +52,9 @@ script:
   - adb logcat > logcat.log &
   - ./gradlew clean build lint assemble
   - ./gradlew app:connectedCheck
+
+after_script:
+   - cat logcat.log
 
 after_failure:
    - cat logcat.log
