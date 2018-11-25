@@ -10,9 +10,6 @@ env:
 
 android:
   components:
-    - tools
-    - platform-tools
-    - tools
     - build-tools-28.0.3
     - android-25
     - extra-android-m2repository
