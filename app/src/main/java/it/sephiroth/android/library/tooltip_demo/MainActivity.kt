@@ -12,7 +12,7 @@ import timber.log.Timber
 
 
 class MainActivity : AppCompatActivity() {
-    private var tooltip: Tooltip? = null
+    var tooltip: Tooltip? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,12 +51,14 @@ class MainActivity : AppCompatActivity() {
                 .fadeDuration(fadeDuration)
                 .overlay(overlay)
                 .create()
-                .doOnHidden {
+
+            tooltip
+                ?.doOnHidden {
                     tooltip = null
                 }
-                .doOnFailure { }
-                .doOnShown { }
-                .show(button, gravity, true)
+                ?.doOnFailure { }
+                ?.doOnShown {}
+                ?.show(button, gravity, true)
         }
 
         button2.setOnClickListener {

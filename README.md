@@ -29,6 +29,8 @@ Usage
         .fadeDuration(Long)
         .overlay(Boolean)
         .create()
+    
+    tooltip
         .doOnHidden { }
         .doOnFailure { }
         .doOnShown { }
