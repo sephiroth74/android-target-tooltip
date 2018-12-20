@@ -8,6 +8,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.ColorStateList;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
@@ -16,14 +17,11 @@ import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Handler;
-import android.support.annotation.DimenRes;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.StringRes;
 import android.text.Html;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
+import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
@@ -31,12 +29,18 @@ import android.view.ViewParent;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.view.animation.AccelerateDecelerateInterpolator;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import androidx.annotation.DimenRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
 
 import static android.util.Log.DEBUG;
 import static android.util.Log.ERROR;
@@ -394,6 +398,8 @@ public final class Tooltip {
             };
 
         private boolean mIsCustomView;
+        private boolean mShowAsPopup;
+        private PopupWindow mPopup = null;
 
         public TooltipViewImpl(Context context, final Builder builder) {
             super(context);
@@ -412,6 +418,7 @@ public final class Tooltip {
 
             theme.recycle();
 
+            this.mShowAsPopup = builder.showAsPopup;
             this.mToolTipId = builder.id;
             this.mText = builder.text;
             this.mGravity = builder.gravity;
@@ -428,6 +435,7 @@ public final class Tooltip {
             this.mCallback = builder.closeCallback;
             this.mFloatingAnimation = builder.floatingAnimation;
             this.mSizeTolerance = (int) (context.getResources().getDisplayMetrics().density * TOLERANCE_VALUE);
+
 
             if (builder.typeface != null) {
                 mTypeface = builder.typeface;
@@ -482,7 +490,28 @@ public final class Tooltip {
 
         @Override
         public void show() {
-            if (getParent() == null) {
+            if (mShowAsPopup) {
+                if (mPopup == null) {
+                    View v = mViewAnchor.get();
+                    if (v != null) {
+                        mPopup = new PopupWindow(this, LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT,
+                                true);
+                        // view serves as window token provider only here!
+                        mPopup.showAtLocation(v, android.view.Gravity.BOTTOM, 0, 0);
+                        v.addOnAttachStateChangeListener(new OnAttachStateChangeListener() {
+                            @Override
+                            public void onViewAttachedToWindow(View view) {
+
+                            }
+
+                            @Override
+                            public void onViewDetachedFromWindow(View view) {
+                                removePopup();
+                            }
+                        });
+                    }
+                }
+            } else if (getParent() == null) {
                 final Activity act = Utils.getActivity(getContext());
                 LayoutParams params = new LayoutParams(MATCH_PARENT, MATCH_PARENT);
                 if (act != null) {
@@ -571,17 +600,21 @@ public final class Tooltip {
             ViewParent parent = getParent();
             removeCallbacks();
 
-            if (null != parent) {
-                ViewGroup parentViewGroup = (ViewGroup) parent;
-
-                // If layout is requested we should delay removing the view to avoid parent
-                // onLayout crash
-                if (parentViewGroup.isLayoutRequested()) {
-                    postRemoveFromParentNow(parentViewGroup);
+            if (null != parent || mPopup != null) {
+                if (mPopup != null) {
+                    mPopup.dismiss();
+                    mPopup = null;
                 } else {
-                    removeFromParentNow(parentViewGroup);
-                }
+                    ViewGroup parentViewGroup = (ViewGroup) parent;
 
+                    // If layout is requested we should delay removing the view to avoid parent
+                    // onLayout crash
+                    if (parentViewGroup.isLayoutRequested()) {
+                        postRemoveFromParentNow(parentViewGroup);
+                    } else {
+                        removeFromParentNow(parentViewGroup);
+                    }
+                }
                 if (null != mShowAnimation && mShowAnimation.isStarted()) {
                     mShowAnimation.cancel();
                 }
@@ -685,8 +718,15 @@ public final class Tooltip {
         }
 
         @Override
+        protected void onConfigurationChanged(Configuration newConfig) {
+            removePopup();
+            super.onConfigurationChanged(newConfig);
+        }
+
+        @Override
         protected void onDetachedFromWindow() {
             log(TAG, INFO, "[%d] onDetachedFromWindow", mToolTipId);
+            removePopup();
             removeListeners();
             stopFloatingAnimations();
             mAttached = false;
@@ -733,6 +773,14 @@ public final class Tooltip {
                     }
                 }
                 calculatePositions();
+            }
+        }
+
+        private void removePopup() {
+            if (mPopup != null) {
+                if (mPopup.isShowing())
+                    mPopup.dismiss();
+                mPopup = null;
             }
         }
 
@@ -1029,6 +1077,37 @@ public final class Tooltip {
                 }
             } else if (gravity == CENTER) {
                 calculatePositionCenter(checkEdges, screenTop, width, height);
+            }
+
+            // correction needed to support dialog as well e.g.
+            // => better solution would be to take this into account in calcualtions,
+            // but for now a post calculation correction must do it
+            if (mShowAsPopup) {
+                int offsetTop = 0;
+                int offsetLeft = 0;
+                int additionalOffsetLeft = 0;
+                int realStatusBarHeight = Utils.getStatusBarHeight(getContext());
+                int orientation = getResources().getConfiguration().orientation;
+                if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                    int softButtonsHeight = Utils.getSoftButtonsBarHeight(getContext());
+                    int deviceRotation = Utils.getDeviceRotation(getContext());
+                    // soft buttons are only at the left if device is rotated to the right
+                    if (softButtonsHeight > 0 && deviceRotation == Surface.ROTATION_270) {
+                        additionalOffsetLeft -= softButtonsHeight;
+                    }
+                }
+                mViewRect.top -= realStatusBarHeight;
+                mViewRect.bottom -= realStatusBarHeight;
+
+                Rect outRect = new Rect();
+                mView.getWindowVisibleDisplayFrame(outRect);
+                offsetTop -= outRect.top;
+                offsetLeft -= outRect.left;
+
+                mViewRect.left += offsetLeft + additionalOffsetLeft;
+                mViewRect.top += offsetTop;
+                mDrawRect.left += offsetLeft;
+                mDrawRect.top += offsetTop;
             }
 
             if (dbg) {
@@ -1498,6 +1577,7 @@ public final class Tooltip {
         boolean overlay = true;
         AnimationBuilder floatingAnimation;
         Typeface typeface;
+        boolean showAsPopup = false;
 
         public Builder(int id) {
             this.id = id;
@@ -1669,6 +1749,11 @@ public final class Tooltip {
         public Builder showDelay(long ms) {
             throwIfCompleted();
             this.showDelay = ms;
+            return this;
+        }
+
+        public Builder asPopup() {
+            this.showAsPopup = true;
             return this;
         }
 

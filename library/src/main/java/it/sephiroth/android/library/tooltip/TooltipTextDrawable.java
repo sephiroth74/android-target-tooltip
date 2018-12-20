@@ -14,7 +14,8 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
-import android.support.annotation.Nullable;
+
+import androidx.annotation.Nullable;
 
 class TooltipTextDrawable extends Drawable {
     public static final float ARROW_RATIO_DEFAULT = 1.4f;
