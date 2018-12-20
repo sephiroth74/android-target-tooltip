@@ -5,13 +5,10 @@ version VERSION_NAME
 
 android {
     compileSdkVersion ANDROID_BUILD_SDK_VERSION as int
-    buildToolsVersion ANDROID_BUILD_TOOLS_VERSION
 
     defaultConfig {
         minSdkVersion 14
         targetSdkVersion ANDROID_BUILD_TARGET_SDK_VERSION as int
-        versionCode 1
-        versionName VERSION_NAME
         consumerProguardFiles 'proguard-rules.txt'
     }
 
@@ -42,9 +39,7 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    provided 'com.android.support:support-annotations:24.1.1'
-    compile 'com.android.support:appcompat-v7:24.1.1'
+    implementation "androidx.appcompat:appcompat:1.0.0"
 }
 
 
