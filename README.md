@@ -10,7 +10,7 @@ Many additional features and customizations. Just look at the samples Activities
 Installation
 ===
 
-	compile 'it.sephiroth.android.library.targettooltip:target-tooltip-library:2.0.1'
+	implementation 'it.sephiroth.android.library.targettooltip:target-tooltip-library:2.0.1'
 
 
 Usage
