@@ -679,8 +679,6 @@ class Tooltip private constructor(private val context: Context, builder: Builder
 
         override fun dispatchKeyEvent(event: KeyEvent): Boolean {
             if (!isShowing || !isVisible || !mActivated) return super.dispatchKeyEvent(event)
-            Timber.i("dispatchKeyEvent: $event")
-
             if (event.keyCode == KeyEvent.KEYCODE_BACK) {
                 if (keyDispatcherState == null) {
                     return super.dispatchKeyEvent(event)
