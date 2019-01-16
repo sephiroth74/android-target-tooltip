@@ -5,12 +5,34 @@ Create Toast like tooltips, physical targets can be specified, or even points on
 Many additional features and customizations. Just look at the samples Activities.
 
 [![Build Status](https://travis-ci.org/sephiroth74/android-target-tooltip.svg?branch=master)](https://travis-ci.org/sephiroth74/android-target-tooltip)
+
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/it.sephiroth.android.library.targettooltip/target-tooltip-library/badge.svg)](https://maven-badges.herokuapp.com/maven-central/it.sephiroth.android.library.targettooltip/target-tooltip-library)
+[![](https://jitpack.io/v/sephiroth74/android-target-tooltip.svg)](https://jitpack.io/#sephiroth74/android-target-tooltip)
 
 Installation
 ===
 
+## Maven
 	compile 'it.sephiroth.android.library.targettooltip:target-tooltip-library:2.0.1'
+	
+## JitPack
+
+**Step 1.** Add the JitPack repository to your build file:
+
+	allprojects {
+		repositories {
+			...
+			maven { url 'https://jitpack.io' }
+		}
+	}
+
+**Step 2.** Add the dependency
+
+	dependencies {
+	        implementation 'com.github.sephiroth74:android-target-tooltip:Tag'
+	}
+
+Get the latest version  on [JitPack](https://jitpack.io/#sephiroth74/android-target-tooltip)	
 
 
 Usage
