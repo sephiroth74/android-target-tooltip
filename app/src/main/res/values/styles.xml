@@ -4,8 +4,8 @@
         <item name="colorPrimary">@color/colorPrimaryDark</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
 
-        <item name="colorSecondary">@color/colorSecondary</item>
-        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorSecondary">@color/colorPrimary</item>
+        <item name="colorAccent">@color/colorPrimary</item>
     </style>
 
     <style name="AppTheme.NoActionBar">
@@ -23,7 +23,7 @@
         <item name="ttlm_backgroundColor">#FF9800</item>
         <item name="ttlm_cornerRadius">6dp</item>
         <item name="ttlm_arrowRatio">1.2</item>
-        <item name="android:textAppearance">?android:attr/textAppearanceSmallInverse</item>
+        <item name="android:textAppearance">?android:attr/textAppearanceSmall</item>
         <item name="android:gravity">center</item>
         <item name="ttlm_overlayStyle">@style/ToolTipOverlayAltStyle</item>
         <item name="ttlm_elevation">0dp</item>

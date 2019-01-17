@@ -5,8 +5,8 @@
 
 
     <string-array name="gravities">
-        <item>BOTTOM</item>
         <item>TOP</item>
+        <item>BOTTOM</item>
         <item>LEFT</item>
         <item>RIGHT</item>
         <item>CENTER</item>
