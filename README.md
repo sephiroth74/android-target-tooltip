@@ -15,7 +15,7 @@ Installation
 ## Maven
 
 ```gradle
-compile 'it.sephiroth.android.library.targettooltip:target-tooltip-library:2.0.1'
+compile 'it.sephiroth.android.library.targettooltip:target-tooltip-library:**version**'
 ```	
 	
 ## JitPack
