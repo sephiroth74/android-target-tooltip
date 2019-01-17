@@ -110,15 +110,9 @@ And this is the style for the overlay touch:
 
 then pass the style in the Builder method **withStyleId(int resId)**
 
-
-Video
-===
-[![IMAGE ALT TEXT HERE](http://img.youtube.com/vi/QitX9bnsnP4/0.jpg)](http://www.youtube.com/watch?v=QitX9bnsnP4)
-
-
 Screenshots
 ===
-![Screen shot](screenshots/image01.png)
+![Screen shot](./screenshots/video.gif)
 
 
 [1]: https://github.com/sephiroth74/android-target-tooltip/blob/master/library/src/main/java/it/sephiroth/android/library/tooltip/Tooltip.java#L1471
