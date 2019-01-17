@@ -24,7 +24,7 @@ class MainActivity : AppCompatActivity() {
 
             val gravity = Tooltip.Gravity.valueOf(spinner_gravities.selectedItem.toString())
             val closePolicy = getClosePolicy()
-            val typeface = if (checkbox_font.isChecked) Typefaces[this, "fonts/at.ttc"] else null
+            val typeface = if (checkbox_font.isChecked) Typefaces[this, "fonts/GillSans.ttc"] else null
             val animation = if (checkbox_animation.isChecked) Tooltip.Animation.DEFAULT else null
             val showDuration = if (text_duration.text.isNullOrEmpty()) 0 else text_duration.text.toString().toLong()
             val fadeDuration = if (text_fade.text.isNullOrEmpty()) 0 else text_fade.text.toString().toLong()
@@ -32,7 +32,7 @@ class MainActivity : AppCompatActivity() {
             val overlay = checkbox_overlay.isChecked
             val style = if (checkbox_style.isChecked) R.style.ToolTipAltStyle else null
             val text =
-                    if (text_tooltip.text.isNullOrEmpty()) "Lorem ipsum dolor" else text_tooltip.text!!.toSpannable()
+                    if (text_tooltip.text.isNullOrEmpty()) text_tooltip.hint else text_tooltip.text!!.toSpannable()
 
             Timber.v("gravity: $gravity")
             Timber.v("closePolicy: $closePolicy")

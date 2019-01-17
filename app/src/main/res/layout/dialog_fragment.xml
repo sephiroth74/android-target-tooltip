@@ -18,7 +18,7 @@
         android:layout_marginTop="8dp"
         android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec bibendum, enim ut gravida lacinia, orci nisi mollis mi, eget convallis augue arcu in nibh. In nec dapibus nisi, sed ultricies ex. Integer facilisis mi ante, eget aliquam lacus condimentum vel. Vivamus vel libero sit amet tellus posuere euismod et sit amet diam. Duis in leo imperdiet enim fermentum posuere quis ut dui. Suspendisse interdum tincidunt velit sed mattis. Nam sit amet congue massa, vitae elementum lectus" />
 
-    <androidx.appcompat.widget.AppCompatButton
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/button1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

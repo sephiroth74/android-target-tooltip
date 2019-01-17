@@ -1,10 +1,10 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight">
-        <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorPrimary</item>
+    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+        <item name="colorPrimary">@color/colorPrimaryDark</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+
+        <item name="colorSecondary">@color/colorSecondary</item>
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
@@ -13,16 +13,14 @@
         <item name="windowNoTitle">false</item>
     </style>
 
-    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
-
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
 
-    <!-- tooltip alt style -->
+    <!-- tooltip custom style -->
 
     <style name="ToolTipAltStyle" parent="ToolTipLayoutDefaultStyle">
-        <item name="ttlm_padding">20dp</item>
-        <item name="ttlm_backgroundColor">#FF333333</item>
+        <item name="ttlm_padding">16dp</item>
+        <item name="ttlm_backgroundColor">#FF9800</item>
         <item name="ttlm_cornerRadius">6dp</item>
         <item name="ttlm_arrowRatio">1.2</item>
         <item name="android:textAppearance">?android:attr/textAppearanceSmallInverse</item>
