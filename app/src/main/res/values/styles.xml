@@ -23,8 +23,8 @@
     <style name="ToolTipAltStyle" parent="ToolTipLayoutDefaultStyle">
         <item name="ttlm_padding">20dp</item>
         <item name="ttlm_backgroundColor">#FF333333</item>
-        <item name="ttlm_cornerRadius">16dp</item>
-        <item name="ttlm_arrowRatio">1</item>
+        <item name="ttlm_cornerRadius">6dp</item>
+        <item name="ttlm_arrowRatio">1.2</item>
         <item name="android:textAppearance">?android:attr/textAppearanceSmallInverse</item>
         <item name="android:gravity">center</item>
         <item name="ttlm_overlayStyle">@style/ToolTipOverlayAltStyle</item>
