@@ -5,16 +5,47 @@ Create Toast like tooltips, physical targets can be specified, or even points on
 Many additional features and customizations. Just look at the samples Activities.
 
 [![Build Status](https://travis-ci.org/sephiroth74/android-target-tooltip.svg?branch=master)](https://travis-ci.org/sephiroth74/android-target-tooltip)
+
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/it.sephiroth.android.library.targettooltip/target-tooltip-library/badge.svg)](https://maven-badges.herokuapp.com/maven-central/it.sephiroth.android.library.targettooltip/target-tooltip-library)
+[![](https://jitpack.io/v/sephiroth74/android-target-tooltip.svg)](https://jitpack.io/#sephiroth74/android-target-tooltip)
 
 Installation
 ===
 
-	compile 'it.sephiroth.android.library.targettooltip:target-tooltip-library:2.0.1'
+## Maven
+
+```gradle
+compile 'it.sephiroth.android.library.targettooltip:target-tooltip-library:2.0.1'
+```	
+	
+## JitPack
+
+**Step 1.** Add the JitPack repository to your build file:
+
+```gradle
+allprojects {
+	repositories {
+		...
+		maven { url 'https://jitpack.io' }
+	}
+}
+```
+
+**Step 2.** Add the dependency
+
+```gradle
+dependencies {
+        implementation 'com.github.sephiroth74:android-target-tooltip:Tag'
+}
+```
+
+Get the latest version  on [JitPack](https://jitpack.io/#sephiroth74/android-target-tooltip)	
 
 
 Usage
 ===
+
+```kotlin
     val tooltip = Tooltip.Builder(Context)
         .anchor(View, Int, Int, Boolean)
         .anchor(Int, Int)
@@ -35,6 +66,7 @@ Usage
         .doOnFailure { }
         .doOnShown { }
         .show(View, Tooltip.Gravity, Boolean)
+```
 
 See the inner [Builder][1] class for the complete set of options
 
@@ -43,6 +75,7 @@ Customization
 
 Tooltip style can be customized in your style object:
 
+```xml
     <!-- default style -->
     <declare-styleable name="TooltipLayout">
         <attr name="ttlm_padding" format="dimension" />
@@ -61,10 +94,11 @@ Tooltip style can be customized in your style object:
         <!-- textview text gravity -->
         <attr name="android:gravity" />
     </declare-styleable>
-
+```
 
 And this is the style for the overlay touch:
 
+```xml
     <declare-styleable name="TooltipOverlay">
         <attr name="android:color" />
         <attr name="android:alpha" />
@@ -72,18 +106,13 @@ And this is the style for the overlay touch:
         <attr name="ttlm_duration" format="integer" />
         <attr name="android:layout_margin" />
     </declare-styleable>
+```
 
 then pass the style in the Builder method **withStyleId(int resId)**
 
-
-Video
-===
-[![IMAGE ALT TEXT HERE](http://img.youtube.com/vi/QitX9bnsnP4/0.jpg)](http://www.youtube.com/watch?v=QitX9bnsnP4)
-
-
 Screenshots
 ===
-![Screen shot](screenshots/image01.png)
+![Screen shot](./screenshots/video2.gif)
 
 
 [1]: https://github.com/sephiroth74/android-target-tooltip/blob/master/library/src/main/java/it/sephiroth/android/library/tooltip/Tooltip.java#L1471

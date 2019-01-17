@@ -2,8 +2,8 @@ package it.sephiroth.android.library.xtooltip
 
 import android.content.Context
 import android.graphics.Typeface
+import android.util.LruCache
 import timber.log.Timber
-import java.util.*
 
 /**
  * Created by alessandro crugnola on 12/12/15.
@@ -23,21 +23,21 @@ import java.util.*
  * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 object Typefaces {
-    private val FONT_CACHE = Hashtable<String, Typeface>()
+    private val FONT_CACHE = LruCache<String, Typeface>(4)
 
     operator fun get(c: Context, assetPath: String): Typeface? {
         synchronized(FONT_CACHE) {
-            if (!FONT_CACHE.containsKey(assetPath)) {
+            var typeface = FONT_CACHE.get(assetPath)
+            if (typeface == null) {
                 try {
-                    val t = Typeface.createFromAsset(c.assets, assetPath)
-                    FONT_CACHE[assetPath] = t
+                    typeface = Typeface.createFromAsset(c.assets, assetPath)
+                    FONT_CACHE.put(assetPath, typeface)
                 } catch (e: Exception) {
                     Timber.e("Could not get typeface '$assetPath' because ${e.message}")
                     return null
                 }
-
             }
-            return FONT_CACHE[assetPath]
+            return typeface
         }
     }
 }

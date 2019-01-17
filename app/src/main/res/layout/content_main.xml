@@ -28,15 +28,16 @@
         android:columnCount="2"
         android:rowCount="5">
 
-        <com.google.android.material.checkbox.MaterialCheckBox
+        <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/switch1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_column="0"
             android:layout_row="0"
+            android:layoutDirection="rtl"
             android:text="Touch Inside" />
 
-        <com.google.android.material.checkbox.MaterialCheckBox
+        <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/switch3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -46,15 +47,16 @@
             android:checked="true"
             android:text="Touch Outside" />
 
-        <com.google.android.material.checkbox.MaterialCheckBox
+        <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/switch2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_column="0"
             android:layout_row="1"
+            android:layoutDirection="rtl"
             android:text="Consume" />
 
-        <com.google.android.material.checkbox.MaterialCheckBox
+        <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/checkbox_font"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -63,16 +65,17 @@
             android:layout_row="1"
             android:text="Custom Font" />
 
-        <com.google.android.material.checkbox.MaterialCheckBox
+        <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/checkbox_animation"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_column="0"
             android:layout_row="2"
             android:checked="true"
+            android:layoutDirection="rtl"
             android:text="Floating Animation" />
 
-        <com.google.android.material.checkbox.MaterialCheckBox
+        <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/checkbox_arrow"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -82,16 +85,17 @@
             android:checked="true"
             android:text="With Arrow" />
 
-        <com.google.android.material.checkbox.MaterialCheckBox
+        <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/checkbox_overlay"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_column="0"
             android:layout_row="3"
             android:checked="true"
+            android:layoutDirection="rtl"
             android:text="With Overlay" />
 
-        <com.google.android.material.checkbox.MaterialCheckBox
+        <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/checkbox_style"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -184,13 +188,13 @@
         android:gravity="center"
         android:orientation="vertical">
 
-        <androidx.appcompat.widget.AppCompatButton
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/button1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/click_me" />
 
-        <androidx.appcompat.widget.AppCompatButton
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/button2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
