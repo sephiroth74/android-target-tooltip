@@ -112,7 +112,7 @@ then pass the style in the Builder method **withStyleId(int resId)**
 
 Screenshots
 ===
-![Screen shot](./screenshots/video.gif)
+![Screen shot](./screenshots/video2.gif)
 
 
 [1]: https://github.com/sephiroth74/android-target-tooltip/blob/master/library/src/main/java/it/sephiroth/android/library/tooltip/Tooltip.java#L1471
