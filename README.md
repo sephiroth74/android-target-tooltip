@@ -13,30 +13,39 @@ Installation
 ===
 
 ## Maven
-	compile 'it.sephiroth.android.library.targettooltip:target-tooltip-library:2.0.1'
+
+```gradle
+compile 'it.sephiroth.android.library.targettooltip:target-tooltip-library:2.0.1'
+```	
 	
 ## JitPack
 
 **Step 1.** Add the JitPack repository to your build file:
 
-	allprojects {
-		repositories {
-			...
-			maven { url 'https://jitpack.io' }
-		}
+```gradle
+allprojects {
+	repositories {
+		...
+		maven { url 'https://jitpack.io' }
 	}
+}
+```
 
 **Step 2.** Add the dependency
 
-	dependencies {
-	        implementation 'com.github.sephiroth74:android-target-tooltip:Tag'
-	}
+```gradle
+dependencies {
+        implementation 'com.github.sephiroth74:android-target-tooltip:Tag'
+}
+```
 
 Get the latest version  on [JitPack](https://jitpack.io/#sephiroth74/android-target-tooltip)	
 
 
 Usage
 ===
+
+```kotlin
     val tooltip = Tooltip.Builder(Context)
         .anchor(View, Int, Int, Boolean)
         .anchor(Int, Int)
@@ -57,6 +66,7 @@ Usage
         .doOnFailure { }
         .doOnShown { }
         .show(View, Tooltip.Gravity, Boolean)
+```
 
 See the inner [Builder][1] class for the complete set of options
 
@@ -65,6 +75,7 @@ Customization
 
 Tooltip style can be customized in your style object:
 
+```xml
     <!-- default style -->
     <declare-styleable name="TooltipLayout">
         <attr name="ttlm_padding" format="dimension" />
@@ -83,10 +94,11 @@ Tooltip style can be customized in your style object:
         <!-- textview text gravity -->
         <attr name="android:gravity" />
     </declare-styleable>
-
+```
 
 And this is the style for the overlay touch:
 
+```xml
     <declare-styleable name="TooltipOverlay">
         <attr name="android:color" />
         <attr name="android:alpha" />
@@ -94,6 +106,7 @@ And this is the style for the overlay touch:
         <attr name="ttlm_duration" format="integer" />
         <attr name="android:layout_margin" />
     </declare-styleable>
+```
 
 then pass the style in the Builder method **withStyleId(int resId)**
 
