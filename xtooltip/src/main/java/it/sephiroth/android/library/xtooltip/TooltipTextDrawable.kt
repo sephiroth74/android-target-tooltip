@@ -30,13 +30,13 @@ import kotlin.math.floor
 internal class TooltipTextDrawable(context: Context, builder: Tooltip.Builder) : Drawable() {
     private val rectF: RectF
     private val path: Path
-    private val tmpPoint = Point()
+    private val tmpPoint = PointF()
     private val outlineRect = Rect()
     private val bgPaint: Paint?
     private val stPaint: Paint?
     private val arrowRatio: Float
     private val radius: Float
-    private var point: Point? = null
+    private var point: PointF? = null
     private var padding = 0
     private var arrowWeight = 0
     private var gravity: Tooltip.Gravity? = null
@@ -44,10 +44,10 @@ internal class TooltipTextDrawable(context: Context, builder: Tooltip.Builder) :
     init {
 
         val theme = context.theme.obtainStyledAttributes(
-                null,
-                R.styleable.TooltipLayout,
-                builder.defStyleAttr,
-                builder.defStyleRes
+            null,
+            R.styleable.TooltipLayout,
+            builder.defStyleAttr,
+            builder.defStyleRes
         )
         this.radius = theme.getDimensionPixelSize(R.styleable.TooltipLayout_ttlm_cornerRadius, 4).toFloat()
         val strokeWidth = theme.getDimensionPixelSize(R.styleable.TooltipLayout_ttlm_strokeWeight, 2)
@@ -88,7 +88,7 @@ internal class TooltipTextDrawable(context: Context, builder: Tooltip.Builder) :
         }
     }
 
-    fun setAnchor(gravity: Tooltip.Gravity, padding: Int, point: Point?) {
+    fun setAnchor(gravity: Tooltip.Gravity, padding: Int, point: PointF?) {
         Timber.i("setAnchor($gravity, $padding, $point)")
         if (gravity != this.gravity || padding != this.padding || !ObjectsCompat.equals(this.point, point)) {
             this.gravity = gravity
@@ -96,7 +96,7 @@ internal class TooltipTextDrawable(context: Context, builder: Tooltip.Builder) :
             this.arrowWeight = (padding.toFloat() / arrowRatio).toInt()
 
             point?.let {
-                this.point = Point(it)
+                this.point = PointF(it.x, it.y)
             } ?: run {
                 this.point = null
             }
@@ -129,15 +129,15 @@ internal class TooltipTextDrawable(context: Context, builder: Tooltip.Builder) :
     }
 
     private fun calculatePathWithGravity(
-            outBounds: Rect,
-            left: Int,
-            top: Int,
-            right: Int,
-            bottom: Int,
-            maxY: Float,
-            maxX: Float,
-            minY: Float,
-            minX: Float
+        outBounds: Rect,
+        left: Int,
+        top: Int,
+        right: Int,
+        bottom: Int,
+        maxY: Float,
+        maxX: Float,
+        minY: Float,
+        minX: Float
     ) {
 
         if (gravity == Tooltip.Gravity.LEFT || gravity == Tooltip.Gravity.RIGHT) {
@@ -153,7 +153,7 @@ internal class TooltipTextDrawable(context: Context, builder: Tooltip.Builder) :
         }
 
         val drawPoint =
-                isDrawPoint(left, top, right, bottom, maxY, maxX, minY, minX, tmpPoint, point!!, gravity, arrowWeight)
+            isDrawPoint(left, top, right, bottom, maxY, maxX, minY, minX, tmpPoint, point!!, gravity, arrowWeight)
 
         Timber.v("drawPoint: $drawPoint, point: $point, tmpPoint: $tmpPoint")
 
@@ -240,9 +240,9 @@ internal class TooltipTextDrawable(context: Context, builder: Tooltip.Builder) :
         const val ARROW_RATIO_DEFAULT = 1.4f
 
         private fun isDrawPoint(
-                left: Int, top: Int, right: Int, bottom: Int, maxY: Float, maxX: Float, minY: Float,
-                minX: Float, tmpPoint: Point, point: Point, gravity: Tooltip.Gravity?,
-                arrowWeight: Int
+            left: Int, top: Int, right: Int, bottom: Int, maxY: Float, maxX: Float, minY: Float,
+            minX: Float, tmpPoint: PointF, point: PointF, gravity: Tooltip.Gravity?,
+            arrowWeight: Int
         ): Boolean {
             Timber.i("isDrawPoint: Rect($left, $top, $right, $bottom), x: [$minX, $maxX], y: [$minY, $maxY], point: $point, $arrowWeight")
             var drawPoint = false
@@ -251,9 +251,9 @@ internal class TooltipTextDrawable(context: Context, builder: Tooltip.Builder) :
             if (gravity == Tooltip.Gravity.RIGHT || gravity == Tooltip.Gravity.LEFT) {
                 if (tmpPoint.y in top..bottom) {
                     if (top + tmpPoint.y + arrowWeight > maxY) {
-                        tmpPoint.y = (maxY - arrowWeight.toFloat() - top.toFloat()).toInt()
+                        tmpPoint.y = (maxY - arrowWeight.toFloat() - top.toFloat())
                     } else if (top + tmpPoint.y - arrowWeight < minY) {
-                        tmpPoint.y = (minY + arrowWeight - top).toInt()
+                        tmpPoint.y = (minY + arrowWeight - top)
                     }
                     drawPoint = true
                 }
@@ -261,9 +261,9 @@ internal class TooltipTextDrawable(context: Context, builder: Tooltip.Builder) :
                 if (tmpPoint.x in left..right) {
                     if (tmpPoint.x in left..right) {
                         if (left + tmpPoint.x + arrowWeight > maxX) {
-                            tmpPoint.x = (maxX - arrowWeight.toFloat() - left.toFloat()).toInt()
+                            tmpPoint.x = (maxX - arrowWeight.toFloat() - left.toFloat())
                         } else if (left + tmpPoint.x - arrowWeight < minX) {
-                            tmpPoint.x = (minX + arrowWeight - left).toInt()
+                            tmpPoint.x = (minX + arrowWeight - left)
                         }
                         drawPoint = true
                     }
@@ -273,17 +273,17 @@ internal class TooltipTextDrawable(context: Context, builder: Tooltip.Builder) :
             return drawPoint
         }
 
-        private fun clampPoint(left: Int, top: Int, right: Int, bottom: Int, tmpPoint: Point) {
+        private fun clampPoint(left: Int, top: Int, right: Int, bottom: Int, tmpPoint: PointF) {
             if (tmpPoint.y < top) {
-                tmpPoint.y = top
+                tmpPoint.y = top.toFloat()
             } else if (tmpPoint.y > bottom) {
-                tmpPoint.y = bottom
+                tmpPoint.y = bottom.toFloat()
             }
             if (tmpPoint.x < left) {
-                tmpPoint.x = left
+                tmpPoint.x = left.toFloat()
             }
             if (tmpPoint.x > right) {
-                tmpPoint.x = right
+                tmpPoint.x = right.toFloat()
             }
         }
     }
