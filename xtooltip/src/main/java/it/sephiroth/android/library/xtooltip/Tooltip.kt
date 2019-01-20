@@ -66,7 +66,6 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     private var mPadding: Int = 0
     private var mActivateDelay: Long
     private var mClosePolicy: ClosePolicy
-    private var mFadeDuration: Long
     private var mShowDuration: Long
     private var mMaxWidth: Int? = null
     private var mTextAppearance: Int
@@ -83,6 +82,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     private var mActivated = false
     private var mHasAnchorView = false
     private var mFollowAnchor = false
+    private var mAnimationStyleResId: Int
 
     private var mViewOverlay: TooltipOverlay? = null
     private var mDrawable: TooltipTextDrawable? = null
@@ -147,6 +147,9 @@ class Tooltip private constructor(private val context: Context, builder: Builder
                     R.styleable.TooltipLayout_ttlm_overlayStyle,
                     R.style.ToolTipOverlayDefaultStyle
                 )
+        mAnimationStyleResId =
+                theme.getResourceId(R.styleable.TooltipLayout_ttlm_animationStyle, R.style.Animation_AppCompat_Tooltip)
+
         val font = theme.getString(R.styleable.TooltipLayout_ttlm_font)
         theme.recycle()
 
@@ -157,7 +160,6 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         this.mMaxWidth = builder.maxWidth
         this.mFloatingAnimation = builder.floatingAnimation
         this.mShowDuration = builder.showDuration
-        this.mFadeDuration = builder.fadeDuration
         this.mShowOverlay = builder.overlay
         this.mShowArrow = builder.showArrow && builder.layoutId == null
         builder.anchorView?.let {
@@ -235,6 +237,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         p.token = token
         p.softInputMode = mSoftInputMode
         p.title = "ToolTip:" + Integer.toHexString(hashCode())
+        p.windowAnimations = mAnimationStyleResId
         return p
     }
 
@@ -513,7 +516,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             mPopupView?.fitsSystemWindows = mLayoutInsetDecor
             windowManager.addView(mPopupView, it.params)
             Timber.v("windowManager.addView: $mPopupView")
-            fadeIn(mFadeDuration)
+            fadeIn()
             return this
         } ?: run {
             mFailureFunc?.invoke(this)
@@ -632,7 +635,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     fun hide() {
         Timber.i("hide")
         if (!isShowing) return
-        fadeOut(mFadeDuration)
+        fadeOut()
     }
 
     fun dismiss() {
@@ -654,45 +657,19 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         mHandler.removeCallbacks(activateRunnable)
     }
 
-    private fun fadeIn(fadeDuration: Long) {
+    private fun fadeIn() {
         if (!isShowing || isVisible) return
 
         isVisible = true
-
-        if (fadeDuration > 0 && null != mPopupView) {
-            mPopupView!!.alpha = 0F
-            mPopupView!!.animate()
-                .setDuration(mFadeDuration)
-                .alpha(1f).start()
-        }
         mShownFunc?.invoke(this)
     }
 
-    private fun fadeOut(fadeDuration: Long) {
+    private fun fadeOut() {
         if (!isShowing || !isVisible) return
 
         isVisible = false
         removeCallbacks()
-
-        Timber.i("fadeOut($fadeDuration)")
-
-        if (fadeDuration > 0) {
-            mPopupView?.let { popupView ->
-                popupView.clearAnimation()
-                popupView.animate()
-                    .alpha(0f)
-                    .setDuration(fadeDuration)
-                    .setListener {
-                        onAnimationEnd {
-                            popupView.visibility = View.INVISIBLE
-                            dismiss()
-                        }
-                    }
-                    .start()
-            }
-        } else {
-            dismiss()
-        }
+        dismiss()
     }
 
     inner class TooltipViewContainer(context: Context) : FrameLayout(context) {
@@ -831,7 +808,6 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         internal var overlay = true
         internal var floatingAnimation: Animation? = null
         internal var showDuration: Long = 0
-        internal var fadeDuration: Long = 100
         internal var showArrow = true
         internal var activateDelay = 0L
         internal var followAnchor = false
@@ -871,11 +847,6 @@ class Tooltip private constructor(private val context: Context, builder: Builder
 
         fun arrow(value: Boolean): Builder {
             this.showArrow = value
-            return this
-        }
-
-        fun fadeDuration(value: Long): Builder {
-            this.fadeDuration = value
             return this
         }
 

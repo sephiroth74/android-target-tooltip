@@ -11,6 +11,7 @@
         <item name="android:textAppearance">?android:attr/textAppearanceSmallInverse</item>
         <item name="ttlm_overlayStyle">@style/ToolTipOverlayDefaultStyle</item>
         <item name="ttlm_elevation">@dimen/ttlm_default_elevation</item>
+        <item name="ttlm_animationStyle">@android:style/Animation.Toast</item>
     </style>
 
     <style name="ToolTipOverlayDefaultStyle">
