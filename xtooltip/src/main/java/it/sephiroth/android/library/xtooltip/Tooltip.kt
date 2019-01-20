@@ -21,6 +21,7 @@ import androidx.annotation.IdRes
 import androidx.annotation.LayoutRes
 import androidx.annotation.StringRes
 import androidx.annotation.StyleRes
+import androidx.core.view.doOnLayout
 import androidx.core.view.setPadding
 import timber.log.Timber
 import java.lang.ref.WeakReference
@@ -46,7 +47,7 @@ import java.util.*
 class Tooltip private constructor(private val context: Context, builder: Builder) {
 
     private val windowManager: WindowManager =
-        context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+            context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
     var isShowing = false
         private set
 
@@ -112,9 +113,9 @@ class Tooltip private constructor(private val context: Context, builder: Builder
 
                     if (mOldLocation!![0] != mNewLocation[1] || mOldLocation!![1] != mNewLocation[1]) {
                         offsetBy(
-                            (mNewLocation[0] - mOldLocation!![0]).toFloat(),
-                            (mNewLocation[1] - mOldLocation!![1]).toFloat()
-                        )
+                                (mNewLocation[0] - mOldLocation!![0]).toFloat(),
+                                (mNewLocation[1] - mOldLocation!![1]).toFloat()
+                                )
                     }
 
                     mOldLocation!![0] = mNewLocation[0]
@@ -128,25 +129,25 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     init {
         val theme = context.theme
             .obtainStyledAttributes(
-                null,
-                R.styleable.TooltipLayout,
-                builder.defStyleAttr,
-                builder.defStyleRes
-            )
+                    null,
+                    R.styleable.TooltipLayout,
+                    builder.defStyleAttr,
+                    builder.defStyleRes
+                                   )
         this.mPadding = theme.getDimensionPixelSize(R.styleable.TooltipLayout_ttlm_padding, 30)
         this.mTextAppearance =
                 theme.getResourceId(R.styleable.TooltipLayout_android_textAppearance, 0)
         this.mTextGravity = theme
             .getInt(
-                R.styleable.TooltipLayout_android_gravity,
-                android.view.Gravity.TOP or android.view.Gravity.START
-            )
+                    R.styleable.TooltipLayout_android_gravity,
+                    android.view.Gravity.TOP or android.view.Gravity.START
+                   )
         this.mTextViewElevation = theme.getDimension(R.styleable.TooltipLayout_ttlm_elevation, 0f)
         mOverlayStyle =
                 theme.getResourceId(
-                    R.styleable.TooltipLayout_ttlm_overlayStyle,
-                    R.style.ToolTipOverlayDefaultStyle
-                )
+                        R.styleable.TooltipLayout_ttlm_overlayStyle,
+                        R.style.ToolTipOverlayDefaultStyle)
+
         mAnimationStyleResId =
                 theme.getResourceId(R.styleable.TooltipLayout_ttlm_animationStyle, R.style.Animation_AppCompat_Tooltip)
 
@@ -208,7 +209,8 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     fun update(text: CharSequence) {
         if (isShowing && null != mPopupView) {
 
-            var currentWidth = mContentView.width
+            var currentWidth = mTextView.width
+            var currentHeight = mTextView.height
 
             mTextView.text = if (text is Spannable) {
                 mText
@@ -218,6 +220,37 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             }
 
             // if following, need to update based on its content
+
+            if (mHasAnchorView) {
+                mTextView.doOnLayout {
+                    val gravity = mCurrentPosition?.gravity
+                    val dx = it.width - currentWidth
+                    val dy = it.height - currentHeight
+
+//                    Timber.v("previous width: $currentWidth, current width: ${it.width}, dx: $dx, gravity; $gravity")
+
+                    when (gravity) {
+                        Gravity.CENTER -> {
+                            offsetBy(-dx / 2f, -dy / 2f)
+                        }
+                        Gravity.LEFT -> {
+                            offsetBy((-dx).toFloat(), -dy / 2f)
+                        }
+                        Gravity.RIGHT -> {
+                            offsetBy(0f, -dy / 2f)
+                        }
+                        Gravity.TOP -> {
+                            // TODO: to be implemented
+
+                        }
+                        Gravity.BOTTOM -> {
+                            // TODO: to be implemented
+                        }
+                    }
+                    currentWidth = it.width
+                    currentHeight = it.height
+                }
+            }
         }
     }
 
@@ -278,14 +311,14 @@ class Tooltip private constructor(private val context: Context, builder: Builder
                 with(mViewOverlay!!) {
                     adjustViewBounds = true
                     layoutParams = ViewGroup.LayoutParams(
-                        ViewGroup.LayoutParams.WRAP_CONTENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT
-                    )
+                            ViewGroup.LayoutParams.WRAP_CONTENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT
+                                                         )
                 }
             }
 
             val contentView =
-                LayoutInflater.from(context).inflate(mTooltipLayoutIdRes, viewContainer, false)
+                    LayoutInflater.from(context).inflate(mTooltipLayoutIdRes, viewContainer, false)
 
             mFloatingAnimation?.let { contentView.setPadding(it.radius) }
 
@@ -324,9 +357,8 @@ class Tooltip private constructor(private val context: Context, builder: Builder
 
             if (null != mViewOverlay) {
                 viewContainer.addView(
-                    mViewOverlay,
-                    FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
-                )
+                        mViewOverlay,
+                        FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT))
             }
 
             viewContainer.addView(contentView, FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT))
@@ -362,13 +394,13 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     }
 
     private fun findPosition(
-        parent: View,
-        anchor: View?,
-        offset: Point,
-        gravities: ArrayList<Gravity>,
-        params: WindowManager.LayoutParams,
-        fitToScreen: Boolean = false
-    ): Positions? {
+            parent: View,
+            anchor: View?,
+            offset: Point,
+            gravities: ArrayList<Gravity>,
+            params: WindowManager.LayoutParams,
+            fitToScreen: Boolean = false
+                            ): Positions? {
 
         if (null == mPopupView) return null
         if (gravities.isEmpty()) return null
@@ -475,11 +507,11 @@ class Tooltip private constructor(private val context: Context, builder: Builder
 
         if (fitToScreen) {
             val finalRect = Rect(
-                contentPosition.x,
-                contentPosition.y,
-                contentPosition.x + w,
-                contentPosition.y + h
-            )
+                    contentPosition.x,
+                    contentPosition.y,
+                    contentPosition.x + w,
+                    contentPosition.y + h
+                                )
             if (!displayFrame.rectContainsWithTolerance(finalRect, mSizeTolerance.toInt())) {
                 Timber.e("content won't fit! $displayFrame, $finalRect")
                 return findPosition(parent, anchor, offset, gravities, params, fitToScreen)
@@ -505,10 +537,10 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             }
 
             mDrawable?.setAnchor(
-                it.gravity,
-                if (!mShowArrow) 0 else mPadding / 2,
-                if (!mShowArrow) null else PointF(it.arrowPointX, it.arrowPointY)
-            )
+                    it.gravity,
+                    if (!mShowArrow) 0 else mPadding / 2,
+                    if (!mShowArrow) null else PointF(it.arrowPointX, it.arrowPointY)
+                                )
 
             offsetBy(0f, 0f)
 
@@ -528,11 +560,11 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     fun offsetBy(xoff: Float, yoff: Float) {
         if (isShowing && mPopupView != null && mCurrentPosition != null) {
             Timber.i("offsetBy($xoff, $yoff)")
-            Timber.v("current: ${mCurrentPosition!!.contentPointX}")
+//            Timber.v("current: ${mCurrentPosition!!.contentPointX}")
 
             mCurrentPosition!!.offsetBy(xoff, yoff)
 
-            Timber.v("new: ${mCurrentPosition!!.contentPointX}")
+//            Timber.v("new: ${mCurrentPosition!!.contentPointX}")
 
             mContentView.translationX = mCurrentPosition!!.contentPointX
             mContentView.translationY = mCurrentPosition!!.contentPointY
@@ -547,11 +579,11 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     fun offsetTo(x: Float, y: Float) {
         if (isShowing && mPopupView != null && mCurrentPosition != null) {
             Timber.i("offsetTo($x, $y)")
-            Timber.v("current: ${mCurrentPosition!!.contentPointX}")
+//            Timber.v("current: ${mCurrentPosition!!.contentPointX}")
 
             mCurrentPosition!!.offsetTo(x, y)
 
-            Timber.v("new: ${mCurrentPosition!!.contentPointX}")
+//            Timber.v("new: ${mCurrentPosition!!.contentPointX}")
 
             mContentView.translationX = mCurrentPosition!!.contentPointX
             mContentView.translationY = mCurrentPosition!!.contentPointY
@@ -621,15 +653,15 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         gravities.add(0, gravity)
 
         invokePopup(
-            findPosition(
-                parent,
-                mAnchorView?.get(),
-                mAnchorPoint,
-                gravities,
-                params,
-                fitToScreen
-            )
-        )
+                findPosition(
+                        parent,
+                        mAnchorView?.get(),
+                        mAnchorPoint,
+                        gravities,
+                        params,
+                        fitToScreen
+                            )
+                   )
     }
 
     fun hide() {
@@ -746,13 +778,13 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     }
 
     private data class Positions(
-        val displayFrame: Rect,
-        val arrowPoint: PointF,
-        val centerPoint: PointF,
-        val contentPoint: PointF,
-        val gravity: Gravity,
-        val params: WindowManager.LayoutParams
-    ) {
+            val displayFrame: Rect,
+            val arrowPoint: PointF,
+            val centerPoint: PointF,
+            val contentPoint: PointF,
+            val gravity: Gravity,
+            val params: WindowManager.LayoutParams
+                                ) {
         fun offsetBy(x: Float, y: Float) {
             centerPoint.offset(x, y)
             contentPoint.offset(x, y)
