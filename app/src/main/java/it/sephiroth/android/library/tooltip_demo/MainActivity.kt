@@ -6,7 +6,6 @@ import androidx.core.text.toSpannable
 import it.sephiroth.android.library.xtooltip.ClosePolicy
 import it.sephiroth.android.library.xtooltip.Tooltip
 import it.sephiroth.android.library.xtooltip.Typefaces
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import timber.log.Timber
 
@@ -27,7 +26,6 @@ class MainActivity : AppCompatActivity() {
             val typeface = if (checkbox_font.isChecked) Typefaces[this, "fonts/GillSans.ttc"] else null
             val animation = if (checkbox_animation.isChecked) Tooltip.Animation.DEFAULT else null
             val showDuration = if (text_duration.text.isNullOrEmpty()) 0 else text_duration.text.toString().toLong()
-            val fadeDuration = if (text_fade.text.isNullOrEmpty()) 0 else text_fade.text.toString().toLong()
             val arrow = checkbox_arrow.isChecked
             val overlay = checkbox_overlay.isChecked
             val style = if (checkbox_style.isChecked) R.style.ToolTipAltStyle else null
@@ -47,7 +45,6 @@ class MainActivity : AppCompatActivity() {
                 .floatingAnimation(animation)
                 .closePolicy(closePolicy)
                 .showDuration(showDuration)
-                .fadeDuration(fadeDuration)
                 .overlay(overlay)
                 .create()
 

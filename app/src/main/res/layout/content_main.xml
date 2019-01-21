@@ -136,19 +136,6 @@
             android:layout_row="4"
             android:orientation="horizontal">
 
-            <androidx.appcompat.widget.AppCompatTextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Fade" />
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/text_fade"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:ems="3"
-                android:gravity="right"
-                android:inputType="number"
-                android:text="200" />
 
         </LinearLayout>
 

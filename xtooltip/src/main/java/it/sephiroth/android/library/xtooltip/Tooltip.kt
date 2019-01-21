@@ -5,7 +5,6 @@ import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
-import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.text.Html
@@ -21,7 +20,8 @@ import androidx.annotation.IdRes
 import androidx.annotation.LayoutRes
 import androidx.annotation.StringRes
 import androidx.annotation.StyleRes
-import androidx.core.view.doOnLayout
+import androidx.appcompat.view.ContextThemeWrapper
+import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.view.setPadding
 import timber.log.Timber
 import java.lang.ref.WeakReference
@@ -69,9 +69,6 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     private var mClosePolicy: ClosePolicy
     private var mShowDuration: Long
     private var mMaxWidth: Int? = null
-    private var mTextAppearance: Int
-    private var mTextGravity: Int
-    private var mTextViewElevation: Float
     private var mTypeface: Typeface? = null
     private var mIsCustomView: Boolean = false
     private var mTooltipLayoutIdRes = R.layout.textview
@@ -84,6 +81,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     private var mHasAnchorView = false
     private var mFollowAnchor = false
     private var mAnimationStyleResId: Int
+    private var mTextStyleResId: Int
 
     private var mViewOverlay: TooltipOverlay? = null
     private var mDrawable: TooltipTextDrawable? = null
@@ -135,23 +133,23 @@ class Tooltip private constructor(private val context: Context, builder: Builder
                     builder.defStyleRes
                                    )
         this.mPadding = theme.getDimensionPixelSize(R.styleable.TooltipLayout_ttlm_padding, 30)
-        this.mTextAppearance =
-                theme.getResourceId(R.styleable.TooltipLayout_android_textAppearance, 0)
-        this.mTextGravity = theme
-            .getInt(
-                    R.styleable.TooltipLayout_android_gravity,
-                    android.view.Gravity.TOP or android.view.Gravity.START
-                   )
-        this.mTextViewElevation = theme.getDimension(R.styleable.TooltipLayout_ttlm_elevation, 0f)
         mOverlayStyle =
                 theme.getResourceId(
                         R.styleable.TooltipLayout_ttlm_overlayStyle,
                         R.style.ToolTipOverlayDefaultStyle)
 
         mAnimationStyleResId =
-                theme.getResourceId(R.styleable.TooltipLayout_ttlm_animationStyle, R.style.Animation_AppCompat_Tooltip)
+                if (null != builder.animationStyle) {
+                    builder.animationStyle!!
+                } else {
+                    theme.getResourceId(R.styleable.TooltipLayout_ttlm_animationStyle, android.R.style.Animation_Toast)
+                }
+
 
         val font = theme.getString(R.styleable.TooltipLayout_ttlm_font)
+
+        mTextStyleResId = theme.getResourceId(R.styleable.TooltipLayout_ttlm_textStyle, 0)
+
         theme.recycle()
 
         this.mText = builder.text
@@ -163,6 +161,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         this.mShowDuration = builder.showDuration
         this.mShowOverlay = builder.overlay
         this.mShowArrow = builder.showArrow && builder.layoutId == null
+
         builder.anchorView?.let {
             this.mAnchorView = WeakReference(it)
             this.mHasAnchorView = true
@@ -185,6 +184,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     }
 
     private var mFailureFunc: ((tooltip: Tooltip) -> Unit)? = null
+    private var mPrepareFun: ((tooltip: Tooltip) -> Unit)? = null
     private var mShownFunc: ((tooltip: Tooltip) -> Unit)? = null
     private var mHiddenFunc: ((tooltip: Tooltip) -> Unit)? = null
 
@@ -197,6 +197,12 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     @Suppress("UNUSED")
     fun doOnShown(func: ((tooltip: Tooltip) -> Unit)?): Tooltip {
         mShownFunc = func
+        return this
+    }
+
+    @Suppress("UNUSED")
+    fun doOnPrepare(func: ((tooltip: Tooltip) -> Unit)?): Tooltip {
+        mPrepareFun = func
         return this
     }
 
@@ -219,38 +225,34 @@ class Tooltip private constructor(private val context: Context, builder: Builder
                 Html.fromHtml(text as String)
             }
 
-            // if following, need to update based on its content
-
-            if (mHasAnchorView) {
-                mTextView.doOnLayout {
-                    val gravity = mCurrentPosition?.gravity
-                    val dx = it.width - currentWidth
-                    val dy = it.height - currentHeight
-
-//                    Timber.v("previous width: $currentWidth, current width: ${it.width}, dx: $dx, gravity; $gravity")
-
-                    when (gravity) {
-                        Gravity.CENTER -> {
-                            offsetBy(-dx / 2f, -dy / 2f)
-                        }
-                        Gravity.LEFT -> {
-                            offsetBy((-dx).toFloat(), -dy / 2f)
-                        }
-                        Gravity.RIGHT -> {
-                            offsetBy(0f, -dy / 2f)
-                        }
-                        Gravity.TOP -> {
-                            // TODO: to be implemented
-
-                        }
-                        Gravity.BOTTOM -> {
-                            // TODO: to be implemented
-                        }
-                    }
-                    currentWidth = it.width
-                    currentHeight = it.height
-                }
-            }
+//            if (mHasAnchorView) {
+//                mTextView.doOnLayout {
+//                    val gravity = mCurrentPosition?.gravity
+//                    val dx = it.width - currentWidth
+//                    val dy = it.height - currentHeight
+//
+//                    when (gravity) {
+//                        Gravity.CENTER -> {
+//                            offsetBy(-dx / 2f, -dy / 2f)
+//                        }
+//                        Gravity.LEFT -> {
+//                            offsetBy((-dx).toFloat(), -dy / 2f)
+//                        }
+//                        Gravity.RIGHT -> {
+//                            offsetBy(0f, -dy / 2f)
+//                        }
+//                        Gravity.TOP -> {
+//                            // TODO: to be implemented
+//
+//                        }
+//                        Gravity.BOTTOM -> {
+//                            // TODO: to be implemented
+//                        }
+//                    }
+//                    currentWidth = it.width
+//                    currentHeight = it.height
+//                }
+//            }
         }
     }
 
@@ -312,13 +314,18 @@ class Tooltip private constructor(private val context: Context, builder: Builder
                     adjustViewBounds = true
                     layoutParams = ViewGroup.LayoutParams(
                             ViewGroup.LayoutParams.WRAP_CONTENT,
-                            ViewGroup.LayoutParams.WRAP_CONTENT
-                                                         )
+                            ViewGroup.LayoutParams.WRAP_CONTENT)
                 }
             }
 
             val contentView =
                     LayoutInflater.from(context).inflate(mTooltipLayoutIdRes, viewContainer, false)
+
+            if (!mIsCustomView) {
+                mTextView = AppCompatTextView(ContextThemeWrapper(context, mTextStyleResId))
+                mTextView.id = android.R.id.text1
+                (contentView as ViewGroup).addView(mTextView)
+            }
 
             mFloatingAnimation?.let { contentView.setPadding(it.radius) }
 
@@ -331,18 +338,6 @@ class Tooltip private constructor(private val context: Context, builder: Builder
                     setPadding(mPadding, mPadding, mPadding, mPadding)
                 else
                     setPadding(mPadding / 2, mPadding / 2, mPadding / 2, mPadding / 2)
-
-                if (mTextAppearance != 0) {
-                    @Suppress("DEPRECATION")
-                    setTextAppearance(context, mTextAppearance)
-                }
-
-                if (!mIsCustomView && mTextViewElevation > 0 && Build.VERSION.SDK_INT >= 21) {
-                    elevation = mTextViewElevation
-                    translationZ = mTextViewElevation
-                    outlineProvider = ViewOutlineProvider.BACKGROUND
-                }
-                this.gravity = mTextGravity
 
                 text = if (mText is Spannable) {
                     mText
@@ -652,6 +647,8 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         gravities.remove(gravity)
         gravities.add(0, gravity)
 
+        mPrepareFun?.invoke(this)
+
         invokePopup(
                 findPosition(
                         parent,
@@ -843,6 +840,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         internal var showArrow = true
         internal var activateDelay = 0L
         internal var followAnchor = false
+        internal var animationStyle: Int? = null
 
         @LayoutRes
         internal var layoutId: Int? = null
@@ -933,6 +931,11 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         fun closePolicy(policy: ClosePolicy): Builder {
             this.closePolicy = policy
             Timber.v("closePolicy: $policy")
+            return this
+        }
+
+        fun animationStyle(@StyleRes id: Int): Builder {
+            this.animationStyle = id
             return this
         }
 

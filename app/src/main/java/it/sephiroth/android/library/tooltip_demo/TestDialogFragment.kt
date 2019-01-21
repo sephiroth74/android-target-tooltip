@@ -22,7 +22,6 @@ class TestDialogFragment : DialogFragment() {
             Tooltip.Builder(context!!)
                 .anchor(button, 0, 0, false)
                 .closePolicy(ClosePolicy.TOUCH_ANYWHERE_CONSUME)
-                .fadeDuration(200)
                 .showDuration(0)
                 .text("This is a dialog")
                 .create()
