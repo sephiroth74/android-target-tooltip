@@ -92,6 +92,10 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     private val hideRunnable = Runnable { hide() }
     private val activateRunnable = Runnable { mActivated = true }
 
+    var text: CharSequence? = null
+        get() = mText
+        private set
+
     var contentView: View? = null
         get() = mContentView
         private set
@@ -212,14 +216,15 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         return this
     }
 
-    fun update(text: CharSequence) {
+    fun update(text: CharSequence?) {
+        mText = text
         if (isShowing && null != mPopupView) {
 
             var currentWidth = mTextView.width
             var currentHeight = mTextView.height
 
             mTextView.text = if (text is Spannable) {
-                mText
+                text
             } else {
                 @Suppress("DEPRECATION")
                 Html.fromHtml(text as String)

@@ -1,6 +1,7 @@
 package it.sephiroth.android.library.tooltip_demo
 
 import android.os.Bundle
+import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.text.toSpannable
 import it.sephiroth.android.library.xtooltip.ClosePolicy
@@ -25,7 +26,7 @@ class MainActivity : AppCompatActivity() {
             val closePolicy = getClosePolicy()
             val typeface = if (checkbox_font.isChecked) Typefaces[this, "fonts/GillSans.ttc"] else null
             val animation = if (checkbox_animation.isChecked) Tooltip.Animation.DEFAULT else null
-            val showDuration = if (text_duration.text.isNullOrEmpty()) 0 else text_duration.text.toString().toLong()
+            val showDuration = seekbar_duration.progress.toLong()
             val arrow = checkbox_arrow.isChecked
             val overlay = checkbox_overlay.isChecked
             val style = if (checkbox_style.isChecked) R.style.ToolTipAltStyle else null
@@ -34,6 +35,9 @@ class MainActivity : AppCompatActivity() {
 
             Timber.v("gravity: $gravity")
             Timber.v("closePolicy: $closePolicy")
+
+            
+            tooltip?.dismiss()
 
             tooltip = Tooltip.Builder(this)
                 .anchor(button, 0, 0, false)
@@ -61,6 +65,19 @@ class MainActivity : AppCompatActivity() {
             val fragment = TestDialogFragment.newInstance()
             fragment.showNow(supportFragmentManager, "test_dialog_fragment")
         }
+
+        seekbar_duration.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
+                text_duration.text = "Duration:\n${progress}ms"
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+            }
+
+        })
     }
 
     private fun getClosePolicy(): ClosePolicy {
