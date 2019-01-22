@@ -9,7 +9,7 @@
         <item name="ttlm_cornerRadius">@dimen/ttlm_default_corner_radius</item>
         <item name="ttlm_arrowRatio">1.4</item>
         <item name="ttlm_overlayStyle">@style/ToolTipOverlayDefaultStyle</item>
-        <item name="ttlm_animationStyle">@android:style/Animation.Toast</item>
+        <item name="ttlm_animationStyle">@style/ToolTipAnimation</item>
         <item name="ttlm_textStyle">@style/ToolTipTextStyle</item>
     </style>
 
@@ -29,6 +29,11 @@
         <item name="ttlm_duration">600</item>
         <item name="android:alpha">0.5</item>
         <item name="android:layout_margin">8dp</item>
+    </style>
+
+    <style name="ToolTipAnimation">
+        <item name="android:windowEnterAnimation">@anim/ttlm_tooltip_anim_enter</item>
+        <item name="android:windowExitAnimation">@anim/ttlm_tooltip_anim_exit</item>
     </style>
 
 </resources>

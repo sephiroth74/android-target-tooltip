@@ -219,48 +219,16 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     fun update(text: CharSequence?) {
         mText = text
         if (isShowing && null != mPopupView) {
-
-            var currentWidth = mTextView.width
-            var currentHeight = mTextView.height
-
             mTextView.text = if (text is Spannable) {
                 text
             } else {
                 @Suppress("DEPRECATION")
                 Html.fromHtml(text as String)
             }
-
-//            if (mHasAnchorView) {
-//                mTextView.doOnLayout {
-//                    val gravity = mCurrentPosition?.gravity
-//                    val dx = it.width - currentWidth
-//                    val dy = it.height - currentHeight
-//
-//                    when (gravity) {
-//                        Gravity.CENTER -> {
-//                            offsetBy(-dx / 2f, -dy / 2f)
-//                        }
-//                        Gravity.LEFT -> {
-//                            offsetBy((-dx).toFloat(), -dy / 2f)
-//                        }
-//                        Gravity.RIGHT -> {
-//                            offsetBy(0f, -dy / 2f)
-//                        }
-//                        Gravity.TOP -> {
-//                            // TODO: to be implemented
-//
-//                        }
-//                        Gravity.BOTTOM -> {
-//                            // TODO: to be implemented
-//                        }
-//                    }
-//                    currentWidth = it.width
-//                    currentHeight = it.height
-//                }
-//            }
         }
     }
 
+    @Suppress("unused")
     fun update(@StringRes res: Int) {
         update(context.resources.getString(res))
     }
@@ -399,8 +367,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             offset: Point,
             gravities: ArrayList<Gravity>,
             params: WindowManager.LayoutParams,
-            fitToScreen: Boolean = false
-                            ): Positions? {
+            fitToScreen: Boolean = false): Positions? {
 
         if (null == mPopupView) return null
         if (gravities.isEmpty()) return null
@@ -539,15 +506,13 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             mDrawable?.setAnchor(
                     it.gravity,
                     if (!mShowArrow) 0 else mPadding / 2,
-                    if (!mShowArrow) null else PointF(it.arrowPointX, it.arrowPointY)
-                                )
+                    if (!mShowArrow) null else PointF(it.arrowPointX, it.arrowPointY))
 
             offsetBy(0f, 0f)
 
             it.params.packageName = context.packageName
             mPopupView?.fitsSystemWindows = mLayoutInsetDecor
             windowManager.addView(mPopupView, it.params)
-            Timber.v("windowManager.addView: $mPopupView")
             fadeIn()
             return this
         } ?: run {
@@ -560,30 +525,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     fun offsetBy(xoff: Float, yoff: Float) {
         if (isShowing && mPopupView != null && mCurrentPosition != null) {
             Timber.i("offsetBy($xoff, $yoff)")
-//            Timber.v("current: ${mCurrentPosition!!.contentPointX}")
-
             mCurrentPosition!!.offsetBy(xoff, yoff)
-
-//            Timber.v("new: ${mCurrentPosition!!.contentPointX}")
-
-            mContentView.translationX = mCurrentPosition!!.contentPointX
-            mContentView.translationY = mCurrentPosition!!.contentPointY
-
-            mViewOverlay?.let { viewOverlay ->
-                viewOverlay.translationX = mCurrentPosition!!.centerPointX - viewOverlay.measuredWidth / 2
-                viewOverlay.translationY = mCurrentPosition!!.centerPointY - viewOverlay.measuredHeight / 2
-            }
-        }
-    }
-
-    fun offsetTo(x: Float, y: Float) {
-        if (isShowing && mPopupView != null && mCurrentPosition != null) {
-            Timber.i("offsetTo($x, $y)")
-//            Timber.v("current: ${mCurrentPosition!!.contentPointX}")
-
-            mCurrentPosition!!.offsetTo(x, y)
-
-//            Timber.v("new: ${mCurrentPosition!!.contentPointX}")
 
             mContentView.translationX = mCurrentPosition!!.contentPointX
             mContentView.translationY = mCurrentPosition!!.contentPointY
@@ -661,8 +603,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
                         mAnchorPoint,
                         gravities,
                         params,
-                        fitToScreen
-                            )
+                        fitToScreen)
                    )
     }
 
@@ -785,35 +726,33 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             val centerPoint: PointF,
             val contentPoint: PointF,
             val gravity: Gravity,
-            val params: WindowManager.LayoutParams
-                                ) {
+            val params: WindowManager.LayoutParams) {
+
+        var mOffsetX: Float = 0f
+        var mOffsetY: Float = 0f
+
         fun offsetBy(x: Float, y: Float) {
-            centerPoint.offset(x, y)
-            contentPoint.offset(x, y)
-            arrowPoint.offset(x, y)
-        }
-
-        fun offsetTo(x: Float, y: Float) {
-            val dx = x - contentPoint.x
-            val dy = y - contentPoint.y
-
-            contentPoint.offset(dx, dy)
-            centerPoint.offset(dx, dy)
-            arrowPoint.offset(dx, dy)
+            mOffsetX = x
+            mOffsetY = y
         }
 
         var centerPointX: Float = 0f
-            get() = centerPoint.x
+            get() = centerPoint.x + mOffsetX
+
         var centerPointY: Float = 0f
-            get() = centerPoint.y // - displayFrame.top
+            get() = centerPoint.y + mOffsetY // - displayFrame.top
+
         var arrowPointX: Float = 0f
-            get() = arrowPoint.x
+            get() = arrowPoint.x + mOffsetX
+
         var arrowPointY: Float = 0f
-            get() = arrowPoint.y // - displayFrame.top
+            get() = arrowPoint.y + mOffsetY // - displayFrame.top
+
         var contentPointX: Float = 0f
-            get () = contentPoint.x
+            get () = contentPoint.x + mOffsetX
+
         var contentPointY: Float = 0f
-            get() = contentPoint.y // - displayFrame.top
+            get() = contentPoint.y + mOffsetY // - displayFrame.top
     }
 
     enum class Gravity {

@@ -36,11 +36,10 @@ class MainActivity : AppCompatActivity() {
             Timber.v("gravity: $gravity")
             Timber.v("closePolicy: $closePolicy")
 
-            
             tooltip?.dismiss()
 
             tooltip = Tooltip.Builder(this)
-                .anchor(button, 0, 0, false)
+                .anchor(button, -50, 0, false)
                 .text(text)
                 .styleId(style)
                 .typeface(typeface)
