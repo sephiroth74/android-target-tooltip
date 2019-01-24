@@ -736,8 +736,8 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         var mOffsetY: Float = 0f
 
         fun offsetBy(x: Float, y: Float) {
-            mOffsetX = x
-            mOffsetY = y
+            mOffsetX += x
+            mOffsetY += y
         }
 
         var centerPointX: Float = 0f
