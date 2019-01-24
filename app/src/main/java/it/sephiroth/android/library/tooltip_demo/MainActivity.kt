@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.text.toSpannable
+import androidx.core.view.doOnNextLayout
 import it.sephiroth.android.library.xtooltip.ClosePolicy
 import it.sephiroth.android.library.xtooltip.Tooltip
 import it.sephiroth.android.library.xtooltip.Typefaces
@@ -36,10 +37,23 @@ class MainActivity : AppCompatActivity() {
             Timber.v("gravity: $gravity")
             Timber.v("closePolicy: $closePolicy")
 
-            tooltip?.dismiss()
+//            tooltip?.dismiss()
+
+            tooltip?.let {
+                it.update("123")
+
+                val w = it.contentView!!.measuredWidth
+
+                it.contentView?.doOnNextLayout {
+                    val diff = it.measuredWidth - w
+
+                    tooltip?.offsetBy((-diff / 2).toFloat(), 0f)
+                }
+                return@setOnClickListener
+            }
 
             tooltip = Tooltip.Builder(this)
-                .anchor(button, -50, 0, false)
+                .anchor(button, 0, 0, false)
                 .text(text)
                 .styleId(style)
                 .typeface(typeface)

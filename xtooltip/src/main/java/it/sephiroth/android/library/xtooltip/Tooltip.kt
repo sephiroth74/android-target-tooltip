@@ -92,6 +92,10 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     private val hideRunnable = Runnable { hide() }
     private val activateRunnable = Runnable { mActivated = true }
 
+    var gravity: Gravity? = null
+        get() = mCurrentPosition?.gravity
+        private set
+
     var text: CharSequence? = null
         get() = mText
         private set

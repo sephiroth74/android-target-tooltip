@@ -155,7 +155,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_columnSpan="2"
-            android:hint="Tooltip Text"
+            android:hint="10"
             android:maxLines="2" />
 
     </GridLayout>
