@@ -24,6 +24,7 @@ notifications:
     - alessandro.crugnola@gmail.com
 
 before_install:
+  - yes | sdkmanager "platforms;android-28"
   - sdkmanager "system-images;android-25;google_apis;armeabi-v7a"
   - echo no | avdmanager create avd --force -n test -k "system-images;android-25;google_apis;armeabi-v7a" --device "pixel"
 
