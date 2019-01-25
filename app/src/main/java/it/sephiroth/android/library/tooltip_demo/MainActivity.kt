@@ -3,10 +3,10 @@ package it.sephiroth.android.library.tooltip_demo
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.text.toSpannable
+import it.sephiroth.android.library.numberpicker.doOnProgressChanged
 import it.sephiroth.android.library.xtooltip.ClosePolicy
 import it.sephiroth.android.library.xtooltip.Tooltip
 import it.sephiroth.android.library.xtooltip.Typefaces
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import timber.log.Timber
 
@@ -26,8 +26,7 @@ class MainActivity : AppCompatActivity() {
             val closePolicy = getClosePolicy()
             val typeface = if (checkbox_font.isChecked) Typefaces[this, "fonts/GillSans.ttc"] else null
             val animation = if (checkbox_animation.isChecked) Tooltip.Animation.DEFAULT else null
-            val showDuration = if (text_duration.text.isNullOrEmpty()) 0 else text_duration.text.toString().toLong()
-            val fadeDuration = if (text_fade.text.isNullOrEmpty()) 0 else text_fade.text.toString().toLong()
+            val showDuration = seekbar_duration.progress.toLong()
             val arrow = checkbox_arrow.isChecked
             val overlay = checkbox_overlay.isChecked
             val style = if (checkbox_style.isChecked) R.style.ToolTipAltStyle else null
@@ -37,33 +36,39 @@ class MainActivity : AppCompatActivity() {
             Timber.v("gravity: $gravity")
             Timber.v("closePolicy: $closePolicy")
 
+            tooltip?.dismiss()
+
             tooltip = Tooltip.Builder(this)
-                .anchor(button, 0, 0, false)
-                .text(text)
-                .styleId(style)
-                .typeface(typeface)
-                .maxWidth(metrics.widthPixels / 2)
-                .arrow(arrow)
-                .floatingAnimation(animation)
-                .closePolicy(closePolicy)
-                .showDuration(showDuration)
-                .fadeDuration(fadeDuration)
-                .overlay(overlay)
-                .create()
+                    .anchor(button, 0, 0, false)
+                    .text(text)
+                    .styleId(style)
+                    .typeface(typeface)
+                    .maxWidth(metrics.widthPixels / 2)
+                    .arrow(arrow)
+                    .floatingAnimation(animation)
+                    .closePolicy(closePolicy)
+                    .showDuration(showDuration)
+                    .overlay(overlay)
+                    .create()
 
             tooltip
-                ?.doOnHidden {
-                    tooltip = null
-                }
-                ?.doOnFailure { }
-                ?.doOnShown {}
-                ?.show(button, gravity, true)
+                    ?.doOnHidden {
+                        tooltip = null
+                    }
+                    ?.doOnFailure { }
+                    ?.doOnShown {}
+                    ?.show(button, gravity, true)
         }
 
         button2.setOnClickListener {
             val fragment = TestDialogFragment.newInstance()
             fragment.showNow(supportFragmentManager, "test_dialog_fragment")
         }
+
+        seekbar_duration.doOnProgressChanged { numberPicker, progress, formUser ->
+            text_duration.text = "Duration: ${progress}ms"
+        }
+
     }
 
     private fun getClosePolicy(): ClosePolicy {

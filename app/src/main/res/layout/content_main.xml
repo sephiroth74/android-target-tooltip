@@ -105,50 +105,38 @@
             android:text="Custom Style" />
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_column="0"
+            android:layout_columnSpan="2"
+            android:layout_marginTop="6dp"
             android:layout_row="4"
+            android:gravity="center_vertical"
             android:orientation="horizontal">
 
             <androidx.appcompat.widget.AppCompatTextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Show" />
-
-            <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/text_duration"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:ems="3"
-                android:gravity="right"
-                android:inputType="number"
-                android:text="3000" />
+                android:lines="2"
+                android:text="Duration: 3000ms" />
 
-        </LinearLayout>
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
 
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_column="1"
-            android:layout_gravity="right"
-            android:layout_row="4"
-            android:orientation="horizontal">
-
-            <androidx.appcompat.widget.AppCompatTextView
+            <it.sephiroth.android.library.numberpicker.NumberPicker
+                android:id="@+id/seekbar_duration"
+                style="@style/NumberPicker.Filled"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Fade" />
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/text_fade"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:ems="3"
-                android:gravity="right"
-                android:inputType="number"
-                android:text="200" />
+                android:progress="3000"
+                app:picker_max="5000"
+                app:picker_min="0"
+                app:picker_orientation="vertical"
+                app:picker_stepSize="50"
+                app:picker_tracker="exponential" />
 
         </LinearLayout>
 

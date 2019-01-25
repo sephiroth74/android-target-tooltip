@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <style name="ToolTipLayoutDefaultStyle">
         <item name="ttlm_padding">@dimen/ttlm_default_padding</item>
@@ -8,9 +8,19 @@
         <item name="ttlm_strokeWeight">@dimen/ttlm_default_stroke_weight</item>
         <item name="ttlm_cornerRadius">@dimen/ttlm_default_corner_radius</item>
         <item name="ttlm_arrowRatio">1.4</item>
-        <item name="android:textAppearance">?android:attr/textAppearanceSmallInverse</item>
         <item name="ttlm_overlayStyle">@style/ToolTipOverlayDefaultStyle</item>
-        <item name="ttlm_elevation">@dimen/ttlm_default_elevation</item>
+        <item name="ttlm_animationStyle">@style/ToolTipAnimation</item>
+        <item name="ttlm_textStyle">@style/ToolTipTextStyle</item>
+    </style>
+
+    <style name="ToolTipTextStyle" parent="TextAppearance.AppCompat.Small.Inverse">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:autoLink">all</item>
+        <item name="android:textAppearance">?android:attr/textAppearanceSmallInverse</item>
+        <item name="android:gravity">start|top</item>
+        <item name="android:elevation" tools:ignore="NewApi">@dimen/ttlm_default_elevation</item>
+        <item name="android:translationZ" tools:ignore="NewApi">@dimen/ttlm_default_elevation</item>
     </style>
 
     <style name="ToolTipOverlayDefaultStyle">
@@ -19,6 +29,11 @@
         <item name="ttlm_duration">600</item>
         <item name="android:alpha">0.5</item>
         <item name="android:layout_margin">8dp</item>
+    </style>
+
+    <style name="ToolTipAnimation">
+        <item name="android:windowEnterAnimation">@anim/ttlm_tooltip_anim_enter</item>
+        <item name="android:windowExitAnimation">@anim/ttlm_tooltip_anim_exit</item>
     </style>
 
 </resources>

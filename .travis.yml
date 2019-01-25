@@ -1,63 +1,36 @@
 language: android
 
 jdk:
-    - oraclejdk8
-
-env:
-  global:
-  # install timeout in minutes (2 minutes by default)
-  - ADB_INSTALL_TIMEOUT=16
+  - oraclejdk8
 
 android:
   components:
+    - tools
+    - tools
     - build-tools-28.0.3
-    - android-25
-    - extra-android-m2repository
-    - extra-android-suppor
-    - add-on
-    - extra
-
-  licenses:
-    - 'android-sdk-license-.+'
-    - 'android-sdk-preview-license-.+'
-    - 'google-gdk-license-.+'
-    - 'intel-android-extra-license-.+'
-    - 'google-gdk-license-.+'
-    - 'android-googletv-license-.+'
-
-notifications:
-  email:
-    - alessandro.crugnola@gmail.com
-
-before_install:
-  - mkdir "$ANDROID_HOME/licenses" || true
-  - echo "d56f5187479451eabf01fb78af6dfcb131a6481e" > "$ANDROID_HOME/licenses/android-sdk-license"
-  - sdkmanager tools
-  - sdkmanager --update
-  - sdkmanager emulator
-  - sdkmanager "system-images;android-25;google_apis;armeabi-v7a"
-  - sdkmanager --update
-  - echo no | avdmanager create avd --force -n test -k "system-images;android-25;google_apis;armeabi-v7a" --device "pixel"
+    - platform-tools
 
 before_script:
-  # - $ANDROID_HOME/emulator/emulator -avd test -no-audio -skin 1440x2560 &
-  # - $ANDROID_HOME/emulator/emulator -avd test -gpu swiftshader_indirect -no-audio -no-window -verbose &
-  # - android-wait-for-emulator
-  # - adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done; input keyevent 82'
+  - mkdir "$ANDROID_HOME/licenses" || true
+  - echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" > "$ANDROID_HOME/licenses/android-sdk-license"
+
+before_install:
+  - yes | sdkmanager "platforms;android-28"
+
+notifications:
+    email:
+        - alessandro.crugnola@gmail.com
+
+cache: false
+sudo: false
+
+install:
+    - chmod +x ./gradlew; ls -l gradlew; ./gradlew wrapper -v
 
 script:
-  - adb logcat > logcat.log &
   - ./gradlew clean build lint assemble
-  # - ./gradlew app:connectedCheck
-
-after_script:
-   - cat logcat.log
-
-after_failure:
-   - cat logcat.log
-
-sudo: false
 
 cache:
   directories:
+    - $HOME/.m2
     - $HOME/.gradle

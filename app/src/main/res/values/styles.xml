@@ -1,4 +1,4 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
 
     <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
         <item name="colorPrimary">@color/colorPrimaryDark</item>
@@ -23,15 +23,18 @@
         <item name="ttlm_backgroundColor">#FF9800</item>
         <item name="ttlm_cornerRadius">6dp</item>
         <item name="ttlm_arrowRatio">1.2</item>
-        <item name="android:textAppearance">?android:attr/textAppearanceSmall</item>
-        <item name="android:gravity">center</item>
         <item name="ttlm_overlayStyle">@style/ToolTipOverlayAltStyle</item>
-        <item name="ttlm_elevation">0dp</item>
+        <item name="ttlm_animationStyle">@style/ToolTipAltAnimation</item>
     </style>
 
     <style name="ToolTipOverlayAltStyle" parent="ToolTipOverlayDefaultStyle">
         <item name="android:color">#FF333333</item>
         <item name="android:alpha">0.3</item>
+    </style>
+
+    <style name="ToolTipAltAnimation">
+        <item name="android:windowExitAnimation">@anim/custom_anim_exit</item>
+        <item name="android:windowEnterAnimation">@anim/custom_anim_enter</item>
     </style>
 
 </resources>

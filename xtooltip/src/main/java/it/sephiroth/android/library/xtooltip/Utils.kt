@@ -4,6 +4,7 @@ import android.animation.Animator
 import android.graphics.Rect
 import android.view.View
 import android.view.ViewPropertyAnimator
+import android.view.animation.Animation
 
 /**
  * Created by alessandro crugnola on 12/12/15.
@@ -56,16 +57,54 @@ internal class AttachStateChangeListener : View.OnAttachStateChangeListener {
 }
 
 internal inline fun ViewPropertyAnimator.setListener(
-        func: AnimationListener.() -> Unit
-                                                    ): ViewPropertyAnimator {
-    val listener = AnimationListener()
+        func: ViewPropertyAnimatorListener.() -> Unit
+): ViewPropertyAnimator {
+    val listener = ViewPropertyAnimatorListener()
     listener.func()
     setListener(listener)
     return this
 }
 
+internal inline fun Animation.setListener(func: AnimationListener.() -> Unit): Animation {
+    val listener = AnimationListener()
+    listener.func()
+    setAnimationListener(listener)
+    return this
+}
+
+internal class AnimationListener : Animation.AnimationListener {
+    private var _onAnimationRepeat: ((animation: Animation?) -> Unit)? = null
+    private var _onAnimationEnd: ((animation: Animation?) -> Unit)? = null
+    private var _onAnimationStart: ((animation: Animation?) -> Unit)? = null
+
+    override fun onAnimationRepeat(animation: Animation?) {
+        _onAnimationRepeat?.invoke(animation)
+    }
+
+    override fun onAnimationEnd(animation: Animation?) {
+        _onAnimationEnd?.invoke(animation)
+    }
+
+    override fun onAnimationStart(animation: Animation?) {
+        _onAnimationStart?.invoke(animation)
+    }
+
+    fun onAnimationEnd(func: (animation: Animation?) -> Unit) {
+        _onAnimationEnd = func
+    }
+
+    fun onAnimationRepeat(func: (animation: Animation?) -> Unit) {
+        _onAnimationRepeat = func
+    }
+
+    fun onAnimationStart(func: (animation: Animation?) -> Unit) {
+        _onAnimationStart = func
+    }
+
+}
+
 @Suppress("unused")
-internal class AnimationListener : Animator.AnimatorListener {
+internal class ViewPropertyAnimatorListener : Animator.AnimatorListener {
     private var _onAnimationRepeat: ((animation: Animator) -> Unit)? = null
     private var _onAnimationEnd: ((animation: Animator) -> Unit)? = null
     private var _onAnimationStart: ((animation: Animator) -> Unit)? = null
