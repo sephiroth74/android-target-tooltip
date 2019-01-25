@@ -115,19 +115,28 @@
             android:orientation="horizontal">
 
             <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/text_duration"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:lines="2"
-                android:id="@+id/text_duration"
-                android:text="Duration:\n3000ms" />
+                android:text="Duration: 3000ms" />
 
-            <androidx.appcompat.widget.AppCompatSeekBar
-                android:id="@+id/seekbar_duration"
-                android:layout_width="match_parent"
+            <Space
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:max="5000"
-                android:min="0"
-                android:progress="3000" />
+                android:layout_weight="1" />
+
+            <it.sephiroth.android.library.numberpicker.NumberPicker
+                android:id="@+id/seekbar_duration"
+                style="@style/NumberPicker.Filled"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:progress="3000"
+                app:picker_max="5000"
+                app:picker_min="0"
+                app:picker_orientation="vertical"
+                app:picker_stepSize="50"
+                app:picker_tracker="exponential" />
 
         </LinearLayout>
 
@@ -155,7 +164,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_columnSpan="2"
-            android:hint="10"
+            android:hint="Tooltip Text"
             android:maxLines="2" />
 
     </GridLayout>

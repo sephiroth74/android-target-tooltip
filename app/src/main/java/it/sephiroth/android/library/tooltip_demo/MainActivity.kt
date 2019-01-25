@@ -1,10 +1,9 @@
 package it.sephiroth.android.library.tooltip_demo
 
 import android.os.Bundle
-import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.text.toSpannable
-import androidx.core.view.doOnNextLayout
+import it.sephiroth.android.library.numberpicker.doOnProgressChanged
 import it.sephiroth.android.library.xtooltip.ClosePolicy
 import it.sephiroth.android.library.xtooltip.Tooltip
 import it.sephiroth.android.library.xtooltip.Typefaces
@@ -37,41 +36,28 @@ class MainActivity : AppCompatActivity() {
             Timber.v("gravity: $gravity")
             Timber.v("closePolicy: $closePolicy")
 
-//            tooltip?.dismiss()
-
-            tooltip?.let {
-                it.update("123")
-
-                val w = it.contentView!!.measuredWidth
-
-                it.contentView?.doOnNextLayout {
-                    val diff = it.measuredWidth - w
-
-                    tooltip?.offsetBy((-diff / 2).toFloat(), 0f)
-                }
-                return@setOnClickListener
-            }
+            tooltip?.dismiss()
 
             tooltip = Tooltip.Builder(this)
-                .anchor(button, 0, 0, false)
-                .text(text)
-                .styleId(style)
-                .typeface(typeface)
-                .maxWidth(metrics.widthPixels / 2)
-                .arrow(arrow)
-                .floatingAnimation(animation)
-                .closePolicy(closePolicy)
-                .showDuration(showDuration)
-                .overlay(overlay)
-                .create()
+                    .anchor(button, 0, 0, false)
+                    .text(text)
+                    .styleId(style)
+                    .typeface(typeface)
+                    .maxWidth(metrics.widthPixels / 2)
+                    .arrow(arrow)
+                    .floatingAnimation(animation)
+                    .closePolicy(closePolicy)
+                    .showDuration(showDuration)
+                    .overlay(overlay)
+                    .create()
 
             tooltip
-                ?.doOnHidden {
-                    tooltip = null
-                }
-                ?.doOnFailure { }
-                ?.doOnShown {}
-                ?.show(button, gravity, true)
+                    ?.doOnHidden {
+                        tooltip = null
+                    }
+                    ?.doOnFailure { }
+                    ?.doOnShown {}
+                    ?.show(button, gravity, true)
         }
 
         button2.setOnClickListener {
@@ -79,18 +65,10 @@ class MainActivity : AppCompatActivity() {
             fragment.showNow(supportFragmentManager, "test_dialog_fragment")
         }
 
-        seekbar_duration.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-                text_duration.text = "Duration:\n${progress}ms"
-            }
+        seekbar_duration.doOnProgressChanged { numberPicker, progress, formUser ->
+            text_duration.text = "Duration: ${progress}ms"
+        }
 
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {
-            }
-
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {
-            }
-
-        })
     }
 
     private fun getClosePolicy(): ClosePolicy {

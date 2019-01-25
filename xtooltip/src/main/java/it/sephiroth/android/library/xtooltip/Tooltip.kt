@@ -13,6 +13,7 @@ import android.view.*
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.view.animation.AccelerateDecelerateInterpolator
+import android.view.animation.AnimationUtils
 import android.widget.FrameLayout
 import android.widget.PopupWindow.INPUT_METHOD_NOT_NEEDED
 import android.widget.TextView
@@ -81,6 +82,8 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     private var mHasAnchorView = false
     private var mFollowAnchor = false
     private var mAnimationStyleResId: Int
+    private var mEnterAnimation: Int
+    private var mExitAnimation: Int
     private var mTextStyleResId: Int
 
     private var mViewOverlay: TooltipOverlay? = null
@@ -153,6 +156,10 @@ class Tooltip private constructor(private val context: Context, builder: Builder
                     theme.getResourceId(R.styleable.TooltipLayout_ttlm_animationStyle, android.R.style.Animation_Toast)
                 }
 
+        val typedArray = context.theme.obtainStyledAttributes(mAnimationStyleResId, intArrayOf(android.R.attr.windowEnterAnimation, android.R.attr.windowExitAnimation))
+        mEnterAnimation = typedArray.getResourceId(typedArray.getIndex(0), 0)
+        mExitAnimation = typedArray.getResourceId(typedArray.getIndex(1), 0)
+        typedArray.recycle()
 
         val font = theme.getString(R.styleable.TooltipLayout_ttlm_font)
 
@@ -249,7 +256,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         p.token = token
         p.softInputMode = mSoftInputMode
         p.title = "ToolTip:" + Integer.toHexString(hashCode())
-        p.windowAnimations = mAnimationStyleResId
+//        p.windowAnimations = mAnimationStyleResId
         return p
     }
 
@@ -661,6 +668,11 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     private fun fadeIn() {
         if (!isShowing || isVisible) return
 
+        if (mEnterAnimation != 0) {
+            mTextView.clearAnimation()
+            mTextView.startAnimation(AnimationUtils.loadAnimation(context, mEnterAnimation))
+        }
+
         isVisible = true
         mShownFunc?.invoke(this)
     }
@@ -668,9 +680,25 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     private fun fadeOut() {
         if (!isShowing || !isVisible) return
 
-        isVisible = false
-        removeCallbacks()
-        dismiss()
+        if (mExitAnimation != 0) {
+            val animation = AnimationUtils.loadAnimation(context, mExitAnimation)
+            animation.setListener {
+                onAnimationEnd {
+                    isVisible = false
+                    removeCallbacks()
+                    dismiss()
+                }
+            }.start()
+
+            mTextView.clearAnimation()
+            mTextView.startAnimation(animation)
+
+        } else {
+            isVisible = false
+            removeCallbacks()
+            dismiss()
+        }
+
     }
 
     inner class TooltipViewContainer(context: Context) : FrameLayout(context) {

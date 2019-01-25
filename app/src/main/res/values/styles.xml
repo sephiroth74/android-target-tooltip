@@ -24,12 +24,17 @@
         <item name="ttlm_cornerRadius">6dp</item>
         <item name="ttlm_arrowRatio">1.2</item>
         <item name="ttlm_overlayStyle">@style/ToolTipOverlayAltStyle</item>
-        <item name="ttlm_animationStyle">@android:style/Animation.Dialog</item>
+        <item name="ttlm_animationStyle">@style/ToolTipAltAnimation</item>
     </style>
 
     <style name="ToolTipOverlayAltStyle" parent="ToolTipOverlayDefaultStyle">
         <item name="android:color">#FF333333</item>
         <item name="android:alpha">0.3</item>
+    </style>
+
+    <style name="ToolTipAltAnimation">
+        <item name="android:windowExitAnimation">@anim/custom_anim_exit</item>
+        <item name="android:windowEnterAnimation">@anim/custom_anim_enter</item>
     </style>
 
 </resources>
