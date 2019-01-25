@@ -32,6 +32,7 @@ notifications:
 before_install:
   - sdkmanager tools
   - sdkmanager --update
+  - yes | sdkmanager --licenses
   - sdkmanager emulator
   - sdkmanager "system-images;android-25;google_apis;armeabi-v7a"
   - sdkmanager --update
