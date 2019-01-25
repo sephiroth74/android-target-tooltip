@@ -1,51 +1,36 @@
 language: android
 
 jdk:
-    - oraclejdk8
-
-env:
-  global:
-  # install timeout in minutes (2 minutes by default)
-  - ADB_INSTALL_TIMEOUT=16
+  - oraclejdk8
 
 android:
   components:
     - tools
     - tools
     - build-tools-28.0.3
-    - android-25
-    - extra-android-m2repository
-    - extra-android-suppor
-    - add-on
-    - extra
-
-notifications:
-  email:
-    - alessandro.crugnola@gmail.com
-
-before_install:
-  - yes | sdkmanager "platforms;android-28"
-  - sdkmanager "system-images;android-25;google_apis;armeabi-v7a"
-  - echo no | $ANDROID_HOME/tools/bin/avdmanager create avd --force -n test -k "system-images;android-25;google_apis;armeabi-v7a" --device "pixel"
+    - platform-tools
 
 before_script:
   - mkdir "$ANDROID_HOME/licenses" || true
-  - echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55\nd56f5187479451eabf01fb78af6dfcb131a6481e" > "$ANDROID_HOME/licenses/android-sdk-license"
   - echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" > "$ANDROID_HOME/licenses/android-sdk-license"
 
-script:
-  - adb logcat > logcat.log &
-  - ./gradlew clean build lint assemble
-  # - ./gradlew app:connectedCheck
+before_install:
+  - yes | sdkmanager "platforms;android-28"
 
-after_script:
-   - cat logcat.log
+notifications:
+    email:
+        - alessandro.crugnola@gmail.com
 
-after_failure:
-   - cat logcat.log
-
+cache: false
 sudo: false
+
+install:
+    - chmod +x ./gradlew; ls -l gradlew; ./gradlew wrapper -v
+
+script:
+  - ./gradlew clean build lint assemble
 
 cache:
   directories:
+    - $HOME/.m2
     - $HOME/.gradle
