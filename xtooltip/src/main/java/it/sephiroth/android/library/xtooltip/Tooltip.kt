@@ -121,7 +121,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
                         offsetBy(
                                 (mNewLocation[0] - mOldLocation!![0]).toFloat(),
                                 (mNewLocation[1] - mOldLocation!![1]).toFloat()
-                                )
+                        )
                     }
 
                     mOldLocation!![0] = mNewLocation[0]
@@ -134,12 +134,12 @@ class Tooltip private constructor(private val context: Context, builder: Builder
 
     init {
         val theme = context.theme
-            .obtainStyledAttributes(
-                    null,
-                    R.styleable.TooltipLayout,
-                    builder.defStyleAttr,
-                    builder.defStyleRes
-                                   )
+                .obtainStyledAttributes(
+                        null,
+                        R.styleable.TooltipLayout,
+                        builder.defStyleAttr,
+                        builder.defStyleRes
+                )
         this.mPadding = theme.getDimensionPixelSize(R.styleable.TooltipLayout_ttlm_padding, 30)
         mOverlayStyle =
                 theme.getResourceId(
@@ -482,7 +482,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
                     contentPosition.y,
                     contentPosition.x + w,
                     contentPosition.y + h
-                                )
+            )
             if (!displayFrame.rectContainsWithTolerance(finalRect, mSizeTolerance.toInt())) {
                 Timber.e("content won't fit! $displayFrame, $finalRect")
                 return findPosition(parent, anchor, offset, gravities, params, fitToScreen)
@@ -540,6 +540,28 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             }
         }
     }
+
+    @Suppress("SpellCheckingInspection")
+    fun offsetTo(xoff: Float, yoff: Float) {
+        if (isShowing && mPopupView != null && mCurrentPosition != null) {
+            Timber.i("offsetTo($xoff, $yoff)")
+            mCurrentPosition!!.offsetTo(xoff, yoff)
+
+            mContentView.translationX = mCurrentPosition!!.contentPointX
+            mContentView.translationY = mCurrentPosition!!.contentPointY
+
+            mViewOverlay?.let { viewOverlay ->
+                viewOverlay.translationX = mCurrentPosition!!.centerPointX - viewOverlay.measuredWidth / 2
+                viewOverlay.translationY = mCurrentPosition!!.centerPointY - viewOverlay.measuredHeight / 2
+            }
+        }
+    }
+
+    var offsetX: Float = 0f
+        get() = mCurrentPosition?.mOffsetX ?: kotlin.run { 0f }
+
+    var offsetY: Float = 0f
+        get() = mCurrentPosition?.mOffsetY ?: kotlin.run { 0f }
 
     private fun setupListeners(anchorView: View) {
         anchorView.addOnAttachStateChangeListener {
@@ -608,7 +630,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
                         gravities,
                         params,
                         fitToScreen)
-                   )
+        )
     }
 
     fun hide() {
@@ -738,6 +760,11 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         fun offsetBy(x: Float, y: Float) {
             mOffsetX += x
             mOffsetY += y
+        }
+
+        fun offsetTo(x: Float, y: Float) {
+            mOffsetX = x
+            mOffsetY = y
         }
 
         var centerPointX: Float = 0f
