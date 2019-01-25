@@ -22,11 +22,7 @@ notifications:
     - alessandro.crugnola@gmail.com
 
 before_install:
-  - sdkmanager --update
-  - sdkmanager tools
-  - sdkmanager emulator
   - sdkmanager "system-images;android-25;google_apis;armeabi-v7a"
-  - sdkmanager --update
   - echo no | avdmanager create avd --force -n test -k "system-images;android-25;google_apis;armeabi-v7a" --device "pixel"
 
 before_script:
