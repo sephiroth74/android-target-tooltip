@@ -858,12 +858,11 @@ class Tooltip private constructor(private val context: Context, builder: Builder
 
         fun styleId(@StyleRes styleId: Int?): Builder {
             styleId?.let {
-                this.defStyleAttr = 0
                 this.defStyleRes = it
             } ?: run {
                 this.defStyleRes = R.style.ToolTipLayoutDefaultStyle
-                this.defStyleAttr = R.attr.ttlm_defaultStyle
             }
+            this.defStyleAttr = R.attr.ttlm_defaultStyle
             return this
         }
 
