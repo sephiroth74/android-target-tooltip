@@ -7,7 +7,6 @@ import android.content.Context
 import android.graphics.*
 import android.os.Handler
 import android.os.IBinder
-import android.text.Html
 import android.text.Spannable
 import android.view.*
 import android.view.ViewGroup
@@ -23,6 +22,7 @@ import androidx.annotation.StringRes
 import androidx.annotation.StyleRes
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.appcompat.widget.AppCompatTextView
+import androidx.core.text.HtmlCompat
 import androidx.core.view.setPadding
 import timber.log.Timber
 import java.lang.ref.WeakReference
@@ -234,8 +234,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             mTextView.text = if (text is Spannable) {
                 text
             } else {
-                @Suppress("DEPRECATION")
-                Html.fromHtml(text as String)
+                HtmlCompat.fromHtml(text as String, HtmlCompat.FROM_HTML_MODE_COMPACT)
             }
         }
     }
@@ -327,8 +326,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
                 text = if (mText is Spannable) {
                     mText
                 } else {
-                    @Suppress("DEPRECATION")
-                    Html.fromHtml(this@Tooltip.mText as String)
+                    HtmlCompat.fromHtml(this@Tooltip.mText as String, HtmlCompat.FROM_HTML_MODE_COMPACT)
                 }
 
                 mMaxWidth?.let { maxWidth = it }
