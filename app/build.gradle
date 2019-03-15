@@ -29,6 +29,10 @@ android {
     adbOptions {
         timeOutInMs 60 * 20 * 1000
     }
+
+    lintOptions {
+        abortOnError false
+    }
 }
 
 dependencies {
