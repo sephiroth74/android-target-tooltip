@@ -74,13 +74,13 @@ class MainActivityTest {
 
         latch.await()
 
-        // click outside
+        // click touchOutside
         device.click(rect.centerX(), rect.bottom + 10)
         Thread.sleep(500)
 
         onView(withId(R.id.tooltip)).check(matches(isDisplayed()))
 
-        // click inside the tooltip
+        // click touchInside the tooltip
         onView(withId(R.id.tooltip)).perform(click())
         Thread.sleep(500)
 
@@ -106,7 +106,7 @@ class MainActivityTest {
 
         val tooltipRect = getTooltipRect()
 
-        // click inside the tooltip
+        // click touchInside the tooltip
         onView(withId(R.id.tooltip)).perform(click())
         Thread.sleep(500)
 

@@ -3,6 +3,7 @@ package it.sephiroth.android.library.xtooltip
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import android.graphics.*
 import android.os.Handler
@@ -45,6 +46,7 @@ import java.util.*
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
  * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+@Suppress("unused")
 class Tooltip private constructor(private val context: Context, builder: Builder) {
 
     private val windowManager: WindowManager =
@@ -265,16 +267,18 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         var curFlags1 = curFlags
         curFlags1 = curFlags1 or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
 
-        curFlags1 = if (mClosePolicy.inside() || mClosePolicy.outside()) {
+        curFlags1 = if (mClosePolicy.touchInside() || mClosePolicy.touchOutside()) {
             curFlags1 and WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE.inv()
         } else {
             curFlags1 or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
         }
 
-        if (!mClosePolicy.consume()) {
-            curFlags1 = curFlags1 or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
-        }
-        curFlags1 = curFlags1 or WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM
+        // When this is set then we can't ever consume any [MotionEvent]
+//        if (!mClosePolicy.consumeInside()) {
+//            curFlags1 = curFlags1 or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+//        }
+
+//        curFlags1 = curFlags1 or WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM
         curFlags1 = curFlags1 or WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
         curFlags1 = curFlags1 or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
         curFlags1 = curFlags1 or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
@@ -750,26 +754,58 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             }
         }
 
+//        override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
+//            Timber.i("dispatchTouchEvent($ev)")
+//            return onInterceptTouchEvent(ev)
+//            return false
+
+//            (context as Activity).window.decorView.dispatchTouchEvent(ev)
+//            return super.dispatchTouchEvent(ev)
+//        }
+
+//        override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
+//            Timber.i("onInterceptTouchEvent(ev)")
+//            return onTouchEvent(ev)
+//        }
+
         @SuppressLint("ClickableViewAccessibility")
         override fun onTouchEvent(event: MotionEvent): Boolean {
             if (!isShowing || !isVisible || !mActivated) return false
 
-            Timber.i("onTouchEvent: $event")
-            Timber.d("event position: ${event.x}, ${event.y}")
+            Timber.i("onTouchEvent($event)")
 
-            val r1 = Rect()
-            mTextView.getGlobalVisibleRect(r1)
-            val containsTouch = r1.contains(event.x.toInt(), event.y.toInt())
+            if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+                val r1 = Rect()
+                mTextView.getGlobalVisibleRect(r1)
+                val containsTouch = r1.contains(event.x.toInt(), event.y.toInt())
 
-            if (mClosePolicy.anywhere()) {
-                hide()
-            } else if (mClosePolicy.inside() && containsTouch) {
-                hide()
-            } else if (mClosePolicy.outside() && !containsTouch) {
-                hide()
+                if (mClosePolicy.touchAnywhere()) {
+                    hide()
+                } else if (mClosePolicy.touchInside() && containsTouch) {
+                    hide()
+                } else if (mClosePolicy.touchOutside() && !containsTouch) {
+                    hide()
+                }
+
+                Timber.v("containsTouch=$containsTouch, consume inside=${mClosePolicy.consumeInside()}, outside=${mClosePolicy.consumeOutside()}")
+                Timber.v("close policy=$mClosePolicy")
+
+                if (containsTouch && mClosePolicy.consumeInside()) {
+                    Timber.w("touch inside and consume inside")
+                    return true
+                } else if (!containsTouch && mClosePolicy.consumeOutside()) {
+                    Timber.w("touch outside and consume outside")
+                    return true
+                }
             }
 
-            return mClosePolicy.consume()
+            Timber.w("don't consume")
+
+            if (context is Activity) {
+                (context as Activity).window.decorView.dispatchTouchEvent(event)
+            }
+
+            return false
         }
     }
 
@@ -951,38 +987,44 @@ class Tooltip private constructor(private val context: Context, builder: Builder
 
 class ClosePolicy internal constructor(private val policy: Int) {
 
-    fun consume() = policy and CONSUME == CONSUME
+    fun consumeInside(): Boolean = policy and CONSUME_INSIDE == CONSUME_INSIDE
 
-    fun inside(): Boolean {
-        return policy and TOUCH_INSIDE == TOUCH_INSIDE
-    }
+    fun consumeOutside(): Boolean = policy and CONSUME_OUTSIDE == CONSUME_OUTSIDE
 
-    fun outside(): Boolean {
-        return policy and TOUCH_OUTSIDE == TOUCH_OUTSIDE
-    }
+    fun consumeAnywhere(): Boolean = consumeInside() && consumeOutside()
 
-    fun anywhere() = inside() and outside()
+    fun touchInside(): Boolean = (policy and TOUCH_INSIDE) == TOUCH_INSIDE
+
+    fun touchOutside(): Boolean = (policy and TOUCH_OUTSIDE) == TOUCH_OUTSIDE
+
+    fun touchAnywhere(): Boolean = touchInside() && touchOutside()
 
     override fun toString(): String {
-        return "ClosePolicy{policy: $policy, inside:${inside()}, outside: ${outside()}, anywhere: ${anywhere()}, consume: ${consume()}}"
+        return "ClosePolicy(policy: $policy, touchInside:${touchInside()}, touchOutside: ${touchOutside()}, consumeInside: ${consumeInside()}, consumeOutside: ${consumeOutside()} )"
     }
 
     @Suppress("unused")
     class Builder {
         private var policy = NONE
 
-        fun consume(value: Boolean): Builder {
-            policy = if (value) policy or CONSUME else policy and CONSUME.inv()
+        fun consume(inside: Boolean, outside: Boolean): Builder {
+            Timber.i("consume($inside, $outside)")
+            policy = if (inside) policy or CONSUME_INSIDE else policy and CONSUME_INSIDE.inv()
+            policy = if (outside) policy or CONSUME_OUTSIDE else policy and CONSUME_OUTSIDE.inv()
             return this
         }
 
-        fun inside(value: Boolean): Builder {
+        fun inside(value: Boolean, consume: Boolean): Builder {
+            Timber.i("inside($value, $consume)")
             policy = if (value) policy or TOUCH_INSIDE else policy and TOUCH_INSIDE.inv()
+            policy = if (consume) policy or CONSUME_INSIDE else policy and CONSUME_INSIDE.inv()
             return this
         }
 
-        fun outside(value: Boolean): Builder {
+        fun outside(value: Boolean, consume: Boolean): Builder {
+            Timber.i("outside($value, $consume)")
             policy = if (value) policy or TOUCH_OUTSIDE else policy and TOUCH_OUTSIDE.inv()
+            policy = if (consume) policy or CONSUME_OUTSIDE else policy and CONSUME_OUTSIDE.inv()
             return this
         }
 
@@ -998,15 +1040,16 @@ class ClosePolicy internal constructor(private val policy: Int) {
         private const val NONE = 0
         private const val TOUCH_INSIDE = 1 shl 1
         private const val TOUCH_OUTSIDE = 1 shl 2
-        private const val CONSUME = 1 shl 3
+        private const val CONSUME_INSIDE = 1 shl 3
+        private const val CONSUME_OUTSIDE = 1 shl 4
 
         val TOUCH_NONE = ClosePolicy(NONE)
-        val TOUCH_INSIDE_CONSUME = ClosePolicy(TOUCH_INSIDE or CONSUME)
+        val TOUCH_INSIDE_CONSUME = ClosePolicy(TOUCH_INSIDE or CONSUME_INSIDE)
         val TOUCH_INSIDE_NO_CONSUME = ClosePolicy(TOUCH_INSIDE)
-        val TOUCH_OUTSIDE_CONSUME = ClosePolicy(TOUCH_OUTSIDE or CONSUME)
+        val TOUCH_OUTSIDE_CONSUME = ClosePolicy(TOUCH_OUTSIDE or CONSUME_OUTSIDE)
         val TOUCH_OUTSIDE_NO_CONSUME = ClosePolicy(TOUCH_OUTSIDE)
         val TOUCH_ANYWHERE_NO_CONSUME = ClosePolicy(TOUCH_INSIDE or TOUCH_OUTSIDE)
-        val TOUCH_ANYWHERE_CONSUME = ClosePolicy(TOUCH_INSIDE or TOUCH_OUTSIDE or CONSUME)
+        val TOUCH_ANYWHERE_CONSUME = ClosePolicy(TOUCH_INSIDE or TOUCH_OUTSIDE or CONSUME_INSIDE or CONSUME_INSIDE)
     }
 
 }

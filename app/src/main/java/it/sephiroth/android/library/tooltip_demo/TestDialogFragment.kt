@@ -21,7 +21,10 @@ class TestDialogFragment : DialogFragment() {
         button1.setOnClickListener { button ->
             Tooltip.Builder(context!!)
                 .anchor(button, 0, 0, false)
-                .closePolicy(ClosePolicy.TOUCH_ANYWHERE_CONSUME)
+                .closePolicy(ClosePolicy.Builder()
+                    .inside(true, true)
+                    .outside(true, true)
+                    .build())
                 .showDuration(0)
                 .text("This is a dialog")
                 .create()

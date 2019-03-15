@@ -2,7 +2,6 @@ package it.sephiroth.android.library.tooltip_demo
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.text.toSpannable
 import it.sephiroth.android.library.numberpicker.doOnProgressChanged
 import it.sephiroth.android.library.xtooltip.ClosePolicy
 import it.sephiroth.android.library.xtooltip.Tooltip
@@ -39,25 +38,25 @@ class MainActivity : AppCompatActivity() {
             tooltip?.dismiss()
 
             tooltip = Tooltip.Builder(this)
-                    .anchor(button, 0, 0, false)
-                    .text(text)
-                    .styleId(style)
-                    .typeface(typeface)
-                    .maxWidth(metrics.widthPixels / 2)
-                    .arrow(arrow)
-                    .floatingAnimation(animation)
-                    .closePolicy(closePolicy)
-                    .showDuration(showDuration)
-                    .overlay(overlay)
-                    .create()
+                .anchor(button, 0, 0, false)
+                .text(text)
+                .styleId(style)
+                .typeface(typeface)
+                .maxWidth(metrics.widthPixels / 2)
+                .arrow(arrow)
+                .floatingAnimation(animation)
+                .closePolicy(closePolicy)
+                .showDuration(showDuration)
+                .overlay(overlay)
+                .create()
 
             tooltip
-                    ?.doOnHidden {
-                        tooltip = null
-                    }
-                    ?.doOnFailure { }
-                    ?.doOnShown {}
-                    ?.show(button, gravity, true)
+                ?.doOnHidden {
+                    tooltip = null
+                }
+                ?.doOnFailure { }
+                ?.doOnShown {}
+                ?.show(button, gravity, true)
         }
 
         button2.setOnClickListener {
@@ -73,9 +72,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun getClosePolicy(): ClosePolicy {
         val builder = ClosePolicy.Builder()
-        builder.inside(switch1.isChecked)
-        builder.outside(switch3.isChecked)
-        builder.consume(switch2.isChecked)
+        builder.inside(switch1.isChecked, switchConsumeInside.isChecked)
+        builder.outside(switch3.isChecked, switchConsumeOutside.isChecked)
         return builder.build()
     }
 
