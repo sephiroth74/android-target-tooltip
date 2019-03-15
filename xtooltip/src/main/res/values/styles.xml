@@ -17,7 +17,9 @@
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">match_parent</item>
         <item name="android:autoLink">all</item>
+        <item name="android:linksClickable">true</item>
         <item name="android:textAppearance">?android:attr/textAppearanceSmallInverse</item>
+        <item name="android:textColorLink">?android:attr/textColorPrimaryInverse</item>
         <item name="android:gravity">start|top</item>
         <item name="android:elevation" tools:ignore="NewApi">@dimen/ttlm_default_elevation</item>
         <item name="android:translationZ" tools:ignore="NewApi">@dimen/ttlm_default_elevation</item>

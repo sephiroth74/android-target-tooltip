@@ -7,7 +7,6 @@ import android.content.Context
 import android.graphics.*
 import android.os.Handler
 import android.os.IBinder
-import android.text.Html
 import android.text.Spannable
 import android.view.*
 import android.view.ViewGroup
@@ -23,6 +22,7 @@ import androidx.annotation.StringRes
 import androidx.annotation.StyleRes
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.appcompat.widget.AppCompatTextView
+import androidx.core.text.HtmlCompat
 import androidx.core.view.setPadding
 import timber.log.Timber
 import java.lang.ref.WeakReference
@@ -124,7 +124,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
                         offsetBy(
                                 (mNewLocation[0] - mOldLocation!![0]).toFloat(),
                                 (mNewLocation[1] - mOldLocation!![1]).toFloat()
-                        )
+                                )
                     }
 
                     mOldLocation!![0] = mNewLocation[0]
@@ -137,12 +137,12 @@ class Tooltip private constructor(private val context: Context, builder: Builder
 
     init {
         val theme = context.theme
-                .obtainStyledAttributes(
-                        null,
-                        R.styleable.TooltipLayout,
-                        builder.defStyleAttr,
-                        builder.defStyleRes
-                )
+            .obtainStyledAttributes(
+                    null,
+                    R.styleable.TooltipLayout,
+                    builder.defStyleAttr,
+                    builder.defStyleRes
+                                   )
         this.mPadding = theme.getDimensionPixelSize(R.styleable.TooltipLayout_ttlm_padding, 30)
         mOverlayStyle =
                 theme.getResourceId(
@@ -156,7 +156,8 @@ class Tooltip private constructor(private val context: Context, builder: Builder
                     theme.getResourceId(R.styleable.TooltipLayout_ttlm_animationStyle, android.R.style.Animation_Toast)
                 }
 
-        val typedArray = context.theme.obtainStyledAttributes(mAnimationStyleResId, intArrayOf(android.R.attr.windowEnterAnimation, android.R.attr.windowExitAnimation))
+        val typedArray =
+                context.theme.obtainStyledAttributes(mAnimationStyleResId, intArrayOf(android.R.attr.windowEnterAnimation, android.R.attr.windowExitAnimation))
         mEnterAnimation = typedArray.getResourceId(typedArray.getIndex(0), 0)
         mExitAnimation = typedArray.getResourceId(typedArray.getIndex(1), 0)
         typedArray.recycle()
@@ -233,8 +234,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             mTextView.text = if (text is Spannable) {
                 text
             } else {
-                @Suppress("DEPRECATION")
-                Html.fromHtml(text as String)
+                HtmlCompat.fromHtml(text as String, HtmlCompat.FROM_HTML_MODE_COMPACT)
             }
         }
     }
@@ -326,8 +326,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
                 text = if (mText is Spannable) {
                     mText
                 } else {
-                    @Suppress("DEPRECATION")
-                    Html.fromHtml(this@Tooltip.mText as String)
+                    HtmlCompat.fromHtml(this@Tooltip.mText as String, HtmlCompat.FROM_HTML_MODE_COMPACT)
                 }
 
                 mMaxWidth?.let { maxWidth = it }
@@ -489,7 +488,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
                     contentPosition.y,
                     contentPosition.x + w,
                     contentPosition.y + h
-            )
+                                )
             if (!displayFrame.rectContainsWithTolerance(finalRect, mSizeTolerance.toInt())) {
                 Timber.e("content won't fit! $displayFrame, $finalRect")
                 return findPosition(parent, anchor, offset, gravities, params, fitToScreen)
@@ -637,7 +636,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
                         gravities,
                         params,
                         fitToScreen)
-        )
+                   )
     }
 
     fun hide() {
@@ -858,12 +857,11 @@ class Tooltip private constructor(private val context: Context, builder: Builder
 
         fun styleId(@StyleRes styleId: Int?): Builder {
             styleId?.let {
-                this.defStyleAttr = 0
                 this.defStyleRes = it
             } ?: run {
                 this.defStyleRes = R.style.ToolTipLayoutDefaultStyle
-                this.defStyleAttr = R.attr.ttlm_defaultStyle
             }
+            this.defStyleAttr = R.attr.ttlm_defaultStyle
             return this
         }
 

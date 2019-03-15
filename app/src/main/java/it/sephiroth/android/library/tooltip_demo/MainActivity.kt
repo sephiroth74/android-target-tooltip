@@ -31,7 +31,7 @@ class MainActivity : AppCompatActivity() {
             val overlay = checkbox_overlay.isChecked
             val style = if (checkbox_style.isChecked) R.style.ToolTipAltStyle else null
             val text =
-                    if (text_tooltip.text.isNullOrEmpty()) text_tooltip.hint else text_tooltip.text!!.toSpannable()
+                    if (text_tooltip.text.isNullOrEmpty()) text_tooltip.hint else text_tooltip.text!!.toString()
 
             Timber.v("gravity: $gravity")
             Timber.v("closePolicy: $closePolicy")
