@@ -7,7 +7,7 @@
     android:padding="16dp">
 
     <androidx.appcompat.widget.AppCompatTextView
-        style="@style/AlertDialog.MaterialComponents.Title.Text"
+        style="@style/MaterialAlertDialog.MaterialComponents.Title.Text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Dialog Fragment" />

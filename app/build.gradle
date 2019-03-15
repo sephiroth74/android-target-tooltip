@@ -36,11 +36,11 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'androidx.appcompat:appcompat:1.0.2'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.0-alpha3'
-    implementation 'com.google.android.material:material:1.1.0-alpha02'
+    implementation 'com.google.android.material:material:1.1.0-alpha04'
     implementation 'com.jakewharton.timber:timber:4.7.1'
     implementation 'androidx.core:core-ktx:1.0.1'
 
-    implementation('com.github.sephiroth74:NumberSlidingPicker:v1.0.0') {
+    implementation('com.github.sephiroth74:NumberSlidingPicker:v1.0.2') {
         exclude module: 'android-target-tooltip'
     }
 
