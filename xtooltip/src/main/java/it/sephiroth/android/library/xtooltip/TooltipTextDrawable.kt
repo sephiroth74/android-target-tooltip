@@ -36,6 +36,7 @@ internal class TooltipTextDrawable(context: Context, builder: Tooltip.Builder) :
     private val stPaint: Paint?
     private val arrowRatio: Float
     private val radius: Float
+    private val arrowPositionRatio: Float
     private var point: PointF? = null
     private var padding = 0
     private var arrowWeight = 0
@@ -54,6 +55,7 @@ internal class TooltipTextDrawable(context: Context, builder: Tooltip.Builder) :
         val backgroundColor = theme.getColor(R.styleable.TooltipLayout_ttlm_backgroundColor, 0)
         val strokeColor = theme.getColor(R.styleable.TooltipLayout_ttlm_strokeColor, 0)
         this.arrowRatio = theme.getFloat(R.styleable.TooltipLayout_ttlm_arrowRatio, ARROW_RATIO_DEFAULT)
+        arrowPositionRatio = theme.getFloat(R.styleable.TooltipLayout_ttlm_arrowPositionRatio, ARROW_POSITION_RATIO_DEFAULT)
         theme.recycle()
 
         this.rectF = RectF()
@@ -153,7 +155,7 @@ internal class TooltipTextDrawable(context: Context, builder: Tooltip.Builder) :
         }
 
         val drawPoint =
-            isDrawPoint(left, top, right, bottom, maxY, maxX, minY, minX, tmpPoint, point!!, gravity, arrowWeight)
+            isDrawPoint(left, top, right, bottom, maxY, maxX, minY, minX, tmpPoint, point!!, gravity, arrowWeight, arrowPositionRatio)
 
         Timber.v("drawPoint: $drawPoint, point: $point, tmpPoint: $tmpPoint")
 
@@ -238,15 +240,17 @@ internal class TooltipTextDrawable(context: Context, builder: Tooltip.Builder) :
 
     companion object {
         const val ARROW_RATIO_DEFAULT = 1.4f
+        const val ARROW_POSITION_RATIO_DEFAULT = 0.5f
 
         private fun isDrawPoint(
             left: Int, top: Int, right: Int, bottom: Int, maxY: Float, maxX: Float, minY: Float,
             minX: Float, tmpPoint: PointF, point: PointF, gravity: Tooltip.Gravity?,
-            arrowWeight: Int
+            arrowWeight: Int, arrowPositionRatio: Float
         ): Boolean {
             Timber.i("isDrawPoint: Rect($left, $top, $right, $bottom), x: [$minX, $maxX], y: [$minY, $maxY], point: $point, $arrowWeight")
             var drawPoint = false
-            tmpPoint.set(point.x, point.y)
+            tmpPoint.x = point.x * arrowPositionRatio / ARROW_POSITION_RATIO_DEFAULT
+            tmpPoint.y = point.y * arrowPositionRatio / ARROW_POSITION_RATIO_DEFAULT
 
             if (gravity == Tooltip.Gravity.RIGHT || gravity == Tooltip.Gravity.LEFT) {
                 if (tmpPoint.y in top..bottom) {
@@ -259,15 +263,13 @@ internal class TooltipTextDrawable(context: Context, builder: Tooltip.Builder) :
                 }
             } else {
                 if (tmpPoint.x in left..right) {
-                    if (tmpPoint.x in left..right) {
-                        if (left + tmpPoint.x + arrowWeight > maxX) {
-                            tmpPoint.x = (maxX - arrowWeight.toFloat() - left.toFloat())
-                        } else if (left + tmpPoint.x - arrowWeight < minX) {
-                            tmpPoint.x = (minX + arrowWeight - left)
-                        }
-                        drawPoint = true
+                    if (left + tmpPoint.x + arrowWeight > maxX) {
+                        tmpPoint.x = (maxX - arrowWeight.toFloat() - left.toFloat())
+                    } else if (left + tmpPoint.x - arrowWeight < minX) {
+                        tmpPoint.x = (minX + arrowWeight - left)
                     }
-                }
+                    drawPoint = true
+                    }
             }
             Timber.v("tmpPoint: $tmpPoint")
             return drawPoint
