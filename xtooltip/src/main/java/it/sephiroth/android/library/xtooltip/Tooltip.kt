@@ -651,6 +651,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             removeCallbacks()
             windowManager.removeView(mPopupView)
             Timber.v("dismiss: $mPopupView")
+            mPopupView?.run{ removeView(mViewOverlay) }
             mPopupView = null
             isShowing = false
             isVisible = false
