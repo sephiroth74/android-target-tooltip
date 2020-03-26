@@ -4,6 +4,7 @@ import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.res.Resources
 import android.graphics.PixelFormat
 import android.graphics.Point
 import android.graphics.Rect
@@ -11,10 +12,7 @@ import android.graphics.Typeface
 import android.os.Build
 import android.os.Handler
 import android.os.IBinder
-import android.support.annotation.IdRes
-import android.support.annotation.LayoutRes
-import android.support.annotation.StringRes
-import android.support.annotation.StyleRes
+import android.support.annotation.*
 import android.text.Html
 import android.text.Spannable
 import android.view.*
@@ -25,11 +23,7 @@ import android.widget.FrameLayout
 import android.widget.PopupWindow.INPUT_METHOD_NOT_NEEDED
 import android.widget.TextView
 import it.sephiroth.android.library.tooltip.R
-//import androidx.annotation.IdRes
-//import androidx.annotation.LayoutRes
-//import androidx.annotation.StringRes
-//import androidx.annotation.StyleRes
-//import androidx.core.view.setPadding
+import it.sephiroth.android.library.tooltip.Tooltip
 import timber.log.Timber
 import java.lang.ref.WeakReference
 import java.util.*
@@ -51,7 +45,7 @@ import java.util.*
  * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
  * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-class Tooltip private constructor(private val context: Context, builder: Builder) {
+class XTooltip private constructor(private val context: Context, builder: Builder) {
 
     private val windowManager: WindowManager =
             context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
@@ -122,7 +116,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
                         offsetBy(
                                 mNewLocation[0] - mOldLocation!![0],
                                 mNewLocation[1] - mOldLocation!![1]
-                                )
+                        )
                     }
                 }
             }
@@ -132,26 +126,26 @@ class Tooltip private constructor(private val context: Context, builder: Builder
 
     init {
         val theme = context.theme
-            .obtainStyledAttributes(
-                    null,
-                    R.styleable.TooltipLayout,
-                    builder.defStyleAttr,
-                    builder.defStyleRes
-                                   )
+                .obtainStyledAttributes(
+                        null,
+                        R.styleable.TooltipLayout,
+                        builder.defStyleAttr,
+                        builder.defStyleRes
+                )
         this.mPadding = theme.getDimensionPixelSize(R.styleable.TooltipLayout_ttlm_padding, 30)
         this.mTextAppearance =
                 theme.getResourceId(R.styleable.TooltipLayout_android_textAppearance, 0)
         this.mTextGravity = theme
-            .getInt(
-                    R.styleable.TooltipLayout_android_gravity,
-                    android.view.Gravity.TOP or android.view.Gravity.START
-                   )
+                .getInt(
+                        R.styleable.TooltipLayout_android_gravity,
+                        android.view.Gravity.TOP or android.view.Gravity.START
+                )
         this.mTextViewElevation = theme.getDimension(R.styleable.TooltipLayout_ttlm_elevation, 0f)
         mOverlayStyle =
                 theme.getResourceId(
                         R.styleable.TooltipLayout_ttlm_overlayStyle,
                         R.style.ToolTipOverlayDefaultStyle
-                                   )
+                )
         val font = theme.getString(R.styleable.TooltipLayout_ttlm_font)
         theme.recycle()
 
@@ -186,24 +180,24 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         }
     }
 
-    private var mFailureFunc: ((tooltip: Tooltip) -> Unit)? = null
-    private var mShownFunc: ((tooltip: Tooltip) -> Unit)? = null
-    private var mHiddenFunc: ((tooltip: Tooltip) -> Unit)? = null
+    private var mFailureFunc: ((tooltip: XTooltip) -> Unit)? = null
+    private var mShownFunc: ((tooltip: XTooltip) -> Unit)? = null
+    private var mHiddenFunc: ((tooltip: XTooltip) -> Unit)? = null
 
     @Suppress("UNUSED")
-    fun doOnFailure(func: ((tooltip: Tooltip) -> Unit)?): Tooltip {
+    fun doOnFailure(func: ((tooltip: XTooltip) -> Unit)?): XTooltip {
         mFailureFunc = func
         return this
     }
 
     @Suppress("UNUSED")
-    fun doOnShown(func: ((tooltip: Tooltip) -> Unit)?): Tooltip {
+    fun doOnShown(func: ((tooltip: XTooltip) -> Unit)?): XTooltip {
         mShownFunc = func
         return this
     }
 
     @Suppress("UNUSED")
-    fun doOnHidden(func: ((tooltip: Tooltip) -> Unit)?): Tooltip {
+    fun doOnHidden(func: ((tooltip: XTooltip) -> Unit)?): XTooltip {
         mHiddenFunc = func
         return this
     }
@@ -262,7 +256,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
                     layoutParams = ViewGroup.LayoutParams(
                             ViewGroup.LayoutParams.WRAP_CONTENT,
                             ViewGroup.LayoutParams.WRAP_CONTENT
-                                                         )
+                    )
                 }
             }
 
@@ -271,7 +265,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
 
             mFloatingAnimation?.let { contentView.setPadding(it.radius, it.radius, it.radius, it.radius) }
 
-            mTextView = contentView.findViewById(mTextViewIdRes) as TextView
+            mTextView = contentView.findViewById(mTextViewIdRes)
 
             with(mTextView) {
                 mDrawable?.let { background = it }
@@ -297,7 +291,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
                     mText
                 } else {
                     @Suppress("DEPRECATION")
-                    Html.fromHtml(this@Tooltip.mText as String)
+                    Html.fromHtml(this@XTooltip.mText as String)
                 }
 
                 mMaxWidth?.let { maxWidth = it }
@@ -308,7 +302,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
                 viewContainer.addView(
                         mViewOverlay,
                         FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
-                                     )
+                )
             }
 
             viewContainer.addView(contentView, FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT))
@@ -350,7 +344,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             gravities: ArrayList<Gravity>,
             params: WindowManager.LayoutParams,
             fitToScreen: Boolean = false
-                            ): Positions? {
+    ): Positions? {
 
         if (null == mPopupView) return null
         if (gravities.isEmpty()) return null
@@ -461,7 +455,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
                     contentPosition.y,
                     contentPosition.x + w,
                     contentPosition.y + h
-                                )
+            )
             if (!displayFrame.rectContainsWithTolerance(finalRect, mSizeTolerance.toInt())) {
                 Timber.e("content won't fit! $displayFrame, $finalRect")
                 return findPosition(parent, anchor, offset, gravities, params, fitToScreen)
@@ -475,7 +469,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     private var mOldLocation: IntArray? = null
     private var mNewLocation: IntArray = intArrayOf(0, 0)
 
-    private fun invokePopup(positions: Positions?): Tooltip? {
+    private fun invokePopup(positions: Positions?): XTooltip? {
         positions?.let {
             isShowing = true
             mCurrentPosition = positions
@@ -490,7 +484,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
                     it.gravity,
                     if (!mShowArrow) 0 else mPadding / 2,
                     if (!mShowArrow) null else it.arrowPoint
-                                )
+            )
 
             offsetBy(0, 0)
 
@@ -586,8 +580,8 @@ class Tooltip private constructor(private val context: Context, builder: Builder
                         gravities,
                         params,
                         fitToScreen
-                            )
-                   )
+                )
+        )
     }
 
     fun hide() {
@@ -623,8 +617,8 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         if (fadeDuration > 0 && null != mPopupView) {
             mPopupView!!.alpha = 0F
             mPopupView!!.animate()
-                .setDuration(mFadeDuration)
-                .alpha(1f).start()
+                    .setDuration(mFadeDuration)
+                    .alpha(1f).start()
         }
         mShownFunc?.invoke(this)
     }
@@ -641,15 +635,15 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             mPopupView?.let { popupView ->
                 popupView.clearAnimation()
                 popupView.animate()
-                    .alpha(0f)
-                    .setDuration(fadeDuration)
-                    .setListener {
-                        onAnimationEnd {
-                            popupView.visibility = View.INVISIBLE
-                            dismiss()
+                        .alpha(0f)
+                        .setDuration(fadeDuration)
+                        .setListener {
+                            onAnimationEnd {
+                                popupView.visibility = View.INVISIBLE
+                                dismiss()
+                            }
                         }
-                    }
-                    .start()
+                        .start()
             }
         } else {
             dismiss()
@@ -725,7 +719,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             val contentPoint: Point,
             val gravity: Gravity,
             val params: WindowManager.LayoutParams
-                                )
+    )
 
     enum class Gravity {
         LEFT, RIGHT, TOP, BOTTOM, CENTER
@@ -816,6 +810,10 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             return this
         }
 
+        fun maxWidth(res: Resources, @DimenRes dimension: Int): Builder {
+            return maxWidth(res.getDimensionPixelSize(dimension))
+        }
+
         fun overlay(value: Boolean): Builder {
             this.overlay = value
             return this
@@ -849,17 +847,19 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             return this
         }
 
-        fun closePolicy(policy: ClosePolicy): Builder {
+        @JvmOverloads
+        fun closePolicy(policy: ClosePolicy, milliseconds:Long = 0): Builder {
             this.closePolicy = policy
+            this.showDuration = milliseconds
             Timber.v("closePolicy: $policy")
             return this
         }
 
-        fun create(): Tooltip {
+        fun create(): XTooltip {
             if (null == anchorView && null == point) {
                 throw IllegalArgumentException("missing anchor point or anchor view")
             }
-            return Tooltip(context, this)
+            return XTooltip(context, this)
         }
     }
 }
@@ -915,12 +915,19 @@ class ClosePolicy internal constructor(private val policy: Int) {
         private const val TOUCH_OUTSIDE = 1 shl 2
         private const val CONSUME = 1 shl 3
 
+        @JvmField
         val TOUCH_NONE = ClosePolicy(NONE)
+        @JvmField
         val TOUCH_INSIDE_CONSUME = ClosePolicy(TOUCH_INSIDE or CONSUME)
+        @JvmField
         val TOUCH_INSIDE_NO_CONSUME = ClosePolicy(TOUCH_INSIDE)
+        @JvmField
         val TOUCH_OUTSIDE_CONSUME = ClosePolicy(TOUCH_OUTSIDE or CONSUME)
+        @JvmField
         val TOUCH_OUTSIDE_NO_CONSUME = ClosePolicy(TOUCH_OUTSIDE)
+        @JvmField
         val TOUCH_ANYWHERE_NO_CONSUME = ClosePolicy(TOUCH_INSIDE or TOUCH_OUTSIDE)
+        @JvmField
         val TOUCH_ANYWHERE_CONSUME = ClosePolicy(TOUCH_INSIDE or TOUCH_OUTSIDE or CONSUME)
     }
 
