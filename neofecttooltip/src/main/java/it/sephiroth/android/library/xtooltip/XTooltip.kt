@@ -23,7 +23,6 @@ import android.widget.FrameLayout
 import android.widget.PopupWindow.INPUT_METHOD_NOT_NEEDED
 import android.widget.TextView
 import it.sephiroth.android.library.tooltip.R
-import it.sephiroth.android.library.tooltip.Tooltip
 import timber.log.Timber
 import java.lang.ref.WeakReference
 import java.util.*
