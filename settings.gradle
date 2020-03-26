@@ -1,2 +1,2 @@
-include ':library'
+include ':neofecttooltip'
 include ':app'
