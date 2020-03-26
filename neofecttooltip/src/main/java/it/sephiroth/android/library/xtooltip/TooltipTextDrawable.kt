@@ -8,7 +8,6 @@ import android.graphics.drawable.Drawable
 import android.os.Build
 import android.support.v4.util.ObjectsCompat
 import it.sephiroth.android.library.tooltip.R
-//import androidx.core.util.ObjectsCompat
 import timber.log.Timber
 
 /**

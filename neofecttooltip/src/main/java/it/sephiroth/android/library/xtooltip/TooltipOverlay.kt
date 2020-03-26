@@ -6,8 +6,6 @@ import android.support.v7.widget.AppCompatImageView
 import android.util.AttributeSet
 import it.sephiroth.android.library.tooltip.R
 
-//import androidx.appcompat.widget.AppCompatImageView
-
 /**
  * Created by alessandro crugnola on 12/12/15.
  * alessandro.crugnola@gmail.com
