@@ -11,6 +11,16 @@
         android:theme="@style/AppTheme">
 
         <activity
+            android:name=".MainActivity"
+            android:label="@string/title_activity_main_activity3"
+            android:launchMode="singleTask">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
             android:name=".MainActivity2"
             android:label="@string/title_activity_main_activity2"
             android:launchMode="singleTask">

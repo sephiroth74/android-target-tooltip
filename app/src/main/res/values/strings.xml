@@ -7,4 +7,19 @@
     <string name="title_activity_main_activity2">Target Tooltip 2</string>
     <string name="title_activity_main_activity3">Target Tooltip 3</string>
 
+    <string-array name="gravities">
+        <item>BOTTOM</item>
+        <item>TOP</item>
+        <item>LEFT</item>
+        <item>RIGHT</item>
+        <item>CENTER</item>
+    </string-array>
+
+    <string-array name="show_durations">
+        <item>0</item>
+        <item>1000</item>
+        <item>2000</item>
+        <item>5000</item>
+        <item>10000</item>
+    </string-array>
 </resources>

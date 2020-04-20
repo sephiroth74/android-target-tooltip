@@ -1,14 +1,15 @@
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
 
 group GROUP
 version VERSION_NAME
 
 android {
     compileSdkVersion ANDROID_BUILD_SDK_VERSION as int
-    buildToolsVersion ANDROID_BUILD_TOOLS_VERSION
 
     defaultConfig {
-        minSdkVersion 14
+        minSdkVersion 16
         targetSdkVersion ANDROID_BUILD_TARGET_SDK_VERSION as int
         versionCode 1
         versionName VERSION_NAME
@@ -24,8 +25,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_7
-        targetCompatibility JavaVersion.VERSION_1_7
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 
     lintOptions {
@@ -42,9 +43,12 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    provided 'com.android.support:support-annotations:25.3.1'
-    compile 'com.android.support:appcompat-v7:25.3.1'
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation "com.android.support:support-annotations:$ANDROID_BUILD_TOOLS_VERSION"
+    implementation "com.android.support:appcompat-v7:$ANDROID_BUILD_TOOLS_VERSION"
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    implementation 'com.jakewharton.timber:timber:4.7.1'
 }
 
 
