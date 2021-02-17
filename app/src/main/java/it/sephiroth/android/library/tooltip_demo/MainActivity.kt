@@ -38,18 +38,28 @@ class MainActivity : AppCompatActivity() {
 
             tooltip?.dismiss()
 
+//            tooltip = Tooltip.Builder(this)
+//                    .anchor(button, 0, 0, false)
+//                    .text(text)
+//                    .styleId(style)
+//                    .typeface(typeface)
+//                    .maxWidth(metrics.widthPixels / 2)
+//                    .arrow(arrow)
+//                    .floatingAnimation(animation)
+//                    .closePolicy(closePolicy)
+//                    .showDuration(showDuration)
+//                    .overlay(overlay)
+//                    .create()
+
+
             tooltip = Tooltip.Builder(this)
                     .anchor(button, 0, 0, false)
-                    .text(text)
-                    .styleId(style)
-                    .typeface(typeface)
-                    .maxWidth(metrics.widthPixels / 2)
-                    .arrow(arrow)
+                    .customViewNoDecor(R.layout.custom_tooltip, R.id.tooltip_text)
                     .floatingAnimation(animation)
+                    .text(text)
                     .closePolicy(closePolicy)
-                    .showDuration(showDuration)
-                    .overlay(overlay)
                     .create()
+
 
             tooltip
                     ?.doOnHidden {

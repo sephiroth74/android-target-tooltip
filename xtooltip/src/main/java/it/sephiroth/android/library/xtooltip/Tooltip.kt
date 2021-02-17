@@ -90,6 +90,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     private var mDrawable: TooltipTextDrawable? = null
     private var mAnchorView: WeakReference<View>? = null
     private lateinit var mContentView: View
+    private var isCustomViewNoDecor = false
     private lateinit var mTextView: TextView
 
     private val hideRunnable = Runnable { hide() }
@@ -124,7 +125,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
                         offsetBy(
                                 (mNewLocation[0] - mOldLocation!![0]).toFloat(),
                                 (mNewLocation[1] - mOldLocation!![1]).toFloat()
-                                )
+                        )
                     }
 
                     mOldLocation!![0] = mNewLocation[0]
@@ -137,12 +138,12 @@ class Tooltip private constructor(private val context: Context, builder: Builder
 
     init {
         val theme = context.theme
-            .obtainStyledAttributes(
-                    null,
-                    R.styleable.TooltipLayout,
-                    builder.defStyleAttr,
-                    builder.defStyleRes
-                                   )
+                .obtainStyledAttributes(
+                        null,
+                        R.styleable.TooltipLayout,
+                        builder.defStyleAttr,
+                        builder.defStyleRes
+                )
         this.mPadding = theme.getDimensionPixelSize(R.styleable.TooltipLayout_ttlm_padding, 30)
         mOverlayStyle =
                 theme.getResourceId(
@@ -185,6 +186,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         }
 
         builder.layoutId?.let {
+            isCustomViewNoDecor = builder.customViewNoDecor
             mTextViewIdRes = builder.textId!!
             mTooltipLayoutIdRes = builder.layoutId!!
             mIsCustomView = true
@@ -229,12 +231,14 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     }
 
     fun update(text: CharSequence?) {
-        mText = text
-        if (isShowing && null != mPopupView) {
-            mTextView.text = if (text is Spannable) {
-                text
-            } else {
-                HtmlCompat.fromHtml(text as String, HtmlCompat.FROM_HTML_MODE_COMPACT)
+        text?.let {
+            mText = text
+            if (isShowing && null != mPopupView) {
+                mTextView.text = if (text is Spannable) {
+                    text
+                } else {
+                    HtmlCompat.fromHtml(text as String, HtmlCompat.FROM_HTML_MODE_COMPACT)
+                }
             }
         }
     }
@@ -312,25 +316,26 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             }
 
             mFloatingAnimation?.let { contentView.setPadding(it.radius) }
-
             mTextView = contentView.findViewById(mTextViewIdRes)
 
-            with(mTextView) {
-                mDrawable?.let { background = it }
+            if(!isCustomViewNoDecor){
+                with(mTextView) {
+                    mDrawable?.let { background = it }
 
-                if (mShowArrow)
-                    setPadding(mPadding, mPadding, mPadding, mPadding)
-                else
-                    setPadding(mPadding / 2, mPadding / 2, mPadding / 2, mPadding / 2)
+                    if (mShowArrow)
+                        setPadding(mPadding, mPadding, mPadding, mPadding)
+                    else
+                        setPadding(mPadding / 2, mPadding / 2, mPadding / 2, mPadding / 2)
 
-                text = if (mText is Spannable) {
-                    mText
-                } else {
-                    HtmlCompat.fromHtml(this@Tooltip.mText as String, HtmlCompat.FROM_HTML_MODE_COMPACT)
+                    text = if (mText is Spannable) {
+                        mText
+                    } else {
+                        HtmlCompat.fromHtml(this@Tooltip.mText as String, HtmlCompat.FROM_HTML_MODE_COMPACT)
+                    }
+
+                    mMaxWidth?.let { maxWidth = it }
+                    mTypeface?.let { typeface = it }
                 }
-
-                mMaxWidth?.let { maxWidth = it }
-                mTypeface?.let { typeface = it }
             }
 
             if (null != mViewOverlay) {
@@ -488,7 +493,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
                     contentPosition.y,
                     contentPosition.x + w,
                     contentPosition.y + h
-                                )
+            )
             if (!displayFrame.rectContainsWithTolerance(finalRect, mSizeTolerance.toInt())) {
                 Timber.e("content won't fit! $displayFrame, $finalRect")
                 return findPosition(parent, anchor, offset, gravities, params, fitToScreen)
@@ -636,7 +641,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
                         gravities,
                         params,
                         fitToScreen)
-                   )
+        )
     }
 
     fun hide() {
@@ -843,6 +848,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
         internal var activateDelay = 0L
         internal var followAnchor = false
         internal var animationStyle: Int? = null
+        internal var customViewNoDecor: Boolean = false
 
         @LayoutRes
         internal var layoutId: Int? = null
@@ -862,6 +868,13 @@ class Tooltip private constructor(private val context: Context, builder: Builder
                 this.defStyleRes = R.style.ToolTipLayoutDefaultStyle
             }
             this.defStyleAttr = R.attr.ttlm_defaultStyle
+            return this
+        }
+
+        fun customViewNoDecor(@LayoutRes layoutId: Int, @IdRes textId: Int): Builder {
+            this.layoutId = layoutId
+            this.textId = textId
+            customViewNoDecor = true
             return this
         }
 
