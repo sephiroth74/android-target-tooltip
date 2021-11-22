@@ -23,6 +23,7 @@ import androidx.annotation.StyleRes
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.text.HtmlCompat
+import androidx.core.view.ViewCompat
 import androidx.core.view.setPadding
 import timber.log.Timber
 import java.lang.ref.WeakReference
@@ -314,6 +315,9 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             mFloatingAnimation?.let { contentView.setPadding(it.radius) }
 
             mTextView = contentView.findViewById(mTextViewIdRes)
+
+            ViewCompat.setLayoutDirection(contentView, ViewCompat.LAYOUT_DIRECTION_LTR)
+            ViewCompat.setLayoutDirection(viewContainer, ViewCompat.LAYOUT_DIRECTION_LTR)
 
             with(mTextView) {
                 mDrawable?.let { background = it }
