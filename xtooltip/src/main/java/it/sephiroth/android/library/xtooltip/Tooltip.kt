@@ -204,6 +204,7 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     private var mPrepareFun: ((tooltip: Tooltip) -> Unit)? = null
     private var mShownFunc: ((tooltip: Tooltip) -> Unit)? = null
     private var mHiddenFunc: ((tooltip: Tooltip) -> Unit)? = null
+    private var mClickFunc: ((tooltip: Tooltip) -> Unit)? = null
 
     @Suppress("UNUSED")
     fun doOnFailure(func: ((tooltip: Tooltip) -> Unit)?): Tooltip {
@@ -226,6 +227,12 @@ class Tooltip private constructor(private val context: Context, builder: Builder
     @Suppress("UNUSED")
     fun doOnHidden(func: ((tooltip: Tooltip) -> Unit)?): Tooltip {
         mHiddenFunc = func
+        return this
+    }
+
+    @Suppress("UNUSED")
+    fun doOnClick(func: ((tooltip: Tooltip) -> Unit)?): Tooltip {
+        mClickFunc = func
         return this
     }
 
@@ -765,12 +772,17 @@ class Tooltip private constructor(private val context: Context, builder: Builder
             mTextView.getGlobalVisibleRect(r1)
             val containsTouch = r1.contains(event.x.toInt(), event.y.toInt())
 
-            if (mClosePolicy.anywhere()) {
-                hide()
-            } else if (mClosePolicy.inside() && containsTouch) {
-                hide()
-            } else if (mClosePolicy.outside() && !containsTouch) {
-                hide()
+            when {
+                mClosePolicy.inside() && containsTouch -> {
+                    hide()
+                    mClickFunc?.invoke(this@Tooltip)
+                }
+                mClosePolicy.outside() && !containsTouch -> {
+                    hide()
+                }
+                mClosePolicy.anywhere() -> {
+                    hide()
+                }
             }
 
             return mClosePolicy.consume()
